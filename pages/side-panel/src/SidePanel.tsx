@@ -210,7 +210,6 @@ const TokenSetupPrompt = ({ onComplete }: { onComplete: () => void }) => {
 
 // Component for GitHub PR pages
 const GitHubPRView = ({ url }: { url: string }) => {
-  const logo = 'side-panel/logo_vertical.svg';
   const [prData, setPRData] = useState<PRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -318,9 +317,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
   return (
     <div className="App bg-slate-50">
       <header className="App-header text-gray-900">
-        <img src={chrome.runtime.getURL(logo)} className="App-logo mb-4" alt="logo" />
-        <h2 className="text-2xl font-bold mb-4">PR Checklistify</h2>
-
         {prData ? (
           <div className="w-full max-w-3xl px-4">
             <div className="pr-header mb-4">
@@ -362,7 +358,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
 
             <div className="description border border-gray-300 rounded p-4 mb-4 w-full text-left text-sm">
               <h4 className="font-bold mb-2">Description:</h4>
-              <div className="markdown-content overflow-auto max-h-60">
+              <div className="markdown-content overflow-auto max-h-96">
                 <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none">
                   {prData.description}
                 </ReactMarkdown>
@@ -380,7 +376,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
               </div>
 
               {showDetailedChecklists ? (
-                <div className="detailed-checklists mb-4">
+                <div className="detailed-checklists mb-4 max-h-screen overflow-y-auto">
                   {prData.files.map((file, index) => (
                     <FileChecklist
                       key={index}
@@ -391,7 +387,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
                   ))}
                 </div>
               ) : (
-                <ul className="max-h-60 overflow-y-auto">
+                <ul className="max-h-96 overflow-y-auto">
                   {prData.files.map((file, index) => (
                     <li key={index} className="mb-3 text-sm">
                       <div className="flex items-center">
@@ -466,16 +462,9 @@ const GitHubPRView = ({ url }: { url: string }) => {
 
 // Component for non-GitHub PR pages
 const DefaultView = () => {
-  const logo = 'side-panel/logo_vertical.svg';
-  const goGithubSite = () =>
-    chrome.tabs.create({ url: 'https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite' });
-
   return (
     <div className="App bg-slate-50">
       <header className="App-header text-gray-900">
-        <button onClick={goGithubSite}>
-          <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
-        </button>
         <h2>PR Checklistify</h2>
         <p className="mb-4">Navigate to a GitHub PR to see the checklist.</p>
         <p className="text-sm mb-3">
@@ -732,7 +721,7 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
             {file.patch && (
               <div>
                 <h4 className="text-sm font-semibold mb-2">Diff</h4>
-                <pre className="text-xs p-2 bg-gray-100 rounded overflow-x-auto max-h-60">{file.patch}</pre>
+                <pre className="text-xs p-2 bg-gray-100 rounded overflow-x-auto max-h-96">{file.patch}</pre>
               </div>
             )}
           </div>
