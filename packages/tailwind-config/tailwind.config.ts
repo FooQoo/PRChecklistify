@@ -1,8 +1,7 @@
 import type { Config } from 'tailwindcss';
 
+import typographyPlugin from '@tailwindcss/typography';
+
 export default {
-  theme: {
-    extend: {},
-  },
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [typographyPlugin],
 } as Omit<Config, 'content'>;
