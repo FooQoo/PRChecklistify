@@ -129,6 +129,81 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleString();
 };
 
+// Component for GitHub token setup prompt
+const TokenSetupPrompt = ({ onComplete }: { onComplete: () => void }) => {
+  const [token, setToken] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  const handleSaveToken = async () => {
+    try {
+      setIsSaving(true);
+      setMessage({ text: '', type: '' });
+
+      await githubTokenStorage.set(token);
+      setMessage({ text: 'Token saved successfully', type: 'success' });
+
+      // Wait a moment to show success message before proceeding
+      setTimeout(() => {
+        onComplete();
+      }, 1500);
+    } catch (error) {
+      console.error('Error saving token:', error);
+      setMessage({ text: 'Failed to save token', type: 'error' });
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen p-6">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-xl font-bold mb-4">GitHub Token Required</h2>
+
+        <p className="text-sm mb-4">
+          A GitHub Personal Access Token (PAT) is required to access PR data. This helps with API rate limits and allows
+          access to private repositories.
+        </p>
+
+        <div className="mb-4 border-l-4 border-blue-500 pl-3 py-2 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 text-xs">
+          <p className="mb-1 font-semibold">How to create a GitHub PAT:</p>
+          <ol className="list-decimal ml-4">
+            <li>Go to GitHub Settings → Developer settings → Personal access tokens</li>
+            <li>
+              Generate a new token with at least <code>repo</code> scope
+            </li>
+            <li>Copy and paste the token below</li>
+          </ol>
+        </div>
+
+        <div className="mb-4">
+          <input
+            type="password"
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            placeholder="Enter GitHub PAT..."
+            className="w-full p-2 border rounded text-sm"
+          />
+        </div>
+
+        <div className="flex justify-between">
+          <button
+            onClick={handleSaveToken}
+            disabled={isSaving || !token}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50 flex-grow">
+            {isSaving ? 'Saving...' : 'Save Token'}
+          </button>
+        </div>
+
+        {message.text && (
+          <p className={`text-xs mt-2 ${message.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+            {message.text}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Component for GitHub PR pages
 const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
   const isLight = theme === 'light';
@@ -136,29 +211,53 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
   const [prData, setPRData] = useState<PRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const getPRData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const data = await fetchPRData(url);
-        if (data) {
-          setPRData(data);
-        } else {
-          setError('Failed to retrieve PR data');
-        }
-      } catch (err) {
-        console.error('Error in fetching PR data:', err);
-        setError('An error occurred while fetching PR data');
-      } finally {
-        setLoading(false);
-      }
+    const checkToken = async () => {
+      const token = await githubTokenStorage.get();
+      setHasToken(!!token);
     };
 
-    getPRData();
-  }, [url]);
+    checkToken();
+  }, []);
+
+  useEffect(() => {
+    // Only fetch PR data if we have a token
+    if (hasToken === true) {
+      const getPRData = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+          const data = await fetchPRData(url);
+          if (data) {
+            setPRData(data);
+          } else {
+            setError('Failed to retrieve PR data');
+          }
+        } catch (err) {
+          console.error('Error in fetching PR data:', err);
+          setError('An error occurred while fetching PR data');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      getPRData();
+    } else if (hasToken === false) {
+      // If token is explicitly falsy (not null which means still loading)
+      setLoading(false);
+    }
+  }, [url, hasToken]);
+
+  if (hasToken === null) {
+    return <div className="flex items-center justify-center h-screen">Checking configuration...</div>;
+  }
+
+  if (hasToken === false) {
+    return <TokenSetupPrompt onComplete={() => setHasToken(true)} />;
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading PR data...</div>;
