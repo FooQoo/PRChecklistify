@@ -27,6 +27,8 @@ interface PRData {
     additions: number;
     deletions: number;
     patch?: string;
+    reviewStatus?: 'approved' | 'needs-work' | 'not-reviewed'; // Status of review for this file
+    comments?: string; // Any review comments for this file
   }[];
   user: {
     login: string;
@@ -105,6 +107,8 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         additions: file.additions,
         deletions: file.deletions,
         patch: file.patch,
+        reviewStatus: 'not-reviewed', // Initialize all files as not reviewed
+        comments: '',
       })),
       user: {
         login: prData.user.login,
@@ -214,6 +218,7 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
+  const [showDetailedChecklists, setShowDetailedChecklists] = useState(false);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -253,6 +258,43 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
     }
   }, [url, hasToken]);
 
+  const handleFileStatusChange = (filename: string, status: 'approved' | 'needs-work' | 'not-reviewed') => {
+    if (!prData) return;
+
+    const updatedFiles = prData.files.map(file => {
+      if (file.filename === filename) {
+        return { ...file, reviewStatus: status };
+      }
+      return file;
+    });
+
+    setPRData({ ...prData, files: updatedFiles });
+  };
+
+  const handleFileCommentChange = (filename: string, comments: string) => {
+    if (!prData) return;
+
+    const updatedFiles = prData.files.map(file => {
+      if (file.filename === filename) {
+        return { ...file, comments };
+      }
+      return file;
+    });
+
+    setPRData({ ...prData, files: updatedFiles });
+  };
+
+  const getOverallReviewProgress = () => {
+    if (!prData) return { total: 0, reviewed: 0, approved: 0, needsWork: 0 };
+
+    const total = prData.files.length;
+    const reviewed = prData.files.filter(f => f.reviewStatus !== 'not-reviewed').length;
+    const approved = prData.files.filter(f => f.reviewStatus === 'approved').length;
+    const needsWork = prData.files.filter(f => f.reviewStatus === 'needs-work').length;
+
+    return { total, reviewed, approved, needsWork };
+  };
+
   if (hasToken === null) {
     return <div className="flex items-center justify-center h-screen">Checking configuration...</div>;
   }
@@ -274,14 +316,16 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
     );
   }
 
+  const progress = getOverallReviewProgress();
+
   return (
     <div className={`App ${isLight ? 'bg-slate-50' : 'bg-gray-800'}`}>
       <header className={`App-header ${isLight ? 'text-gray-900' : 'text-gray-100'}`}>
-        <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
-        <h2>GitHub PR Checklist</h2>
+        <img src={chrome.runtime.getURL(logo)} className="App-logo mb-4" alt="logo" />
+        <h2 className="text-2xl font-bold mb-4">PR Checklistify</h2>
 
         {prData ? (
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-3xl px-4">
             <div className="pr-header mb-4">
               <h3 className="text-xl font-bold mb-2">{prData.title}</h3>
               <div className="flex items-center text-sm mb-2">
@@ -303,6 +347,22 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
               <span>{prData.diffStats.changedFiles} files</span>
             </div>
 
+            <div className="review-progress border border-gray-300 rounded p-4 mb-4 w-full">
+              <h4 className="font-bold mb-2">Review Progress:</h4>
+              <div className="flex justify-between mb-2 text-sm">
+                <span>
+                  Reviewed: {progress.reviewed}/{progress.total} files
+                </span>
+                <span>Approved: {progress.approved}</span>
+                <span>Needs Work: {progress.needsWork}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full"
+                  style={{ width: `${(progress.reviewed / progress.total) * 100}%` }}></div>
+              </div>
+            </div>
+
             <div className="description border border-gray-300 rounded p-4 mb-4 w-full text-left text-sm">
               <h4 className="font-bold mb-2">Description:</h4>
               <div className="markdown-content overflow-auto max-h-60">
@@ -312,45 +372,90 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
               </div>
             </div>
 
-            <div className="files border border-gray-300 rounded p-4 w-full text-left">
-              <h4 className="font-bold mb-2">Changed Files:</h4>
-              <ul className="max-h-60 overflow-y-auto">
-                {prData.files.map((file, index) => (
-                  <li key={index} className="mb-2 text-sm">
-                    <div className="flex items-center">
-                      <span
-                        className={`inline-block w-5 text-center mr-1 ${
-                          file.status === 'added'
-                            ? 'text-green-500'
-                            : file.status === 'removed'
-                              ? 'text-red-500'
-                              : 'text-yellow-500'
-                        }`}>
-                        {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
-                      </span>
-                      <span className="text-xs mr-2">
-                        (+<span className="text-green-600">{file.additions}</span>/ -
-                        <span className="text-red-600">{file.deletions}</span>)
-                      </span>
-                      <span className="truncate">{file.filename}</span>
-                    </div>
-                    {file.patch && file.patch.length < 200 && (
-                      <pre className="text-xs mt-1 ml-6 p-2 bg-gray-100 dark:bg-gray-700 rounded overflow-x-auto">
-                        {file.patch}
-                      </pre>
-                    )}
-                  </li>
-                ))}
-              </ul>
+            <div className="files-section border border-gray-300 rounded p-4 w-full text-left mb-4">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-bold">Changed Files:</h4>
+                <button
+                  onClick={() => setShowDetailedChecklists(!showDetailedChecklists)}
+                  className="text-xs px-3 py-1 bg-blue-100 dark:bg-blue-800 rounded hover:bg-blue-200 dark:hover:bg-blue-700">
+                  {showDetailedChecklists ? 'Hide Detailed Checklists' : 'Show Detailed Checklists'}
+                </button>
+              </div>
+
+              {showDetailedChecklists ? (
+                <div className="detailed-checklists mb-4">
+                  {prData.files.map((file, index) => (
+                    <FileChecklist
+                      key={index}
+                      file={file}
+                      onStatusChange={handleFileStatusChange}
+                      onCommentChange={handleFileCommentChange}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ul className="max-h-60 overflow-y-auto">
+                  {prData.files.map((file, index) => (
+                    <li key={index} className="mb-3 text-sm">
+                      <div className="flex items-center">
+                        <span
+                          className={`inline-block w-5 text-center mr-1 ${
+                            file.status === 'added'
+                              ? 'text-green-500'
+                              : file.status === 'removed'
+                                ? 'text-red-500'
+                                : 'text-yellow-500'
+                          }`}>
+                          {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
+                        </span>
+                        <span className="text-xs mr-2">
+                          (+<span className="text-green-600">{file.additions}</span>/ -
+                          <span className="text-red-600">{file.deletions}</span>)
+                        </span>
+                        <span className="truncate">{file.filename}</span>
+
+                        {file.reviewStatus && (
+                          <span
+                            className={`ml-2 inline-block px-2 py-0.5 text-xs rounded-full text-white ${
+                              file.reviewStatus === 'approved'
+                                ? 'bg-green-500'
+                                : file.reviewStatus === 'needs-work'
+                                  ? 'bg-yellow-500'
+                                  : 'bg-gray-400'
+                            }`}>
+                            {file.reviewStatus === 'approved' ? '✓' : file.reviewStatus === 'needs-work' ? '⚠' : '⊘'}
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            <div className="border border-gray-300 rounded p-4 w-full max-w-md mt-4">
-              <h3 className="text-lg font-bold mb-3">PR Checklist</h3>
-              <ul className="text-left">
-                <li className="mb-2">✅ Code formatting is consistent</li>
-                <li className="mb-2">✅ Tests have been added</li>
-                <li className="mb-2">❌ Documentation is updated</li>
-                <li className="mb-2">⏳ Performance considerations addressed</li>
+            <div className="border border-gray-300 rounded p-4 w-full max-w-3xl mb-6">
+              <h3 className="text-lg font-bold mb-3">PR Summary Checklist</h3>
+              <ul className="text-left space-y-2">
+                <li className="flex items-start">
+                  <input type="checkbox" id="code-formatting" className="mt-1 mr-2 rounded" />
+                  <label htmlFor="code-formatting">Code formatting is consistent</label>
+                </li>
+                <li className="flex items-start">
+                  <input type="checkbox" id="tests-added" className="mt-1 mr-2 rounded" />
+                  <label htmlFor="tests-added">Tests have been added/updated</label>
+                </li>
+                <li className="flex items-start">
+                  <input type="checkbox" id="docs-updated" className="mt-1 mr-2 rounded" />
+                  <label htmlFor="docs-updated">Documentation is updated</label>
+                </li>
+                <li className="flex items-start">
+                  <input type="checkbox" id="performance" className="mt-1 mr-2 rounded" />
+                  <label htmlFor="performance">Performance considerations addressed</label>
+                </li>
+                <li className="flex items-start">
+                  <input type="checkbox" id="security" className="mt-1 mr-2 rounded" />
+                  <label htmlFor="security">Security considerations addressed</label>
+                </li>
               </ul>
             </div>
           </div>
@@ -494,6 +599,160 @@ const GitHubTokenSettings = () => {
           </p>
         )}
       </div>
+    </div>
+  );
+};
+
+// Component for file checklist items
+interface FileChecklistProps {
+  file: PRData['files'][0];
+  onStatusChange: (filename: string, status: 'approved' | 'needs-work' | 'not-reviewed') => void;
+  onCommentChange: (filename: string, comments: string) => void;
+}
+
+const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const [comment, setComment] = useState(file.comments || '');
+
+  const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setComment(e.target.value);
+    onCommentChange(file.filename, e.target.value);
+  };
+
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-md mb-3 overflow-hidden">
+      <div
+        className="flex items-center justify-between p-3 cursor-pointer bg-gray-50 dark:bg-gray-800"
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded(!expanded)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setExpanded(!expanded);
+          }
+        }}>
+        <div className="flex items-center">
+          <span
+            className={`inline-block w-5 text-center mr-2 ${
+              file.status === 'added'
+                ? 'text-green-500'
+                : file.status === 'removed'
+                  ? 'text-red-500'
+                  : 'text-yellow-500'
+            }`}>
+            {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
+          </span>
+          <span className="font-medium truncate">{file.filename}</span>
+        </div>
+        <span className="text-gray-500">
+          {expanded ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </span>
+      </div>
+
+      {expanded && (
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-3">
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Review Status</h4>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => onStatusChange(file.filename, 'approved')}
+                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                    file.reviewStatus === 'approved'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 hover:bg-green-100 dark:hover:bg-green-900'
+                  }`}>
+                  ✓ Approved
+                </button>
+                <button
+                  onClick={() => onStatusChange(file.filename, 'needs-work')}
+                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                    file.reviewStatus === 'needs-work'
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 hover:bg-yellow-100 dark:hover:bg-yellow-900'
+                  }`}>
+                  ⚠ Needs Work
+                </button>
+                <button
+                  onClick={() => onStatusChange(file.filename, 'not-reviewed')}
+                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                    file.reviewStatus === 'not-reviewed' || !file.reviewStatus
+                      ? 'bg-gray-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}>
+                  ⊘ Not Reviewed
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id={`${file.filename}-formatting`} className="rounded" />
+                  <label htmlFor={`${file.filename}-formatting`} className="text-sm">
+                    Code follows formatting standards
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id={`${file.filename}-docs`} className="rounded" />
+                  <label htmlFor={`${file.filename}-docs`} className="text-sm">
+                    Documentation is updated
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id={`${file.filename}-tests`} className="rounded" />
+                  <label htmlFor={`${file.filename}-tests`} className="text-sm">
+                    Tests are included/updated
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id={`${file.filename}-performance`} className="rounded" />
+                  <label htmlFor={`${file.filename}-performance`} className="text-sm">
+                    Performance considerations addressed
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Review Comments</h4>
+              <textarea
+                value={comment}
+                onChange={handleCommentChange}
+                placeholder="Add review comments here..."
+                className="w-full p-2 text-sm border rounded h-20 bg-white dark:bg-gray-800 dark:border-gray-600"
+              />
+            </div>
+
+            {file.patch && (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Diff</h4>
+                <pre className="text-xs p-2 bg-gray-100 dark:bg-gray-700 rounded overflow-x-auto max-h-60">
+                  {file.patch}
+                </pre>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
