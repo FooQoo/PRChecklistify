@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import '@src/SidePanel.css';
-import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
-import { exampleThemeStorage, githubTokenStorage } from '@extension/storage';
-import { ToggleButton } from '@extension/ui';
-import { t } from '@extension/i18n';
+import { withErrorBoundary, withSuspense } from '@extension/shared';
+import { githubTokenStorage } from '@extension/storage';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -162,7 +160,7 @@ const TokenSetupPrompt = ({ onComplete }: { onComplete: () => void }) => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen p-6">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-xl font-bold mb-4">GitHub Token Required</h2>
 
         <p className="text-sm mb-4">
@@ -170,7 +168,7 @@ const TokenSetupPrompt = ({ onComplete }: { onComplete: () => void }) => {
           access to private repositories.
         </p>
 
-        <div className="mb-4 border-l-4 border-blue-500 pl-3 py-2 bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 text-xs">
+        <div className="mb-4 border-l-4 border-blue-500 pl-3 py-2 bg-blue-50 text-xs">
           <p className="mb-1 font-semibold">How to create a GitHub PAT:</p>
           <ol className="list-decimal ml-4">
             <li>Go to GitHub Settings → Developer settings → Personal access tokens</li>
@@ -211,9 +209,8 @@ const TokenSetupPrompt = ({ onComplete }: { onComplete: () => void }) => {
 };
 
 // Component for GitHub PR pages
-const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
-  const isLight = theme === 'light';
-  const logo = isLight ? 'side-panel/logo_vertical.svg' : 'side-panel/logo_vertical_dark.svg';
+const GitHubPRView = ({ url }: { url: string }) => {
+  const logo = 'side-panel/logo_vertical.svg';
   const [prData, setPRData] = useState<PRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -319,8 +316,8 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
   const progress = getOverallReviewProgress();
 
   return (
-    <div className={`App ${isLight ? 'bg-slate-50' : 'bg-gray-800'}`}>
-      <header className={`App-header ${isLight ? 'text-gray-900' : 'text-gray-100'}`}>
+    <div className="App bg-slate-50">
+      <header className="App-header text-gray-900">
         <img src={chrome.runtime.getURL(logo)} className="App-logo mb-4" alt="logo" />
         <h2 className="text-2xl font-bold mb-4">PR Checklistify</h2>
 
@@ -341,7 +338,7 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
               </div>
             </div>
 
-            <div className="stats flex justify-between mb-4 text-sm p-2 rounded bg-gray-100 dark:bg-gray-700">
+            <div className="stats flex justify-between mb-4 text-sm p-2 rounded bg-gray-100">
               <span className="text-green-600">+{prData.diffStats.additions}</span>
               <span className="text-red-600">-{prData.diffStats.deletions}</span>
               <span>{prData.diffStats.changedFiles} files</span>
@@ -356,7 +353,7 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
                 <span>Approved: {progress.approved}</span>
                 <span>Needs Work: {progress.needsWork}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
                   className="bg-blue-600 h-2.5 rounded-full"
                   style={{ width: `${(progress.reviewed / progress.total) * 100}%` }}></div>
@@ -366,7 +363,7 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
             <div className="description border border-gray-300 rounded p-4 mb-4 w-full text-left text-sm">
               <h4 className="font-bold mb-2">Description:</h4>
               <div className="markdown-content overflow-auto max-h-60">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose dark:prose-invert prose-sm max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none">
                   {prData.description}
                 </ReactMarkdown>
               </div>
@@ -377,7 +374,7 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
                 <h4 className="font-bold">Changed Files:</h4>
                 <button
                   onClick={() => setShowDetailedChecklists(!showDetailedChecklists)}
-                  className="text-xs px-3 py-1 bg-blue-100 dark:bg-blue-800 rounded hover:bg-blue-200 dark:hover:bg-blue-700">
+                  className="text-xs px-3 py-1 bg-blue-100  rounded hover:bg-blue-200">
                   {showDetailedChecklists ? 'Hide Detailed Checklists' : 'Show Detailed Checklists'}
                 </button>
               </div>
@@ -462,25 +459,20 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
         ) : (
           <p className="text-red-500">Failed to load PR data. Please check your connection or PR URL.</p>
         )}
-
-        <ToggleButton onClick={exampleThemeStorage.toggle} className="mt-6">
-          {t('toggleTheme')}
-        </ToggleButton>
       </header>
     </div>
   );
 };
 
 // Component for non-GitHub PR pages
-const DefaultView = ({ theme }: { theme: string }) => {
-  const isLight = theme === 'light';
-  const logo = isLight ? 'side-panel/logo_vertical.svg' : 'side-panel/logo_vertical_dark.svg';
+const DefaultView = () => {
+  const logo = 'side-panel/logo_vertical.svg';
   const goGithubSite = () =>
     chrome.tabs.create({ url: 'https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite' });
 
   return (
-    <div className={`App ${isLight ? 'bg-slate-50' : 'bg-gray-800'}`}>
-      <header className={`App-header ${isLight ? 'text-gray-900' : 'text-gray-100'}`}>
+    <div className="App bg-slate-50">
+      <header className="App-header text-gray-900">
         <button onClick={goGithubSite}>
           <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
         </button>
@@ -489,7 +481,6 @@ const DefaultView = ({ theme }: { theme: string }) => {
         <p className="text-sm mb-3">
           Edit <code>pages/side-panel/src/SidePanel.tsx</code> to customize.
         </p>
-        <ToggleButton onClick={exampleThemeStorage.toggle}>{t('toggleTheme')}</ToggleButton>
       </header>
     </div>
   );
@@ -557,12 +548,12 @@ const GitHubTokenSettings = () => {
 
         {savedToken && (
           <div className="flex items-center mb-3">
-            <div className="text-xs text-gray-600 bg-gray-100 dark:bg-gray-700 p-2 rounded flex-grow mr-2 font-mono">
+            <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded flex-grow mr-2 font-mono">
               {showToken ? savedToken : '•'.repeat(Math.min(savedToken.length, 24))}
             </div>
             <button
               onClick={() => setShowToken(!showToken)}
-              className="text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 p-1 rounded">
+              className="text-xs bg-gray-200 hover:bg-gray-300 p-1 rounded">
               {showToken ? 'Hide' : 'Show'}
             </button>
           </div>
@@ -620,9 +611,9 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
   };
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-md mb-3 overflow-hidden">
+    <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
       <div
-        className="flex items-center justify-between p-3 cursor-pointer bg-gray-50 dark:bg-gray-800"
+        className="flex items-center justify-between p-3 cursor-pointer bg-gray-50"
         role="button"
         tabIndex={0}
         onClick={() => setExpanded(!expanded)}
@@ -667,7 +658,7 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
       </div>
 
       {expanded && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-3">
             <div>
               <h4 className="text-sm font-semibold mb-2">Review Status</h4>
@@ -675,18 +666,14 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
                 <button
                   onClick={() => onStatusChange(file.filename, 'approved')}
                   className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                    file.reviewStatus === 'approved'
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 hover:bg-green-100 dark:hover:bg-green-900'
+                    file.reviewStatus === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-100'
                   }`}>
                   ✓ Approved
                 </button>
                 <button
                   onClick={() => onStatusChange(file.filename, 'needs-work')}
                   className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                    file.reviewStatus === 'needs-work'
-                      ? 'bg-yellow-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 hover:bg-yellow-100 dark:hover:bg-yellow-900'
+                    file.reviewStatus === 'needs-work' ? 'bg-yellow-500 text-white' : 'bg-gray-100 hover:bg-yellow-100'
                   }`}>
                   ⚠ Needs Work
                 </button>
@@ -695,7 +682,7 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
                   className={`px-3 py-1 text-xs rounded-full transition-colors ${
                     file.reviewStatus === 'not-reviewed' || !file.reviewStatus
                       ? 'bg-gray-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      : 'bg-gray-100 hover:bg-gray-200'
                   }`}>
                   ⊘ Not Reviewed
                 </button>
@@ -738,16 +725,14 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
                 value={comment}
                 onChange={handleCommentChange}
                 placeholder="Add review comments here..."
-                className="w-full p-2 text-sm border rounded h-20 bg-white dark:bg-gray-800 dark:border-gray-600"
+                className="w-full p-2 text-sm border rounded h-20 bg-white"
               />
             </div>
 
             {file.patch && (
               <div>
                 <h4 className="text-sm font-semibold mb-2">Diff</h4>
-                <pre className="text-xs p-2 bg-gray-100 dark:bg-gray-700 rounded overflow-x-auto max-h-60">
-                  {file.patch}
-                </pre>
+                <pre className="text-xs p-2 bg-gray-100 rounded overflow-x-auto max-h-60">{file.patch}</pre>
               </div>
             )}
           </div>
@@ -758,7 +743,6 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
 };
 
 const SidePanel = () => {
-  const theme = useStorage(exampleThemeStorage);
   const [currentPage, setCurrentPage] = useState<CurrentPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -808,16 +792,12 @@ const SidePanel = () => {
   // Render appropriate view based on URL
   return (
     <div>
-      {isGitHubPRPage(currentPage?.url || '') ? (
-        <GitHubPRView url={currentPage.url} theme={theme} />
-      ) : (
-        <DefaultView theme={theme} />
-      )}
+      {isGitHubPRPage(currentPage?.url || '') ? <GitHubPRView url={currentPage.url} /> : <DefaultView />}
 
       <div className="fixed bottom-4 right-4">
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 p-2 rounded-full"
+          className="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"
           title="Settings">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
@@ -831,12 +811,10 @@ const SidePanel = () => {
 
       {showSettings && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Settings</h2>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-gray-700">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6"
@@ -849,13 +827,6 @@ const SidePanel = () => {
             </div>
 
             <GitHubTokenSettings />
-
-            <div className="mt-4 pt-4 border-t border-gray-300 dark:border-gray-700">
-              <h3 className="text-lg font-bold mb-3">Theme</h3>
-              <ToggleButton onClick={exampleThemeStorage.toggle}>
-                {theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-              </ToggleButton>
-            </div>
           </div>
         </div>
       )}
