@@ -319,13 +319,13 @@ const GitHubPRView = ({ url }: { url: string }) => {
       <header className="App-header text-gray-900">
         {prData ? (
           <div className="w-full max-w-3xl px-4">
-            <div className="pr-header mb-4">
-              <h3 className="text-xl font-bold mb-2">{prData.title}</h3>
-              <div className="flex items-center text-sm mb-2">
+            <div className="pr-header mb-2">
+              <h3 className="text-xl font-bold mb-1">{prData.title}</h3>
+              <div className="flex items-center text-sm mb-1">
                 <img src={prData.user.avatar_url} alt="User Avatar" className="w-6 h-6 rounded-full mr-2" />
                 <span>{prData.user.login}</span>
               </div>
-              <div className="text-xs text-gray-500 mb-2">
+              <div className="text-xs text-gray-500 mb-1">
                 <div>Created: {formatDate(prData.created_at)}</div>
                 <div>Updated: {formatDate(prData.updated_at)}</div>
                 <div className="mt-1">
@@ -334,15 +334,15 @@ const GitHubPRView = ({ url }: { url: string }) => {
               </div>
             </div>
 
-            <div className="stats flex justify-between mb-4 text-sm p-2 rounded bg-gray-100">
+            <div className="stats flex justify-between mb-2 text-sm p-2 rounded bg-gray-100">
               <span className="text-green-600">+{prData.diffStats.additions}</span>
               <span className="text-red-600">-{prData.diffStats.deletions}</span>
               <span>{prData.diffStats.changedFiles} files</span>
             </div>
 
-            <div className="review-progress border border-gray-300 rounded p-4 mb-4 w-full">
-              <h4 className="font-bold mb-2">Review Progress:</h4>
-              <div className="flex justify-between mb-2 text-sm">
+            <div className="review-progress border border-gray-300 rounded p-2 mb-2 w-full">
+              <h4 className="font-bold mb-1">Review Progress:</h4>
+              <div className="flex justify-between mb-1 text-sm">
                 <span>
                   Reviewed: {progress.reviewed}/{progress.total} files
                 </span>
@@ -356,100 +356,112 @@ const GitHubPRView = ({ url }: { url: string }) => {
               </div>
             </div>
 
-            <div className="description border border-gray-300 rounded p-4 mb-4 w-full text-left text-sm">
-              <h4 className="font-bold mb-2">Description:</h4>
-              <div className="markdown-content overflow-auto max-h-96">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none">
-                  {prData.description}
-                </ReactMarkdown>
-              </div>
-            </div>
-
-            <div className="files-section border border-gray-300 rounded p-4 w-full text-left mb-4">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="font-bold">Changed Files:</h4>
-                <button
-                  onClick={() => setShowDetailedChecklists(!showDetailedChecklists)}
-                  className="text-xs px-3 py-1 bg-blue-100  rounded hover:bg-blue-200">
-                  {showDetailedChecklists ? 'Hide Detailed Checklists' : 'Show Detailed Checklists'}
-                </button>
-              </div>
-
-              {showDetailedChecklists ? (
-                <div className="detailed-checklists mb-4 max-h-screen overflow-y-auto">
-                  {prData.files.map((file, index) => (
-                    <FileChecklist
-                      key={index}
-                      file={file}
-                      onStatusChange={handleFileStatusChange}
-                      onCommentChange={handleFileCommentChange}
-                    />
-                  ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="description border border-gray-300 rounded p-2 w-full text-left text-sm">
+                <h4 className="font-bold mb-1">Description:</h4>
+                <div className="markdown-content">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none">
+                    {prData.description}
+                  </ReactMarkdown>
                 </div>
-              ) : (
-                <ul className="max-h-96 overflow-y-auto">
-                  {prData.files.map((file, index) => (
-                    <li key={index} className="mb-3 text-sm">
-                      <div className="flex items-center">
-                        <span
-                          className={`inline-block w-5 text-center mr-1 ${
-                            file.status === 'added'
-                              ? 'text-green-500'
-                              : file.status === 'removed'
-                                ? 'text-red-500'
-                                : 'text-yellow-500'
-                          }`}>
-                          {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
-                        </span>
-                        <span className="text-xs mr-2">
-                          (+<span className="text-green-600">{file.additions}</span>/ -
-                          <span className="text-red-600">{file.deletions}</span>)
-                        </span>
-                        <span className="truncate">{file.filename}</span>
+              </div>
 
-                        {file.reviewStatus && (
+              <div className="files-section border border-gray-300 rounded p-2 w-full text-left">
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="font-bold">Changed Files:</h4>
+                  <button
+                    onClick={() => setShowDetailedChecklists(!showDetailedChecklists)}
+                    className="text-xs px-2 py-1 bg-blue-100 rounded hover:bg-blue-200">
+                    {showDetailedChecklists ? 'Hide Details' : 'Show Details'}
+                  </button>
+                </div>
+
+                {showDetailedChecklists ? (
+                  <div className="detailed-checklists">
+                    {prData.files.map((file, index) => (
+                      <FileChecklist
+                        key={index}
+                        file={file}
+                        onStatusChange={handleFileStatusChange}
+                        onCommentChange={handleFileCommentChange}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <ul>
+                    {prData.files.map((file, index) => (
+                      <li key={index} className="mb-1 text-sm">
+                        <div className="flex items-center">
                           <span
-                            className={`ml-2 inline-block px-2 py-0.5 text-xs rounded-full text-white ${
-                              file.reviewStatus === 'approved'
-                                ? 'bg-green-500'
-                                : file.reviewStatus === 'needs-work'
-                                  ? 'bg-yellow-500'
-                                  : 'bg-gray-400'
+                            className={`inline-block w-5 text-center mr-1 ${
+                              file.status === 'added'
+                                ? 'text-green-500'
+                                : file.status === 'removed'
+                                  ? 'text-red-500'
+                                  : 'text-yellow-500'
                             }`}>
-                            {file.reviewStatus === 'approved' ? '✓' : file.reviewStatus === 'needs-work' ? '⚠' : '⊘'}
+                            {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
                           </span>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                          <span className="text-xs mr-2">
+                            (+<span className="text-green-600">{file.additions}</span>/ -
+                            <span className="text-red-600">{file.deletions}</span>)
+                          </span>
+                          <span className="truncate">{file.filename}</span>
+
+                          {file.reviewStatus && (
+                            <span
+                              className={`ml-2 inline-block px-2 py-0.5 text-xs rounded-full text-white ${
+                                file.reviewStatus === 'approved'
+                                  ? 'bg-green-500'
+                                  : file.reviewStatus === 'needs-work'
+                                    ? 'bg-yellow-500'
+                                    : 'bg-gray-400'
+                              }`}>
+                              {file.reviewStatus === 'approved' ? '✓' : file.reviewStatus === 'needs-work' ? '⚠' : '⊘'}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
 
-            <div className="border border-gray-300 rounded p-4 w-full max-w-3xl mb-6">
-              <h3 className="text-lg font-bold mb-3">PR Summary Checklist</h3>
-              <ul className="text-left space-y-2">
-                <li className="flex items-start">
-                  <input type="checkbox" id="code-formatting" className="mt-1 mr-2 rounded" />
-                  <label htmlFor="code-formatting">Code formatting is consistent</label>
-                </li>
-                <li className="flex items-start">
-                  <input type="checkbox" id="tests-added" className="mt-1 mr-2 rounded" />
-                  <label htmlFor="tests-added">Tests have been added/updated</label>
-                </li>
-                <li className="flex items-start">
-                  <input type="checkbox" id="docs-updated" className="mt-1 mr-2 rounded" />
-                  <label htmlFor="docs-updated">Documentation is updated</label>
-                </li>
-                <li className="flex items-start">
-                  <input type="checkbox" id="performance" className="mt-1 mr-2 rounded" />
-                  <label htmlFor="performance">Performance considerations addressed</label>
-                </li>
-                <li className="flex items-start">
-                  <input type="checkbox" id="security" className="mt-1 mr-2 rounded" />
-                  <label htmlFor="security">Security considerations addressed</label>
-                </li>
-              </ul>
+            <div className="border border-gray-300 rounded p-2 w-full max-w-3xl mt-2">
+              <h3 className="text-md font-bold mb-1">PR Summary Checklist</h3>
+              <div className="grid grid-cols-2 gap-1 text-left">
+                <div className="flex items-start">
+                  <input type="checkbox" id="code-formatting" className="mt-1 mr-1 rounded" />
+                  <label htmlFor="code-formatting" className="text-sm">
+                    Code formatting
+                  </label>
+                </div>
+                <div className="flex items-start">
+                  <input type="checkbox" id="tests-added" className="mt-1 mr-1 rounded" />
+                  <label htmlFor="tests-added" className="text-sm">
+                    Tests updated
+                  </label>
+                </div>
+                <div className="flex items-start">
+                  <input type="checkbox" id="docs-updated" className="mt-1 mr-1 rounded" />
+                  <label htmlFor="docs-updated" className="text-sm">
+                    Documentation
+                  </label>
+                </div>
+                <div className="flex items-start">
+                  <input type="checkbox" id="performance" className="mt-1 mr-1 rounded" />
+                  <label htmlFor="performance" className="text-sm">
+                    Performance
+                  </label>
+                </div>
+                <div className="flex items-start">
+                  <input type="checkbox" id="security" className="mt-1 mr-1 rounded" />
+                  <label htmlFor="security" className="text-sm">
+                    Security
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
