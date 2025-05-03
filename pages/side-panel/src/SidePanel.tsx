@@ -369,62 +369,18 @@ const GitHubPRView = ({ url }: { url: string }) => {
               <div className="files-section border border-gray-300 rounded p-2 w-full text-left">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="font-bold">Changed Files:</h4>
-                  <button
-                    onClick={() => setShowDetailedChecklists(!showDetailedChecklists)}
-                    className="text-xs px-2 py-1 bg-blue-100 rounded hover:bg-blue-200">
-                    {showDetailedChecklists ? 'Hide Details' : 'Show Details'}
-                  </button>
                 </div>
 
-                {showDetailedChecklists ? (
-                  <div className="detailed-checklists">
-                    {prData.files.map((file, index) => (
-                      <FileChecklist
-                        key={index}
-                        file={file}
-                        onStatusChange={handleFileStatusChange}
-                        onCommentChange={handleFileCommentChange}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <ul>
-                    {prData.files.map((file, index) => (
-                      <li key={index} className="mb-1 text-sm">
-                        <div className="flex items-center">
-                          <span
-                            className={`inline-block w-5 text-center mr-1 ${
-                              file.status === 'added'
-                                ? 'text-green-500'
-                                : file.status === 'removed'
-                                  ? 'text-red-500'
-                                  : 'text-yellow-500'
-                            }`}>
-                            {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
-                          </span>
-                          <span className="text-xs mr-2">
-                            (+<span className="text-green-600">{file.additions}</span>/ -
-                            <span className="text-red-600">{file.deletions}</span>)
-                          </span>
-                          <span className="truncate">{file.filename}</span>
-
-                          {file.reviewStatus && (
-                            <span
-                              className={`ml-2 inline-block px-2 py-0.5 text-xs rounded-full text-white ${
-                                file.reviewStatus === 'approved'
-                                  ? 'bg-green-500'
-                                  : file.reviewStatus === 'needs-work'
-                                    ? 'bg-yellow-500'
-                                    : 'bg-gray-400'
-                              }`}>
-                              {file.reviewStatus === 'approved' ? '✓' : file.reviewStatus === 'needs-work' ? '⚠' : '⊘'}
-                            </span>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="detailed-checklists">
+                  {prData.files.map((file, index) => (
+                    <FileChecklist
+                      key={index}
+                      file={file}
+                      onStatusChange={handleFileStatusChange}
+                      onCommentChange={handleFileCommentChange}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -603,7 +559,7 @@ interface FileChecklistProps {
 }
 
 const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistProps) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Default to expanded
   const [comment, setComment] = useState(file.comments || '');
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -732,7 +688,6 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
 
             {file.patch && (
               <div>
-                <h4 className="text-sm font-semibold mb-2">Diff</h4>
                 <pre className="text-xs p-2 bg-gray-100 rounded overflow-x-auto max-h-96">{file.patch}</pre>
               </div>
             )}
