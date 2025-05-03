@@ -5,11 +5,6 @@ exampleThemeStorage.get().then(theme => {
   console.log('theme', theme);
 });
 
-// Function to check if URL is a GitHub PR details page
-const isGitHubPRPage = (url: string): boolean => {
-  return !!url && /^https:\/\/github\.com\/.*\/pull\/\d+/.test(url);
-};
-
 // Add event listener to open side panel when extension icon is clicked
 chrome.action.onClicked.addListener(async tab => {
   // Open the side panel in the current tab
@@ -17,14 +12,28 @@ chrome.action.onClicked.addListener(async tab => {
   console.log('Side panel opened for tab:', tab.id);
 });
 
-// Listen for tab updates to detect URL changes
+// Listen for tab updates to detect URL changes (for page reloads)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
-    const isPRPage = isGitHubPRPage(tab.url);
-    // Store the current page type in storage for the side panel to access
+    console.log('Tab updated:', tabId, 'New URL:', tab.url);
+    // Store the current URL in storage for the side panel to access
     chrome.storage.local.set({
       currentPage: {
-        isPRPage,
+        url: tab.url,
+      },
+    });
+  }
+});
+
+// Listen for tab activation (when user switches between tabs)
+chrome.tabs.onActivated.addListener(async activeInfo => {
+  // Get information about the newly activated tab
+  const tab = await chrome.tabs.get(activeInfo.tabId);
+  console.log('Tab activated:', activeInfo.tabId, 'URL:', tab.url);
+
+  if (tab.url) {
+    chrome.storage.local.set({
+      currentPage: {
         url: tab.url,
       },
     });

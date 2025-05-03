@@ -7,7 +7,6 @@ import { t } from '@extension/i18n';
 
 // Type for page information
 type CurrentPage = {
-  isPRPage: boolean;
   url: string;
 };
 
@@ -89,6 +88,7 @@ const SidePanel = () => {
 
     // Listen for storage changes
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      console.log('Storage changes:', changes);
       if (changes.currentPage) {
         setCurrentPage(changes.currentPage.newValue);
       }
@@ -102,12 +102,21 @@ const SidePanel = () => {
     };
   }, []);
 
+  const isGitHubPRPage = (url: string) => {
+    const githubPRRegex = /https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+/;
+    return githubPRRegex.test(url);
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
   // Render appropriate view based on URL
-  return currentPage?.isPRPage ? <GitHubPRView url={currentPage.url} theme={theme} /> : <DefaultView theme={theme} />;
+  return isGitHubPRPage(currentPage?.url || '') ? (
+    <GitHubPRView url={currentPage.url} theme={theme} />
+  ) : (
+    <DefaultView theme={theme} />
+  );
 };
 
 export default withErrorBoundary(withSuspense(SidePanel, <div> Loading ... </div>), <div> Error Occur </div>);
