@@ -4,6 +4,8 @@ import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage, githubTokenStorage } from '@extension/storage';
 import { ToggleButton } from '@extension/ui';
 import { t } from '@extension/i18n';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Type for page information
 type CurrentPage = {
@@ -303,7 +305,11 @@ const GitHubPRView = ({ url, theme }: { url: string; theme: string }) => {
 
             <div className="description border border-gray-300 rounded p-4 mb-4 w-full text-left text-sm">
               <h4 className="font-bold mb-2">Description:</h4>
-              <div className="whitespace-pre-wrap overflow-auto max-h-40">{prData.description}</div>
+              <div className="markdown-content overflow-auto max-h-60">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose dark:prose-invert prose-sm max-w-none">
+                  {prData.description}
+                </ReactMarkdown>
+              </div>
             </div>
 
             <div className="files border border-gray-300 rounded p-4 w-full text-left">

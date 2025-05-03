@@ -20,10 +20,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@extension/i18n": "workspace:*",
     "@extension/shared": "workspace:*",
     "@extension/storage": "workspace:*",
-    "@extension/i18n": "workspace:*",
-    "@extension/ui": "workspace:*"
+    "@extension/ui": "workspace:*",
+    "@tailwindcss/typography": "^0.5.16",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@extension/tailwindcss-config": "workspace:*",
