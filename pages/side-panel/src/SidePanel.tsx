@@ -990,6 +990,56 @@ interface FileChecklistProps {
   aiGeneratedChecklist?: FileChecklist; // Added prop for AI-generated checklist
 }
 
+// New component for individual checklist items
+interface ChecklistItemProps {
+  label: string;
+  status: 'PENDING' | 'OK' | 'NG';
+  onToggle: () => void;
+  className?: string;
+}
+
+const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistItemProps) => {
+  // Get the appropriate button style based on current state
+  const getButtonStyle = (state: 'PENDING' | 'OK' | 'NG') => {
+    switch (state) {
+      case 'OK':
+        return 'bg-green-500 hover:bg-green-600 text-white';
+      case 'NG':
+        return 'bg-red-500 hover:bg-red-600 text-white';
+      case 'PENDING':
+      default:
+        return 'bg-gray-200 hover:bg-gray-300 text-gray-700';
+    }
+  };
+
+  // Render the button content
+  const renderButtonContent = (state: 'PENDING' | 'OK' | 'NG') => {
+    if (state === 'PENDING') {
+      return 'PENDING';
+    }
+    return state;
+  };
+
+  // Get button class with fixed width
+  const getButtonClasses = (state: 'PENDING' | 'OK' | 'NG') => {
+    return `px-3 py-1 rounded-md text-sm font-medium transition-colors min-w-[90px] text-center ${getButtonStyle(state)}`;
+  };
+
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <button
+        onClick={e => {
+          e.stopPropagation(); // Prevent event propagation to parent elements
+          onToggle();
+        }}
+        className={getButtonClasses(status)}>
+        {renderButtonContent(status)}
+      </button>
+      <label className="text-sm">{label}</label>
+    </div>
+  );
+};
+
 const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
   const [comment, setComment] = useState(file.comments || '');
   // State to track checklist items - Initialize from saved data if available
@@ -1141,32 +1191,6 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
     }
   };
 
-  // Get the appropriate button style based on current state
-  const getButtonStyle = (state: 'PENDING' | 'OK' | 'NG') => {
-    switch (state) {
-      case 'OK':
-        return 'bg-green-500 hover:bg-green-600 text-white';
-      case 'NG':
-        return 'bg-red-500 hover:bg-red-600 text-white';
-      case 'PENDING':
-      default:
-        return 'bg-gray-200 hover:bg-gray-300 text-gray-700';
-    }
-  };
-
-  // Render the button content with icon for PENDING state
-  const renderButtonContent = (state: 'PENDING' | 'OK' | 'NG') => {
-    if (state === 'PENDING') {
-      return 'PENDING';
-    }
-    return state;
-  };
-
-  // Get button class with fixed width
-  const getButtonClasses = (state: 'PENDING' | 'OK' | 'NG') => {
-    return `px-3 py-1 rounded-md text-sm font-medium transition-colors min-w-[90px] text-center ${getButtonStyle(state)}`;
-  };
-
   const statusDisplay = getStatusDisplay();
 
   // Parse the patch to create a GitHub-like diff display
@@ -1282,38 +1306,35 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
                 <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
                 <div className="space-y-2">
                   {aiGeneratedChecklist.checklistItems.map(item => (
-                    <div key={item.id} className="flex items-center gap-2">
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          // Toggle the status in a circular manner: PENDING -> NG -> OK -> NG
-                          const nextStatus = item.status === 'PENDING' ? 'NG' : item.status === 'NG' ? 'OK' : 'NG';
+                    <ChecklistItem
+                      key={item.id}
+                      label={item.description}
+                      status={item.status}
+                      onToggle={() => {
+                        // Toggle the status in a circular manner: PENDING -> NG -> OK -> NG
+                        const nextStatus = item.status === 'PENDING' ? 'NG' : item.status === 'NG' ? 'OK' : 'NG';
 
-                          // Update the status in the FileChecklist state
-                          const updatedChecklist = { ...checklistItems };
-                          // We'll map the AI item to our standard checklist based on their status
-                          if (Object.keys(updatedChecklist).length >= aiGeneratedChecklist.checklistItems.length) {
-                            // Map to existing keys if we have enough
-                            const keys = Object.keys(updatedChecklist);
-                            const index = aiGeneratedChecklist.checklistItems.indexOf(item);
-                            if (index < keys.length) {
-                              updatedChecklist[keys[index]] = nextStatus;
-                            }
-                          } else {
-                            // Otherwise, just make sure all items are marked as same status
-                            Object.keys(updatedChecklist).forEach(key => {
-                              updatedChecklist[key] = nextStatus;
-                            });
+                        // Update the status in the FileChecklist state
+                        const updatedChecklist = { ...checklistItems };
+                        // We'll map the AI item to our standard checklist based on their status
+                        if (Object.keys(updatedChecklist).length >= aiGeneratedChecklist.checklistItems.length) {
+                          // Map to existing keys if we have enough
+                          const keys = Object.keys(updatedChecklist);
+                          const index = aiGeneratedChecklist.checklistItems.indexOf(item);
+                          if (index < keys.length) {
+                            updatedChecklist[keys[index]] = nextStatus;
                           }
+                        } else {
+                          // Otherwise, just make sure all items are marked as same status
+                          Object.keys(updatedChecklist).forEach(key => {
+                            updatedChecklist[key] = nextStatus;
+                          });
+                        }
 
-                          setChecklistItems(updatedChecklist);
-                          onChecklistChange(file.filename, updatedChecklist);
-                        }}
-                        className={getButtonClasses(item.status)}>
-                        {renderButtonContent(item.status)}
-                      </button>
-                      <label className="text-sm">{item.description}</label>
-                    </div>
+                        setChecklistItems(updatedChecklist);
+                        onChecklistChange(file.filename, updatedChecklist);
+                      }}
+                    />
                   ))}
                 </div>
               </div>
@@ -1324,50 +1345,26 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
                   <p>Click to toggle state: PENDING → NG → OK → NG</p>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation(); // 親要素にクリックイベントが伝播しないように
-                        toggleReviewState('formatting');
-                      }}
-                      className={getButtonClasses(checklistItems.formatting)}>
-                      {renderButtonContent(checklistItems.formatting)}
-                    </button>
-                    <label className="text-sm">Code follows formatting standards</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        toggleReviewState('docs');
-                      }}
-                      className={getButtonClasses(checklistItems.docs)}>
-                      {renderButtonContent(checklistItems.docs)}
-                    </button>
-                    <label className="text-sm">Documentation is updated</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        toggleReviewState('tests');
-                      }}
-                      className={getButtonClasses(checklistItems.tests)}>
-                      {renderButtonContent(checklistItems.tests)}
-                    </button>
-                    <label className="text-sm">Tests are included/updated</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        toggleReviewState('performance');
-                      }}
-                      className={getButtonClasses(checklistItems.performance)}>
-                      {renderButtonContent(checklistItems.performance)}
-                    </button>
-                    <label className="text-sm">Performance considerations addressed</label>
-                  </div>
+                  <ChecklistItem
+                    label="Code follows formatting standards"
+                    status={checklistItems.formatting}
+                    onToggle={() => toggleReviewState('formatting')}
+                  />
+                  <ChecklistItem
+                    label="Documentation is updated"
+                    status={checklistItems.docs}
+                    onToggle={() => toggleReviewState('docs')}
+                  />
+                  <ChecklistItem
+                    label="Tests are included/updated"
+                    status={checklistItems.tests}
+                    onToggle={() => toggleReviewState('tests')}
+                  />
+                  <ChecklistItem
+                    label="Performance considerations addressed"
+                    status={checklistItems.performance}
+                    onToggle={() => toggleReviewState('performance')}
+                  />
                 </div>
               </div>
             )}
