@@ -391,6 +391,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   // 初期表示時にOpenAI APIキーの設定画面を表示するかどうか
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
+  const { analysisResult } = useAnalysisContext();
 
   // Fetch PR data - first try to load from storage, then from API if needed
   useEffect(() => {
