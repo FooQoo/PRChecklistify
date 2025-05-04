@@ -1034,9 +1034,9 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
             toggleExpanded();
           }
         }}>
-        <div className="flex items-center">
+        <div className="flex items-center max-w-[70%]">
           <span
-            className={`inline-block w-5 text-center mr-2 ${
+            className={`inline-block flex-shrink-0 w-5 text-center mr-2 ${
               file.status === 'added'
                 ? 'text-green-500'
                 : file.status === 'removed'
@@ -1045,9 +1045,9 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
             }`}>
             {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
           </span>
-          <span className="font-medium truncate">{file.filename}</span>
+          <span className="font-medium text-xs break-all line-clamp-2">{file.filename}</span>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0 ml-2">
           <span className={`px-2 py-0.5 text-xs rounded-full mr-2 ${statusDisplay.class}`}>{statusDisplay.label}</span>
           <span className="text-gray-500">
             {expanded ? (
