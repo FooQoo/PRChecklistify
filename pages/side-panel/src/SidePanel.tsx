@@ -32,7 +32,6 @@ interface PRData {
     additions: number;
     deletions: number;
     patch?: string;
-    reviewStatus?: 'approved' | 'needs-work' | 'not-reviewed'; // Status of review for this file
     comments?: string; // Any review comments for this file
     checklistItems?: {
       formatting: boolean;
@@ -118,7 +117,6 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         additions: file.additions,
         deletions: file.deletions,
         patch: file.patch,
-        reviewStatus: 'not-reviewed', // Initialize all files as not reviewed
         comments: '',
         checklistItems: {
           formatting: false,
@@ -165,9 +163,27 @@ const prDataStorage = {
         prData,
       };
 
-      // Save to storage
-      await chrome.storage.local.set({ [prId]: savedData });
-      console.log(`Saved PR data for ${prId}`);
+      // Save to storage with retry logic
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      const saveWithRetry = async (): Promise<void> => {
+        try {
+          await chrome.storage.local.set({ [prId]: savedData });
+          console.log(`Saved PR data for ${prId}`);
+        } catch (error) {
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.warn(`Retry attempt ${retryCount} for saving PR data for ${prId}`);
+            await new Promise(resolve => setTimeout(resolve, 300)); // Wait before retry
+            return saveWithRetry();
+          } else {
+            throw error;
+          }
+        }
+      };
+
+      await saveWithRetry();
     } catch (error) {
       console.error('Error saving PR data:', error);
     }
@@ -196,6 +212,24 @@ const prDataStorage = {
     } catch (error) {
       console.error('Error loading PR data:', error);
       return null;
+    }
+  },
+
+  // Verify if data was saved correctly
+  verify: async (prUrl: string): Promise<boolean> => {
+    try {
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return false;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      // Check if data exists in storage
+      const result = await chrome.storage.local.get(prId);
+      return !!result[prId];
+    } catch (error) {
+      console.error('Error verifying PR data:', error);
+      return false;
     }
   },
 };
@@ -287,6 +321,8 @@ const GitHubPRView = ({ url }: { url: string }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
+  // ステート更新トリガーの追加（プログレスバー更新用）
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Fetch PR data - first try to load from storage, then from API if needed
   useEffect(() => {
@@ -310,7 +346,27 @@ const GitHubPRView = ({ url }: { url: string }) => {
           const savedData = await prDataStorage.load(url);
           if (savedData) {
             console.log('Loaded PR data from storage');
-            setPRData(savedData);
+            // チェックリストが未定義の場合は初期化
+            const normalizedFiles = savedData.files.map(f => {
+              if (!f.checklistItems) {
+                return {
+                  ...f,
+                  checklistItems: {
+                    formatting: false,
+                    docs: false,
+                    tests: false,
+                    performance: false,
+                  },
+                };
+              }
+              return f;
+            });
+
+            // 正規化されたデータを設定
+            setPRData({
+              ...savedData,
+              files: normalizedFiles,
+            });
             setLoading(false);
             return;
           }
@@ -319,9 +375,50 @@ const GitHubPRView = ({ url }: { url: string }) => {
           console.log('No saved data found, fetching from API');
           const data = await fetchPRData(url);
           if (data) {
-            setPRData(data);
-            // Save the initial data to storage
-            await prDataStorage.save(url, data);
+            // 全てのファイルにチェックリストアイテムが確実に初期化されていることを確認
+            const normalizedFiles = data.files.map((f, index) => {
+              console.log(`Initializing file ${index}: ${f.filename}`);
+              if (!f.checklistItems) {
+                return {
+                  ...f,
+                  checklistItems: {
+                    formatting: false,
+                    docs: false,
+                    tests: false,
+                    performance: false,
+                  },
+                };
+              }
+              return f;
+            });
+
+            const updatedPRData = {
+              ...data,
+              files: normalizedFiles,
+            };
+
+            // First set the state
+            setPRData(updatedPRData);
+
+            // Then explicitly save the initial data to storage with verification
+            try {
+              console.log('Saving initial PR data to storage...');
+              await prDataStorage.save(url, updatedPRData);
+
+              // Verify the data was saved correctly
+              const saved = await prDataStorage.verify(url);
+              if (saved) {
+                console.log('Initial PR data saved and verified successfully');
+              } else {
+                console.warn('Initial PR data may not have saved correctly, retrying...');
+                // Retry saving after a delay
+                setTimeout(async () => {
+                  await prDataStorage.save(url, updatedPRData);
+                }, 500);
+              }
+            } catch (saveError) {
+              console.error('Error saving initial PR data:', saveError);
+            }
           } else {
             setError('Failed to retrieve PR data');
           }
@@ -350,19 +447,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
     }
   }, [prData, url]);
 
-  const handleFileStatusChange = (filename: string, status: 'approved' | 'needs-work' | 'not-reviewed') => {
-    if (!prData) return;
-
-    const updatedFiles = prData.files.map(file => {
-      if (file.filename === filename) {
-        return { ...file, reviewStatus: status };
-      }
-      return file;
-    });
-
-    setPRData({ ...prData, files: updatedFiles });
-  };
-
   const handleFileCommentChange = (filename: string, comments: string) => {
     if (!prData) return;
 
@@ -387,18 +471,72 @@ const GitHubPRView = ({ url }: { url: string }) => {
       return file;
     });
 
-    setPRData({ ...prData, files: updatedFiles });
+    // 更新されたPRデータ
+    const updatedPRData = { ...prData, files: updatedFiles };
+
+    // ステートを更新
+    setPRData(updatedPRData);
+
+    // プログレスバー表示を更新するためのトリガー
+    setRefreshTrigger(prev => prev + 1);
+
+    // 明示的にストレージに保存（非同期で）
+    savePRDataToStorage(updatedPRData);
   };
 
-  const getOverallReviewProgress = () => {
-    if (!prData) return { total: 0, reviewed: 0, approved: 0, needsWork: 0 };
+  // ストレージに保存するヘルパー関数
+  const savePRDataToStorage = async (data: PRData) => {
+    try {
+      console.log('Saving PR data to storage after checklist update...');
+      console.log(
+        'Files to save:',
+        data.files.map(f => ({
+          filename: f.filename,
+          checklist: f.checklistItems,
+        })),
+      );
 
-    const total = prData.files.length;
-    const reviewed = prData.files.filter(f => f.reviewStatus !== 'not-reviewed').length;
-    const approved = prData.files.filter(f => f.reviewStatus === 'approved').length;
-    const needsWork = prData.files.filter(f => f.reviewStatus === 'needs-work').length;
+      await prDataStorage.save(url, data);
+      console.log('PR data saved successfully');
+    } catch (error) {
+      console.error('Error saving PR data to storage:', error);
+    }
+  };
 
-    return { total, reviewed, approved, needsWork };
+  // ファイルごとの承認状況を計算する関数
+  const getApprovedFiles = () => {
+    if (!prData) return 0;
+    return prData.files.filter(f => {
+      const checklistItems = f.checklistItems || {
+        formatting: false,
+        docs: false,
+        tests: false,
+        performance: false,
+      };
+      return Object.values(checklistItems).every(item => item === true);
+    }).length;
+  };
+
+  // 進行中ファイル数を計算する関数
+  const getInProgressFiles = () => {
+    if (!prData) return 0;
+    return prData.files.filter(f => {
+      const checklistItems = f.checklistItems || {
+        formatting: false,
+        docs: false,
+        tests: false,
+        performance: false,
+      };
+      const allChecked = Object.values(checklistItems).every(item => item === true);
+      const anyChecked = Object.values(checklistItems).some(item => item === true);
+      return anyChecked && !allChecked;
+    }).length;
+  };
+
+  // 承認率を計算する関数 (0-100%)
+  const getApprovalPercentage = () => {
+    if (!prData || prData.files.length === 0) return 0;
+    return (getApprovedFiles() / prData.files.length) * 100;
   };
 
   if (hasToken === null) {
@@ -422,8 +560,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
     );
   }
 
-  const progress = getOverallReviewProgress();
-
   return (
     <div className="App bg-slate-50">
       {prData && (
@@ -431,15 +567,16 @@ const GitHubPRView = ({ url }: { url: string }) => {
           <h4 className="font-bold mb-1">Review Progress:</h4>
           <div className="flex justify-between mb-1 text-sm">
             <span>
-              Reviewed: {progress.reviewed}/{progress.total} files
+              Approved: {getApprovedFiles()} /{prData.files.length} files
             </span>
-            <span>Approved: {progress.approved}</span>
-            <span>Needs Work: {progress.needsWork}</span>
+            <span>In Progress: {getInProgressFiles()}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: `${(progress.reviewed / progress.total) * 100}%` }}></div>
+              className="bg-green-600 h-2.5 rounded-full"
+              style={{
+                width: `${getApprovalPercentage()}%`,
+              }}></div>
           </div>
         </div>
       )}
@@ -489,7 +626,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
                     <FileChecklist
                       key={index}
                       file={file}
-                      onStatusChange={handleFileStatusChange}
                       onCommentChange={handleFileCommentChange}
                       onChecklistChange={handleChecklistChange}
                     />
@@ -632,12 +768,11 @@ const GitHubTokenSettings = () => {
 // Component for file checklist items
 interface FileChecklistProps {
   file: PRData['files'][0];
-  onStatusChange: (filename: string, status: 'approved' | 'needs-work' | 'not-reviewed') => void;
   onCommentChange: (filename: string, comments: string) => void;
   onChecklistChange: (filename: string, checklistItems: Record<string, boolean>) => void;
 }
 
-const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChange }: FileChecklistProps) => {
+const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileChecklistProps) => {
   const [comment, setComment] = useState(file.comments || '');
   // State to track checklist items - Initialize from saved data if available
   const [checklistItems, setChecklistItems] = useState(
@@ -699,14 +834,8 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
 
   // Update review status whenever checklist items change
   useEffect(() => {
-    const status = getReviewStatus();
-
-    // Only update if status changed
-    if (status !== file.reviewStatus) {
-      onStatusChange(file.filename, status);
-    }
-
     // Update the checklistItems in the parent component
+    console.log(`Updating checklist for file: ${file.filename}`, checklistItems);
     onChecklistChange(file.filename, checklistItems);
 
     // Check if all items just became checked
@@ -718,7 +847,7 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
     } else if (!allChecked) {
       setAllItemsJustChecked(false);
     }
-  }, [checklistItems, file.filename, file.reviewStatus, onStatusChange, onChecklistChange, allItemsJustChecked]);
+  }, [checklistItems, file.filename, onChecklistChange, allItemsJustChecked]);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -726,12 +855,18 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
   };
 
   const handleChecklistChange = (item: keyof typeof checklistItems) => {
+    console.log(`Changing checklist item '${item}' for file: ${file.filename}`);
     const newChecklistItems = {
       ...checklistItems,
       [item]: !checklistItems[item],
     };
 
+    // 変更を即座に適用
     setChecklistItems(newChecklistItems);
+
+    // useEffectを待たずに親コンポーネントに即座に通知
+    // これにより、最初のアイテムもすぐに保存される
+    onChecklistChange(file.filename, newChecklistItems);
   };
 
   // Toggle expanded state manually
