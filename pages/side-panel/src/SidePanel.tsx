@@ -1,10 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { githubTokenStorage, openaiApiKeyStorage, languagePreferenceStorage } from '@extension/storage';
-import { type PRAnalysisResult, createOpenAIClient } from '@extension/shared';
+import { type PRAnalysisResult, createOpenAIClient, type FileChecklist } from '@extension/shared';
+import OpenAIKeySettings from './components/OpenAIKeySettings';
 // import ReactMarkdown from 'react-markdown';
 // import remarkGfm from 'remark-gfm';
+
+// Context for sharing analysis result between components
+interface AnalysisContextType {
+  analysisResult: PRAnalysisResult | null;
+  setAnalysisResult: React.Dispatch<React.SetStateAction<PRAnalysisResult | null>>;
+}
+
+const AnalysisContext = createContext<AnalysisContextType | null>(null);
+
+const useAnalysisContext = () => {
+  const context = useContext(AnalysisContext);
+  if (!context) {
+    throw new Error('useAnalysisContext must be used within an AnalysisProvider');
+  }
+  return context;
+};
 
 // Type for page information
 type CurrentPage = {
@@ -370,8 +387,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
-  // ステート更新トリガーの追加（プログレスバー更新用）
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   // OpenAI API Key状態の追加
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   // 初期表示時にOpenAI APIキーの設定画面を表示するかどうか
@@ -554,9 +569,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
     // ステートを更新
     setPRData(updatedPRData);
 
-    // プログレスバー表示を更新するためのトリガー
-    setRefreshTrigger(prev => prev + 1);
-
     // 明示的にストレージに保存（非同期で）
     savePRDataToStorage(updatedPRData);
   };
@@ -717,14 +729,22 @@ const GitHubPRView = ({ url }: { url: string }) => {
                 </div>
 
                 <div className="detailed-checklists">
-                  {prData.files.map((file, index) => (
-                    <FileChecklist
-                      key={index}
-                      file={file}
-                      onCommentChange={handleFileCommentChange}
-                      onChecklistChange={handleChecklistChange}
-                    />
-                  ))}
+                  {prData.files.map((file, index) => {
+                    // Find AI-generated checklist for this file if available
+                    const aiGeneratedChecklist = analysisResult?.fileChecklists.find(
+                      checklist => checklist.filename === file.filename,
+                    );
+
+                    return (
+                      <FileChecklist
+                        key={index}
+                        file={file}
+                        onCommentChange={handleFileCommentChange}
+                        onChecklistChange={handleChecklistChange}
+                        aiGeneratedChecklist={aiGeneratedChecklist}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -860,116 +880,6 @@ const GitHubTokenSettings = () => {
   );
 };
 
-// Component for OpenAI API Key settings
-const OpenAIKeySettings = () => {
-  const [apiKey, setApiKey] = useState('');
-  const [savedApiKey, setSavedApiKey] = useState('');
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
-
-  // Load the saved API key when component mounts
-  useEffect(() => {
-    const loadApiKey = async () => {
-      const key = await openaiApiKeyStorage.get();
-      if (key) {
-        setSavedApiKey(key);
-      }
-    };
-    loadApiKey();
-  }, []);
-
-  const handleSaveApiKey = async () => {
-    try {
-      setIsSaving(true);
-      setMessage({ text: '', type: '' });
-
-      await openaiApiKeyStorage.set(apiKey);
-      setSavedApiKey(apiKey);
-      setMessage({ text: 'API key saved successfully', type: 'success' });
-
-      // Clear the input after successful save
-      setApiKey('');
-    } catch (error) {
-      console.error('Error saving API key:', error);
-      setMessage({ text: 'Failed to save API key', type: 'error' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleClearApiKey = async () => {
-    try {
-      setIsSaving(true);
-      await openaiApiKeyStorage.clear();
-      setSavedApiKey('');
-      setMessage({ text: 'API key cleared successfully', type: 'success' });
-    } catch (error) {
-      console.error('Error clearing API key:', error);
-      setMessage({ text: 'Failed to clear API key', type: 'error' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <div className="border border-gray-300 rounded p-4 w-full mt-4">
-      <h3 className="text-lg font-bold mb-3">OpenAI API Key Settings</h3>
-      <div className="mb-4">
-        <p className="text-sm mb-2">
-          {savedApiKey
-            ? 'OpenAI API key is set. You can update or clear it below.'
-            : 'Set your OpenAI API key to generate PR checklists and summaries using AI.'}
-        </p>
-
-        {savedApiKey && (
-          <div className="flex items-center mb-3">
-            <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded flex-grow mr-2 font-mono">
-              {showApiKey ? savedApiKey : '•'.repeat(Math.min(savedApiKey.length, 24))}
-            </div>
-            <button
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="text-xs bg-gray-200 hover:bg-gray-300 p-1 rounded">
-              {showApiKey ? 'Hide' : 'Show'}
-            </button>
-          </div>
-        )}
-
-        <div className="flex">
-          <input
-            type="password"
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            placeholder="Enter OpenAI API Key..."
-            className="flex-grow p-2 border rounded-l text-sm"
-          />
-          <button
-            onClick={handleSaveApiKey}
-            disabled={isSaving || !apiKey}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-r text-sm disabled:opacity-50">
-            {isSaving ? 'Saving...' : 'Save'}
-          </button>
-        </div>
-
-        {savedApiKey && (
-          <button
-            onClick={handleClearApiKey}
-            disabled={isSaving}
-            className="text-xs text-red-500 hover:text-red-600 mt-2">
-            Clear API key
-          </button>
-        )}
-
-        {message.text && (
-          <p className={`text-xs mt-2 ${message.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-            {message.text}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // Component for language preference settings
 const LanguageSettings = () => {
   const [language, setLanguage] = useState('');
@@ -1076,10 +986,11 @@ const LanguageSettings = () => {
 interface FileChecklistProps {
   file: PRData['files'][0];
   onCommentChange: (filename: string, comments: string) => void;
-  onChecklistChange: (filename: string, checklistItems: Record<string, 'REVIEW' | 'OK' | 'NG'>) => void;
+  onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
+  aiGeneratedChecklist?: FileChecklist; // Added prop for AI-generated checklist
 }
 
-const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileChecklistProps) => {
+const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
   const [comment, setComment] = useState(file.comments || '');
   // State to track checklist items - Initialize from saved data if available
   const [checklistItems, setChecklistItems] = useState(
@@ -1366,58 +1277,100 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
       {expanded && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-3">
-            <div>
-              <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
-              <div className="text-xs text-gray-500 mb-2">
-                <p>Click to toggle state: PENDING → NG → OK → NG</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={e => {
-                      e.stopPropagation(); // 親要素にクリックイベントが伝播しないように
-                      toggleReviewState('formatting');
-                    }}
-                    className={getButtonClasses(checklistItems.formatting)}>
-                    {renderButtonContent(checklistItems.formatting)}
-                  </button>
-                  <label className="text-sm">Code follows formatting standards</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      toggleReviewState('docs');
-                    }}
-                    className={getButtonClasses(checklistItems.docs)}>
-                    {renderButtonContent(checklistItems.docs)}
-                  </button>
-                  <label className="text-sm">Documentation is updated</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      toggleReviewState('tests');
-                    }}
-                    className={getButtonClasses(checklistItems.tests)}>
-                    {renderButtonContent(checklistItems.tests)}
-                  </button>
-                  <label className="text-sm">Tests are included/updated</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      toggleReviewState('performance');
-                    }}
-                    className={getButtonClasses(checklistItems.performance)}>
-                    {renderButtonContent(checklistItems.performance)}
-                  </button>
-                  <label className="text-sm">Performance considerations addressed</label>
+            {aiGeneratedChecklist ? (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
+                <div className="space-y-2">
+                  {aiGeneratedChecklist.checklistItems.map(item => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          // Toggle the status in a circular manner: PENDING -> NG -> OK -> NG
+                          const nextStatus = item.status === 'PENDING' ? 'NG' : item.status === 'NG' ? 'OK' : 'NG';
+
+                          // Update the status in the FileChecklist state
+                          const updatedChecklist = { ...checklistItems };
+                          // We'll map the AI item to our standard checklist based on their status
+                          if (Object.keys(updatedChecklist).length >= aiGeneratedChecklist.checklistItems.length) {
+                            // Map to existing keys if we have enough
+                            const keys = Object.keys(updatedChecklist);
+                            const index = aiGeneratedChecklist.checklistItems.indexOf(item);
+                            if (index < keys.length) {
+                              updatedChecklist[keys[index]] = nextStatus;
+                            }
+                          } else {
+                            // Otherwise, just make sure all items are marked as same status
+                            Object.keys(updatedChecklist).forEach(key => {
+                              updatedChecklist[key] = nextStatus;
+                            });
+                          }
+
+                          setChecklistItems(updatedChecklist);
+                          onChecklistChange(file.filename, updatedChecklist);
+                        }}
+                        className={getButtonClasses(item.status)}>
+                        {renderButtonContent(item.status)}
+                      </button>
+                      <label className="text-sm">{item.description}</label>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
+                <div className="text-xs text-gray-500 mb-2">
+                  <p>Click to toggle state: PENDING → NG → OK → NG</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation(); // 親要素にクリックイベントが伝播しないように
+                        toggleReviewState('formatting');
+                      }}
+                      className={getButtonClasses(checklistItems.formatting)}>
+                      {renderButtonContent(checklistItems.formatting)}
+                    </button>
+                    <label className="text-sm">Code follows formatting standards</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleReviewState('docs');
+                      }}
+                      className={getButtonClasses(checklistItems.docs)}>
+                      {renderButtonContent(checklistItems.docs)}
+                    </button>
+                    <label className="text-sm">Documentation is updated</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleReviewState('tests');
+                      }}
+                      className={getButtonClasses(checklistItems.tests)}>
+                      {renderButtonContent(checklistItems.tests)}
+                    </button>
+                    <label className="text-sm">Tests are included/updated</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleReviewState('performance');
+                      }}
+                      className={getButtonClasses(checklistItems.performance)}>
+                      {renderButtonContent(checklistItems.performance)}
+                    </button>
+                    <label className="text-sm">Performance considerations addressed</label>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {file.patch && (
               <div>
@@ -1434,11 +1387,13 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
 
 // PRAnalysis component for OpenAI-powered PR analysis
 const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
-  const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+
+  // Use the parent component's analysisResult and setAnalysisResult
+  const { analysisResult, setAnalysisResult } = useAnalysisContext();
 
   // Check if OpenAI API key is set
   useEffect(() => {
@@ -1734,6 +1689,8 @@ const SidePanel = () => {
   const [currentPage, setCurrentPage] = useState<CurrentPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  // Create state for the analysis result at the top level
+  const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | null>(null);
 
   useEffect(() => {
     // Function to get current page information from storage
@@ -1785,7 +1742,9 @@ const SidePanel = () => {
       {!currentPage || !currentPage.url ? (
         <DefaultView />
       ) : isGitHubPRPage(currentPage.url) ? (
-        <GitHubPRView url={currentPage.url} />
+        <AnalysisContext.Provider value={{ analysisResult, setAnalysisResult }}>
+          <GitHubPRView url={currentPage.url} />
+        </AnalysisContext.Provider>
       ) : (
         <DefaultView />
       )}
