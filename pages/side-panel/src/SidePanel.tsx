@@ -638,7 +638,6 @@ interface FileChecklistProps {
 }
 
 const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChange }: FileChecklistProps) => {
-  const [expanded, setExpanded] = useState(true); // Default to expanded
   const [comment, setComment] = useState(file.comments || '');
   // State to track checklist items - Initialize from saved data if available
   const [checklistItems, setChecklistItems] = useState(
@@ -649,6 +648,10 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
       performance: false,
     },
   );
+  // Override to force expanded state (when user clicks to manually open/close)
+  const [expandOverride, setExpandOverride] = useState<boolean | null>(null);
+  // Track if all items were just checked to trigger auto-collapse
+  const [allItemsJustChecked, setAllItemsJustChecked] = useState(false);
 
   // Calculate review status directly from checklist items
   const getReviewStatus = (): 'approved' | 'needs-work' | 'not-reviewed' => {
@@ -664,6 +667,36 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
     }
   };
 
+  // Calculate if expanded based on checklist state
+  const getCalculatedExpandedState = (): boolean => {
+    // If user has explicitly set expand state via override, use that
+    if (expandOverride !== null) {
+      return expandOverride;
+    }
+
+    const allChecked = Object.values(checklistItems).every(item => item === true);
+
+    // If all checks complete, collapse it
+    if (allChecked && allItemsJustChecked) {
+      return false;
+    }
+
+    // Not reviewed items should be expanded by default
+    if (getReviewStatus() === 'not-reviewed') {
+      return true;
+    }
+
+    // In progress items should be expanded
+    if (getReviewStatus() === 'needs-work') {
+      return true;
+    }
+
+    return false; // Approved items default to collapsed
+  };
+
+  // Computed expanded state
+  const expanded = getCalculatedExpandedState();
+
   // Update review status whenever checklist items change
   useEffect(() => {
     const status = getReviewStatus();
@@ -675,7 +708,17 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
 
     // Update the checklistItems in the parent component
     onChecklistChange(file.filename, checklistItems);
-  }, [checklistItems, file.filename, file.reviewStatus, onStatusChange, onChecklistChange]);
+
+    // Check if all items just became checked
+    const allChecked = Object.values(checklistItems).every(item => item === true);
+    if (allChecked && !allItemsJustChecked) {
+      setAllItemsJustChecked(true);
+      // Reset the override when items are all checked
+      setExpandOverride(null);
+    } else if (!allChecked) {
+      setAllItemsJustChecked(false);
+    }
+  }, [checklistItems, file.filename, file.reviewStatus, onStatusChange, onChecklistChange, allItemsJustChecked]);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -689,6 +732,11 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
     };
 
     setChecklistItems(newChecklistItems);
+  };
+
+  // Toggle expanded state manually
+  const toggleExpanded = () => {
+    setExpandOverride(expanded ? false : true);
   };
 
   // Get status label and style based on calculated status
@@ -714,11 +762,11 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
         className="flex items-center justify-between p-3 cursor-pointer bg-gray-50"
         role="button"
         tabIndex={0}
-        onClick={() => setExpanded(!expanded)}
+        onClick={toggleExpanded}
         onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            setExpanded(!expanded);
+            toggleExpanded();
           }
         }}>
         <div className="flex items-center">
