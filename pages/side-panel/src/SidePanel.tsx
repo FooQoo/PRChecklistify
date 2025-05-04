@@ -756,6 +756,61 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
 
   const statusDisplay = getStatusDisplay();
 
+  // Parse the patch to create a GitHub-like diff display
+  const renderGitHubStyleDiff = (patch: string) => {
+    if (!patch) return null;
+
+    // Split the patch into lines
+    const lines = patch.split('\n');
+
+    return (
+      <div className="text-xs border rounded overflow-hidden">
+        {/* File header bar */}
+        <div className="flex justify-between items-center bg-gray-100 p-2 border-b">
+          <span className="font-mono font-medium">{file.filename}</span>
+          <div className="flex items-center">
+            <span className="text-green-600 mr-2">+{file.additions}</span>
+            <span className="text-red-600">-{file.deletions}</span>
+          </div>
+        </div>
+
+        {/* Diff content */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <tbody>
+              {lines.map((line, index) => {
+                // Determine line type
+                let lineClass = '';
+                let prefix = '';
+
+                if (line.startsWith('+')) {
+                  lineClass = 'bg-green-50';
+                  prefix = '+';
+                } else if (line.startsWith('-')) {
+                  lineClass = 'bg-red-50';
+                  prefix = '-';
+                } else if (line.startsWith('@')) {
+                  lineClass = 'bg-blue-100';
+                  prefix = '';
+                } else {
+                  prefix = ' ';
+                }
+
+                return (
+                  <tr key={index} className={lineClass}>
+                    <td className="py-0 px-2 select-none text-gray-500 border-r w-12 text-right">{index + 1}</td>
+                    <td className="py-0 px-2 select-none text-gray-500 w-6 text-center font-mono">{prefix}</td>
+                    <td className="py-0 px-2 whitespace-pre font-mono">{line.substring(prefix === '' ? 0 : 1)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
       <div
@@ -879,7 +934,7 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
             {file.patch && (
               <div>
                 <h4 className="text-sm font-semibold mb-2">Code Changes</h4>
-                <pre className="text-xs p-2 bg-gray-100 rounded overflow-x-auto max-h-96">{file.patch}</pre>
+                {renderGitHubStyleDiff(file.patch)}
               </div>
             )}
           </div>
