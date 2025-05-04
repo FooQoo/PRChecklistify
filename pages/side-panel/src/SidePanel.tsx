@@ -569,7 +569,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
             <span>
               Approved: {getApprovedFiles()} /{prData.files.length} files
             </span>
-            <span>In Progress: {getInProgressFiles()}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
@@ -882,7 +881,7 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
       case 'approved':
         return { label: '✓ Approved', class: 'bg-green-500 text-white' };
       case 'needs-work':
-        return { label: '⚠ In Progress', class: 'bg-yellow-500 text-white' };
+        return { label: '⚠ Reviewing', class: 'bg-yellow-500 text-white' };
       case 'not-reviewed':
       default:
         return { label: '⊘ Not Reviewed', class: 'bg-gray-500 text-white' };
