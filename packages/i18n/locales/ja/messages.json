@@ -26,5 +26,21 @@
   "hello": {
     "description": "プレースホルダーの例",
     "message": "こんにちは $1"
+  },
+  "prChecklist": {
+    "description": "PRチェックリストのタイトル",
+    "message": "PRチェックリスト"
+  },
+  "addChecklistItem": {
+    "message": "チェックリスト項目を追加"
+  },
+  "saveChecklist": {
+    "message": "チェックリストを保存"
+  },
+  "deleteChecklist": {
+    "message": "チェックリストを削除"
+  },
+  "noChecklistItems": {
+    "message": "チェックリスト項目がありません"
   }
 }

@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
-    "description": "Extension description",
-    "message": "Chrome extension boilerplate developed with Vite, React and Typescript"
+    "description": "Description of the extension",
+    "message": "Chrome Extension boilerplate created with Vite, React, TypeScript"
   },
   "extensionName": {
-    "description": "Extension name",
-    "message": "Chrome extension boilerplate"
+    "description": "Name of the extension",
+    "message": "Chrome Extension Boilerplate"
   },
   "toggleTheme": {
     "message": "Toggle theme"
@@ -15,7 +15,7 @@
   },
   "greeting": {
     "description": "Greeting message",
-    "message": "Hello, My name is $NAME$",
+    "message": "Hello, my name is $NAME$",
     "placeholders": {
       "name": {
         "content": "$1",
@@ -26,5 +26,21 @@
   "hello": {
     "description": "Placeholder example",
     "message": "Hello $1"
+  },
+  "prChecklist": {
+    "description": "PR Checklist title",
+    "message": "PR Checklist"
+  },
+  "addChecklistItem": {
+    "message": "Add checklist item"
+  },
+  "saveChecklist": {
+    "message": "Save checklist"
+  },
+  "deleteChecklist": {
+    "message": "Delete checklist"
+  },
+  "noChecklistItems": {
+    "message": "No checklist items"
   }
 }
