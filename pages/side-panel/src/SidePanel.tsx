@@ -34,11 +34,11 @@ interface PRData {
     patch?: string;
     comments?: string; // Any review comments for this file
     checklistItems?: {
-      formatting: boolean;
-      docs: boolean;
-      tests: boolean;
-      performance: boolean;
-    }; // Checklist items for this file
+      formatting: 'PENDING' | 'OK' | 'NG';
+      docs: 'PENDING' | 'OK' | 'NG';
+      tests: 'PENDING' | 'OK' | 'NG';
+      performance: 'PENDING' | 'OK' | 'NG';
+    }; // Checklist items for this file with 3-state values
   }[];
   user: {
     login: string;
@@ -148,10 +148,10 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         patch: file.patch,
         comments: '',
         checklistItems: {
-          formatting: false,
-          docs: false,
-          tests: false,
-          performance: false,
+          formatting: 'PENDING',
+          docs: 'PENDING',
+          tests: 'PENDING',
+          performance: 'PENDING',
         }, // Initialize checklist items
       })),
       user: {
@@ -264,12 +264,6 @@ const prDataStorage = {
       return false;
     }
   },
-};
-
-// Format date to a more readable format
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleString();
 };
 
 // レビュー時間を計算する関数（単位：時間）
@@ -406,10 +400,10 @@ const GitHubPRView = ({ url }: { url: string }) => {
                 return {
                   ...f,
                   checklistItems: {
-                    formatting: false,
-                    docs: false,
-                    tests: false,
-                    performance: false,
+                    formatting: 'PENDING',
+                    docs: 'PENDING',
+                    tests: 'PENDING',
+                    performance: 'PENDING',
                   },
                 };
               }
@@ -436,10 +430,10 @@ const GitHubPRView = ({ url }: { url: string }) => {
                 return {
                   ...f,
                   checklistItems: {
-                    formatting: false,
-                    docs: false,
-                    tests: false,
-                    performance: false,
+                    formatting: 'PENDING',
+                    docs: 'PENDING',
+                    tests: 'PENDING',
+                    performance: 'PENDING',
                   },
                 };
               }
@@ -515,7 +509,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
   };
 
   // Add handleChecklistChange function to update checklist items
-  const handleChecklistChange = (filename: string, checklistItems: Record<string, boolean>) => {
+  const handleChecklistChange = (filename: string, checklistItems: Record<string, 'REVIEW' | 'OK' | 'NG'>) => {
     if (!prData) return;
 
     const updatedFiles = prData.files.map(file => {
@@ -562,28 +556,13 @@ const GitHubPRView = ({ url }: { url: string }) => {
     if (!prData) return 0;
     return prData.files.filter(f => {
       const checklistItems = f.checklistItems || {
-        formatting: false,
-        docs: false,
-        tests: false,
-        performance: false,
+        formatting: 'PENDING',
+        docs: 'PENDING',
+        tests: 'PENDING',
+        performance: 'PENDING',
       };
-      return Object.values(checklistItems).every(item => item === true);
-    }).length;
-  };
-
-  // 進行中ファイル数を計算する関数
-  const getInProgressFiles = () => {
-    if (!prData) return 0;
-    return prData.files.filter(f => {
-      const checklistItems = f.checklistItems || {
-        formatting: false,
-        docs: false,
-        tests: false,
-        performance: false,
-      };
-      const allChecked = Object.values(checklistItems).every(item => item === true);
-      const anyChecked = Object.values(checklistItems).some(item => item === true);
-      return anyChecked && !allChecked;
+      // ファイルが承認されるためには、すべての項目が'OK'になっている必要がある
+      return Object.values(checklistItems).every(item => item === 'OK');
     }).length;
   };
 
@@ -664,9 +643,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
               <div className="description border border-gray-300 rounded p-2 w-full text-left text-sm">
                 <h4 className="font-bold mb-1">Description:</h4>
                 <div className="markdown-content">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-sm max-w-none">
-                    {prData.description}
-                  </ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{prData.description}</ReactMarkdown>
                 </div>
               </div>
 
@@ -823,7 +800,7 @@ const GitHubTokenSettings = () => {
 interface FileChecklistProps {
   file: PRData['files'][0];
   onCommentChange: (filename: string, comments: string) => void;
-  onChecklistChange: (filename: string, checklistItems: Record<string, boolean>) => void;
+  onChecklistChange: (filename: string, checklistItems: Record<string, 'REVIEW' | 'OK' | 'NG'>) => void;
 }
 
 const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileChecklistProps) => {
@@ -831,10 +808,10 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
   // State to track checklist items - Initialize from saved data if available
   const [checklistItems, setChecklistItems] = useState(
     file.checklistItems || {
-      formatting: false,
-      docs: false,
-      tests: false,
-      performance: false,
+      formatting: 'PENDING',
+      docs: 'PENDING',
+      tests: 'PENDING',
+      performance: 'PENDING',
     },
   );
   // Override to force expanded state (when user clicks to manually open/close)
@@ -843,14 +820,13 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
   const [allItemsJustChecked, setAllItemsJustChecked] = useState(false);
 
   // Calculate review status directly from checklist items
-  const getReviewStatus = (): 'approved' | 'needs-work' | 'not-reviewed' => {
-    const allChecked = Object.values(checklistItems).every(item => item === true);
-    const anyChecked = Object.values(checklistItems).some(item => item === true);
-
-    if (allChecked) {
+  const getReviewStatus = (): 'approved' | 'reviewing' | 'not-reviewed' => {
+    const allOK = Object.values(checklistItems).every(item => item === 'OK');
+    const anyReviewed = Object.values(checklistItems).some(item => item !== 'PENDING');
+    if (allOK) {
       return 'approved';
-    } else if (anyChecked) {
-      return 'needs-work';
+    } else if (anyReviewed) {
+      return 'reviewing';
     } else {
       return 'not-reviewed';
     }
@@ -863,10 +839,10 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
       return expandOverride;
     }
 
-    const allChecked = Object.values(checklistItems).every(item => item === true);
+    const allOK = Object.values(checklistItems).every(item => item === 'OK');
 
-    // If all checks complete, collapse it
-    if (allChecked && allItemsJustChecked) {
+    // If all checks are OK, collapse it
+    if (allOK && allItemsJustChecked) {
       return false;
     }
 
@@ -876,7 +852,7 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
     }
 
     // In progress items should be expanded
-    if (getReviewStatus() === 'needs-work') {
+    if (getReviewStatus() === 'reviewing') {
       return true;
     }
 
@@ -892,13 +868,13 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
     console.log(`Updating checklist for file: ${file.filename}`, checklistItems);
     onChecklistChange(file.filename, checklistItems);
 
-    // Check if all items just became checked
-    const allChecked = Object.values(checklistItems).every(item => item === true);
-    if (allChecked && !allItemsJustChecked) {
+    // Check if all items just became OK
+    const allOK = Object.values(checklistItems).every(item => item === 'OK');
+    if (allOK && !allItemsJustChecked) {
       setAllItemsJustChecked(true);
-      // Reset the override when items are all checked
+      // Reset the override when items are all OK
       setExpandOverride(null);
-    } else if (!allChecked) {
+    } else if (!allOK) {
       setAllItemsJustChecked(false);
     }
   }, [checklistItems, file.filename, onChecklistChange, allItemsJustChecked]);
@@ -908,18 +884,32 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
     onCommentChange(file.filename, e.target.value);
   };
 
-  const handleChecklistChange = (item: keyof typeof checklistItems) => {
-    console.log(`Changing checklist item '${item}' for file: ${file.filename}`);
+  // Toggle through the review states: PENDING -> NG -> OK -> NG
+  const toggleReviewState = (item: keyof typeof checklistItems) => {
+    console.log(`Toggling review state for '${item}' in file: ${file.filename}`);
+    const currentState = checklistItems[item];
+    let nextState: 'PENDING' | 'OK' | 'NG';
+
+    // PENDING -> NG -> OK -> NG cycle
+    if (currentState === 'PENDING') {
+      nextState = 'NG';
+    } else if (currentState === 'NG') {
+      nextState = 'OK';
+    } else if (currentState === 'OK') {
+      nextState = 'NG';
+    } else {
+      nextState = 'PENDING'; // fallback case, though it shouldn't happen
+    }
+
     const newChecklistItems = {
       ...checklistItems,
-      [item]: !checklistItems[item],
+      [item]: nextState,
     };
 
     // 変更を即座に適用
     setChecklistItems(newChecklistItems);
 
     // useEffectを待たずに親コンポーネントに即座に通知
-    // これにより、最初のアイテムもすぐに保存される
     onChecklistChange(file.filename, newChecklistItems);
   };
 
@@ -927,19 +917,19 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
   const toggleExpanded = () => {
     // タブを閉じる操作の場合
     if (expanded) {
-      // すべてのチェックボックスをオンにする
-      const allCheckedItems = {
-        formatting: true,
-        docs: true,
-        tests: true,
-        performance: true,
+      // すべてのアイテムをOKに設定
+      const allOKItems = {
+        formatting: 'OK' as const,
+        docs: 'OK' as const,
+        tests: 'OK' as const,
+        performance: 'OK' as const,
       };
 
-      // チェックボックスをすべてONに変更
-      setChecklistItems(allCheckedItems);
+      // チェックリストを全てOKに変更
+      setChecklistItems(allOKItems);
 
       // 親コンポーネントに変更を通知
-      onChecklistChange(file.filename, allCheckedItems);
+      onChecklistChange(file.filename, allOKItems);
 
       // 閉じる
       setExpandOverride(false);
@@ -956,12 +946,38 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
     switch (currentStatus) {
       case 'approved':
         return { label: '✓ Approved', class: 'bg-green-500 text-white' };
-      case 'needs-work':
+      case 'reviewing':
         return { label: '⚠ Reviewing', class: 'bg-yellow-500 text-white' };
       case 'not-reviewed':
       default:
         return { label: '⊘ Not Reviewed', class: 'bg-gray-500 text-white' };
     }
+  };
+
+  // Get the appropriate button style based on current state
+  const getButtonStyle = (state: 'PENDING' | 'OK' | 'NG') => {
+    switch (state) {
+      case 'OK':
+        return 'bg-green-500 hover:bg-green-600 text-white';
+      case 'NG':
+        return 'bg-red-500 hover:bg-red-600 text-white';
+      case 'PENDING':
+      default:
+        return 'bg-gray-200 hover:bg-gray-300 text-gray-700';
+    }
+  };
+
+  // Render the button content with icon for PENDING state
+  const renderButtonContent = (state: 'PENDING' | 'OK' | 'NG') => {
+    if (state === 'PENDING') {
+      return 'PENDING';
+    }
+    return state;
+  };
+
+  // Get button class with fixed width
+  const getButtonClasses = (state: 'PENDING' | 'OK' | 'NG') => {
+    return `px-3 py-1 rounded-md text-sm font-medium transition-colors min-w-[90px] text-center ${getButtonStyle(state)}`;
   };
 
   const statusDisplay = getStatusDisplay();
@@ -1077,68 +1093,54 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
             <div>
               <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
               <div className="text-xs text-gray-500 mb-2">
-                <p>Complete all checklist items to mark this file as approved</p>
+                <p>Click to toggle state: PENDING → NG → OK → NG</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id={`${file.filename}-formatting`}
-                    className="rounded"
-                    checked={checklistItems.formatting}
-                    onChange={() => handleChecklistChange('formatting')}
-                  />
-                  <label htmlFor={`${file.filename}-formatting`} className="text-sm">
-                    Code follows formatting standards
-                  </label>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation(); // 親要素にクリックイベントが伝播しないように
+                      toggleReviewState('formatting');
+                    }}
+                    className={getButtonClasses(checklistItems.formatting)}>
+                    {renderButtonContent(checklistItems.formatting)}
+                  </button>
+                  <label className="text-sm">Code follows formatting standards</label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id={`${file.filename}-docs`}
-                    className="rounded"
-                    checked={checklistItems.docs}
-                    onChange={() => handleChecklistChange('docs')}
-                  />
-                  <label htmlFor={`${file.filename}-docs`} className="text-sm">
-                    Documentation is updated
-                  </label>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      toggleReviewState('docs');
+                    }}
+                    className={getButtonClasses(checklistItems.docs)}>
+                    {renderButtonContent(checklistItems.docs)}
+                  </button>
+                  <label className="text-sm">Documentation is updated</label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id={`${file.filename}-tests`}
-                    className="rounded"
-                    checked={checklistItems.tests}
-                    onChange={() => handleChecklistChange('tests')}
-                  />
-                  <label htmlFor={`${file.filename}-tests`} className="text-sm">
-                    Tests are included/updated
-                  </label>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      toggleReviewState('tests');
+                    }}
+                    className={getButtonClasses(checklistItems.tests)}>
+                    {renderButtonContent(checklistItems.tests)}
+                  </button>
+                  <label className="text-sm">Tests are included/updated</label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id={`${file.filename}-performance`}
-                    className="rounded"
-                    checked={checklistItems.performance}
-                    onChange={() => handleChecklistChange('performance')}
-                  />
-                  <label htmlFor={`${file.filename}-performance`} className="text-sm">
-                    Performance considerations addressed
-                  </label>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      toggleReviewState('performance');
+                    }}
+                    className={getButtonClasses(checklistItems.performance)}>
+                    {renderButtonContent(checklistItems.performance)}
+                  </button>
+                  <label className="text-sm">Performance considerations addressed</label>
                 </div>
               </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold mb-2">Review Comments</h4>
-              <textarea
-                value={comment}
-                onChange={handleCommentChange}
-                placeholder="Add review comments here..."
-                className="w-full p-2 text-sm border rounded h-20 bg-white"
-              />
             </div>
 
             {file.patch && (
