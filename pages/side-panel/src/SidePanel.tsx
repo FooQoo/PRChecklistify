@@ -46,6 +46,9 @@ interface PRData {
   };
   created_at: string;
   updated_at: string;
+  review_assigned_at: string | null; // レビューがアサインされた時間
+  merged_at: string | null; // マージされた時間
+  state: string; // PR の状態 (open, closed, merged)
   base: {
     ref: string;
   };
@@ -103,6 +106,32 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
 
     const filesData = await filesResponse.json();
 
+    // レビューデータを取得（レビューがアサインされた時間を特定するため）
+    const reviewsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/reviews`, {
+      headers,
+    });
+
+    let reviewAssignedAt = null;
+
+    if (reviewsResponse.ok) {
+      const reviewsData = await reviewsResponse.json();
+
+      // レビューが存在する場合、最初のレビューの時間をレビューアサイン時間として使用
+      if (reviewsData && reviewsData.length > 0) {
+        // レビューは時系列順に並んでいるため、最初のレビューの時間を使用
+        reviewAssignedAt = reviewsData[0].submitted_at;
+        console.log(`Review assigned at: ${reviewAssignedAt}`);
+      } else {
+        // レビューがまだない場合は、作成時間をレビューアサイン時間として使用
+        reviewAssignedAt = prData.created_at;
+        console.log(`No reviews found, using PR creation time: ${reviewAssignedAt}`);
+      }
+    } else {
+      console.warn('Failed to fetch PR reviews:', reviewsResponse.statusText);
+      // レビューデータを取得できない場合は、PRの作成時間を使用
+      reviewAssignedAt = prData.created_at;
+    }
+
     return {
       title: prData.title,
       description: prData.body || 'No description provided.',
@@ -131,6 +160,9 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
       },
       created_at: prData.created_at,
       updated_at: prData.updated_at,
+      review_assigned_at: reviewAssignedAt,
+      merged_at: prData.merged_at,
+      state: prData.state,
       base: {
         ref: prData.base.ref,
       },
@@ -238,6 +270,28 @@ const prDataStorage = {
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleString();
+};
+
+// レビュー時間を計算する関数（単位：時間）
+const calculateReviewTime = (prData: PRData): number => {
+  if (!prData.review_assigned_at) {
+    return 0; // レビューがまだアサインされていない
+  }
+
+  const reviewStartTime = new Date(prData.review_assigned_at).getTime();
+  let reviewEndTime: number;
+
+  if (prData.merged_at) {
+    // マージされている場合はマージされた時間を使用
+    reviewEndTime = new Date(prData.merged_at).getTime();
+  } else {
+    // マージされていない場合は現在時刻を使用
+    reviewEndTime = Date.now();
+  }
+
+  // 差分を時間単位で計算（ミリ秒→時間に変換）
+  const diffInHours = (reviewEndTime - reviewStartTime) / (1000 * 60 * 60);
+  return Math.round(diffInHours * 10) / 10; // 小数第1位まで表示
 };
 
 // Component for GitHub token setup prompt
@@ -593,6 +647,12 @@ const GitHubPRView = ({ url }: { url: string }) => {
               <div className="text-xs text-gray-500 mb-1">
                 <div>Created: {formatDate(prData.created_at)}</div>
                 <div>Updated: {formatDate(prData.updated_at)}</div>
+                {prData.review_assigned_at && (
+                  <div>
+                    Review Time: <span className="font-semibold">{calculateReviewTime(prData)} hours</span>
+                    {prData.merged_at ? ' (Completed)' : ' (In Progress)'}
+                  </div>
+                )}
                 <div className="mt-1">
                   {prData.head.ref} → {prData.base.ref}
                 </div>
