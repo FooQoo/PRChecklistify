@@ -10,6 +10,13 @@ type CurrentPage = {
   url: string;
 };
 
+// Type for saved PR data with review status
+interface SavedPRData {
+  prId: string; // Unique identifier for the PR
+  timestamp: number; // When the data was saved
+  prData: PRData; // The actual PR data with review statuses
+}
+
 // GitHub PR data interface
 interface PRData {
   title: string;
@@ -27,6 +34,12 @@ interface PRData {
     patch?: string;
     reviewStatus?: 'approved' | 'needs-work' | 'not-reviewed'; // Status of review for this file
     comments?: string; // Any review comments for this file
+    checklistItems?: {
+      formatting: boolean;
+      docs: boolean;
+      tests: boolean;
+      performance: boolean;
+    }; // Checklist items for this file
   }[];
   user: {
     login: string;
@@ -107,6 +120,12 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         patch: file.patch,
         reviewStatus: 'not-reviewed', // Initialize all files as not reviewed
         comments: '',
+        checklistItems: {
+          formatting: false,
+          docs: false,
+          tests: false,
+          performance: false,
+        }, // Initialize checklist items
       })),
       user: {
         login: prData.user.login,
@@ -125,6 +144,60 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
     console.error('Error fetching PR data:', error);
     return null;
   }
+};
+
+// Helper functions for PR data storage
+const prDataStorage = {
+  // Save PR data to storage
+  save: async (prUrl: string, prData: PRData): Promise<void> => {
+    try {
+      // Create a unique ID for the PR (owner/repo/number)
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      // Create the data object to save
+      const savedData: SavedPRData = {
+        prId,
+        timestamp: Date.now(),
+        prData,
+      };
+
+      // Save to storage
+      await chrome.storage.local.set({ [prId]: savedData });
+      console.log(`Saved PR data for ${prId}`);
+    } catch (error) {
+      console.error('Error saving PR data:', error);
+    }
+  },
+
+  // Load PR data from storage
+  load: async (prUrl: string): Promise<PRData | null> => {
+    try {
+      // Create a unique ID for the PR
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return null;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      // Try to load from storage
+      const result = await chrome.storage.local.get(prId);
+      const savedData = result[prId] as SavedPRData | undefined;
+
+      if (savedData && savedData.prData) {
+        console.log(`Loaded saved PR data for ${prId} from ${new Date(savedData.timestamp).toLocaleString()}`);
+        return savedData.prData;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error loading PR data:', error);
+      return null;
+    }
+  },
 };
 
 // Format date to a more readable format
@@ -214,8 +287,8 @@ const GitHubPRView = ({ url }: { url: string }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
-  const [showDetailedChecklists, setShowDetailedChecklists] = useState(false);
 
+  // Fetch PR data - first try to load from storage, then from API if needed
   useEffect(() => {
     const checkToken = async () => {
       const token = await githubTokenStorage.get();
@@ -233,9 +306,22 @@ const GitHubPRView = ({ url }: { url: string }) => {
         setError(null);
 
         try {
+          // First try to load from storage
+          const savedData = await prDataStorage.load(url);
+          if (savedData) {
+            console.log('Loaded PR data from storage');
+            setPRData(savedData);
+            setLoading(false);
+            return;
+          }
+
+          // If no saved data, fetch from API
+          console.log('No saved data found, fetching from API');
           const data = await fetchPRData(url);
           if (data) {
             setPRData(data);
+            // Save the initial data to storage
+            await prDataStorage.save(url, data);
           } else {
             setError('Failed to retrieve PR data');
           }
@@ -253,6 +339,16 @@ const GitHubPRView = ({ url }: { url: string }) => {
       setLoading(false);
     }
   }, [url, hasToken]);
+
+  // Save PR data whenever it changes
+  useEffect(() => {
+    if (prData) {
+      const saveData = async () => {
+        await prDataStorage.save(url, prData);
+      };
+      saveData();
+    }
+  }, [prData, url]);
 
   const handleFileStatusChange = (filename: string, status: 'approved' | 'needs-work' | 'not-reviewed') => {
     if (!prData) return;
@@ -273,6 +369,20 @@ const GitHubPRView = ({ url }: { url: string }) => {
     const updatedFiles = prData.files.map(file => {
       if (file.filename === filename) {
         return { ...file, comments };
+      }
+      return file;
+    });
+
+    setPRData({ ...prData, files: updatedFiles });
+  };
+
+  // Add handleChecklistChange function to update checklist items
+  const handleChecklistChange = (filename: string, checklistItems: Record<string, boolean>) => {
+    if (!prData) return;
+
+    const updatedFiles = prData.files.map(file => {
+      if (file.filename === filename) {
+        return { ...file, checklistItems };
       }
       return file;
     });
@@ -381,6 +491,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
                       file={file}
                       onStatusChange={handleFileStatusChange}
                       onCommentChange={handleFileCommentChange}
+                      onChecklistChange={handleChecklistChange}
                     />
                   ))}
                 </div>
@@ -559,18 +670,21 @@ interface FileChecklistProps {
   file: PRData['files'][0];
   onStatusChange: (filename: string, status: 'approved' | 'needs-work' | 'not-reviewed') => void;
   onCommentChange: (filename: string, comments: string) => void;
+  onChecklistChange: (filename: string, checklistItems: Record<string, boolean>) => void;
 }
 
-const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistProps) => {
+const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChange }: FileChecklistProps) => {
   const [expanded, setExpanded] = useState(true); // Default to expanded
   const [comment, setComment] = useState(file.comments || '');
-  // State to track checklist items
-  const [checklistItems, setChecklistItems] = useState({
-    formatting: false,
-    docs: false,
-    tests: false,
-    performance: false,
-  });
+  // State to track checklist items - Initialize from saved data if available
+  const [checklistItems, setChecklistItems] = useState(
+    file.checklistItems || {
+      formatting: false,
+      docs: false,
+      tests: false,
+      performance: false,
+    },
+  );
 
   // Update review status whenever checklist items change
   useEffect(() => {
@@ -589,6 +703,13 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
     else {
       onStatusChange(file.filename, 'not-reviewed');
     }
+
+    // Update the checklistItems in the parent component
+    const updatedFile = {
+      ...file,
+      checklistItems: checklistItems,
+    };
+    onChecklistChange(file.filename, checklistItems);
   }, [checklistItems, file.filename, onStatusChange]);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -597,10 +718,17 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
   };
 
   const handleChecklistChange = (item: keyof typeof checklistItems) => {
-    setChecklistItems(prev => ({
-      ...prev,
-      [item]: !prev[item],
-    }));
+    const newChecklistItems = {
+      ...checklistItems,
+      [item]: !checklistItems[item],
+    };
+
+    setChecklistItems(newChecklistItems);
+
+    // Notify parent component about the change
+    if (onChecklistChange) {
+      onChecklistChange(file.filename, newChecklistItems);
+    }
   };
 
   // Get status label and style
