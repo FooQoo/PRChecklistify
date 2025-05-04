@@ -1540,24 +1540,6 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
             file.
           </p>
 
-          <div className="mb-3">
-            <label htmlFor="language-select" className="block text-sm font-medium text-gray-700 mb-1">
-              Analysis Language:
-            </label>
-            <select
-              id="language-select"
-              value={selectedLanguage || ''}
-              onChange={handleLanguageChange}
-              className="w-full p-2 border rounded text-sm">
-              <option value="en">English</option>
-              <option value="ja">Japanese (日本語)</option>
-              <option value="ko">Korean (한국어)</option>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">
-              Current: {selectedLanguage ? getLanguageDisplay(selectedLanguage) : 'Using default'}
-            </p>
-          </div>
-
           <button
             onClick={generatePRChecklist}
             disabled={loading}
