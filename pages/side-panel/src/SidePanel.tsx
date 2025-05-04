@@ -716,39 +716,48 @@ const GitHubPRView = ({ url }: { url: string }) => {
             {/* PRAnalysisコンポーネントを追加 - ファイル一覧の前に表示 */}
             {prData && <PRAnalysis prData={prData} url={url} />}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
-              {/* <div className="description border border-gray-300 rounded p-2 w-full text-left text-sm">
+            {analysisResult && (
+              // <div className="analysis-result border border-gray-300 rounded p-2 w-full text-left mb-4">
+              //   <h4 className="font-bold mb-1">AI Analysis Result:</h4>
+              //   <div className="markdown-content">
+              //     <p>{analysisResult.summary}</p>
+              //   </div>
+              // </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+                {/* <div className="description border border-gray-300 rounded p-2 w-full text-left text-sm">
                 <h4 className="font-bold mb-1">Description:</h4>
                 <div className="markdown-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{prData.description}</ReactMarkdown>
                 </div>
               </div> */}
 
-              <div className="files-section border border-gray-300 rounded p-2 w-full text-left">
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold">Changed Files:</h4>
-                </div>
+                <div className="files-section border border-gray-300 rounded p-2 w-full text-left">
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold">Changed Files:</h4>
+                  </div>
 
-                <div className="detailed-checklists">
-                  {prData.files.map((file, index) => {
-                    // Find AI-generated checklist for this file if available
-                    const aiGeneratedChecklist = analysisResult?.fileChecklists.find(
-                      checklist => checklist.filename === file.filename,
-                    );
+                  <div className="detailed-checklists">
+                    {prData.files.map((file, index) => {
+                      // Find AI-generated checklist for this file if available
+                      const aiGeneratedChecklist = analysisResult?.fileChecklists.find(
+                        checklist => checklist.filename === file.filename,
+                      );
 
-                    return (
-                      <FileChecklist
-                        key={index}
-                        file={file}
-                        onCommentChange={handleFileCommentChange}
-                        onChecklistChange={handleChecklistChange}
-                        aiGeneratedChecklist={aiGeneratedChecklist}
-                      />
-                    );
-                  })}
+                      return (
+                        <FileChecklist
+                          key={index}
+                          file={file}
+                          onCommentChange={handleFileCommentChange}
+                          onChecklistChange={handleChecklistChange}
+                          aiGeneratedChecklist={aiGeneratedChecklist}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         ) : (
           <p className="text-red-500">Failed to load PR data. Please check your connection or PR URL.</p>
