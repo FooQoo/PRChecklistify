@@ -925,7 +925,28 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
 
   // Toggle expanded state manually
   const toggleExpanded = () => {
-    setExpandOverride(expanded ? false : true);
+    // タブを閉じる操作の場合
+    if (expanded) {
+      // すべてのチェックボックスをオンにする
+      const allCheckedItems = {
+        formatting: true,
+        docs: true,
+        tests: true,
+        performance: true,
+      };
+
+      // チェックボックスをすべてONに変更
+      setChecklistItems(allCheckedItems);
+
+      // 親コンポーネントに変更を通知
+      onChecklistChange(file.filename, allCheckedItems);
+
+      // 閉じる
+      setExpandOverride(false);
+    } else {
+      // タブを開く操作の場合は通常通り開くだけ
+      setExpandOverride(true);
+    }
   };
 
   // Get status label and style based on calculated status
