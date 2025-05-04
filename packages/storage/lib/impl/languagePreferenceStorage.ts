@@ -2,7 +2,7 @@ import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
 
 // Define the supported languages
-type Language = 'en' | 'ja' | 'auto';
+type Language = 'en' | 'ja' | 'ko';
 
 type LanguagePreferenceStorage = BaseStorage<Language> & {
   /**
@@ -16,13 +16,13 @@ type LanguagePreferenceStorage = BaseStorage<Language> & {
   setJapanese: () => Promise<void>;
 
   /**
-   * Set language to auto-detect from browser settings
+   * Set language to Korean
    */
-  setAuto: () => Promise<void>;
+  setKo: () => Promise<void>;
 };
 
-// Create the base storage with 'auto' as the default value
-const storage = createStorage<Language>('language-preference', 'auto', {
+// Create the base storage with 'en' as the default value
+const storage = createStorage<Language>('language-preference', 'en', {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
 });
@@ -36,7 +36,7 @@ export const languagePreferenceStorage: LanguagePreferenceStorage = {
   setJapanese: async () => {
     await storage.set('ja');
   },
-  setAuto: async () => {
-    await storage.set('auto');
+  setKo: async () => {
+    await storage.set('ko');
   },
 };

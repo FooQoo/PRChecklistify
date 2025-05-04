@@ -916,20 +916,6 @@ const LanguageSettings = () => {
     }
   };
 
-  const handleClearLanguage = async () => {
-    try {
-      setIsSaving(true);
-      await languagePreferenceStorage.set(null);
-      setSavedLanguage(navigator.language || 'en');
-      setMessage({ text: 'Language preference cleared successfully', type: 'success' });
-    } catch (error) {
-      console.error('Error clearing language preference:', error);
-      setMessage({ text: 'Failed to clear language preference', type: 'error' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const getLanguageDisplay = (lang: string) => {
     if (lang.startsWith('ja')) return 'Japanese (日本語)';
     if (lang.startsWith('ko')) return 'Korean (한국어)';
@@ -1042,9 +1028,9 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
 };
 
 const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
-  const [comment, setComment] = useState(file.comments || '');
+  // const [comment, setComment] = useState(file.comments || '');
   // State to track checklist items - Initialize from saved data if available
-  const [checklistItems, setChecklistItems] = useState(
+  const [checklistItems, setChecklistItems] = useState<Record<string, 'PENDING' | 'OK' | 'NG'>>(
     file.checklistItems || {
       formatting: 'PENDING',
       docs: 'PENDING',
@@ -1117,10 +1103,10 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
     }
   }, [checklistItems, file.filename, onChecklistChange, allItemsJustChecked]);
 
-  const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setComment(e.target.value);
-    onCommentChange(file.filename, e.target.value);
-  };
+  // const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  //   setComment(e.target.value);
+  //   onCommentChange(file.filename, e.target.value);
+  // };
 
   // Toggle through the review states: PENDING -> NG -> OK -> NG
   const toggleReviewState = (item: keyof typeof checklistItems) => {
@@ -1251,10 +1237,8 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
 
   return (
     <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
-      <div
+      <button
         className="flex items-center justify-between p-3 cursor-pointer bg-gray-50"
-        role="button"
-        tabIndex={0}
         onClick={toggleExpanded}
         onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -1297,7 +1281,7 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
             )}
           </span>
         </div>
-      </div>
+      </button>
 
       {expanded && (
         <div className="p-4 border-t border-gray-200">
@@ -1323,12 +1307,12 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
                           const keys = Object.keys(updatedChecklist);
                           const index = aiGeneratedChecklist.checklistItems.indexOf(item);
                           if (index < keys.length) {
-                            updatedChecklist[keys[index]] = nextStatus;
+                            updatedChecklist[keys[index] as keyof typeof updatedChecklist] = nextStatus;
                           }
                         } else {
                           // Otherwise, just make sure all items are marked as same status
                           Object.keys(updatedChecklist).forEach(key => {
-                            updatedChecklist[key] = nextStatus;
+                            updatedChecklist[key as keyof typeof updatedChecklist] = nextStatus;
                           });
                         }
 
@@ -1388,7 +1372,7 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
 
   // Use the parent component's analysisResult and setAnalysisResult
   const { analysisResult, setAnalysisResult } = useAnalysisContext();
@@ -1434,19 +1418,6 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Language selection handler
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedLanguage(e.target.value);
-  };
-
-  // Get language display name
-  const getLanguageDisplay = (lang: string) => {
-    if (lang.startsWith('ja')) return 'Japanese (日本語)';
-    if (lang.startsWith('ko')) return 'Korean (한국어)';
-    if (lang.startsWith('en')) return 'English';
-    return lang;
   };
 
   // Save analysis result to storage
@@ -1618,8 +1589,10 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 // Settings Panel component
 const SettingsPanel = ({ onClose }: { onClose: () => void }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div
+    <button
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      onClick={onClose}>
+      <button
         className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
@@ -1640,8 +1613,8 @@ const SettingsPanel = ({ onClose }: { onClose: () => void }) => {
           <OpenAIKeySettings />
           <LanguageSettings />
         </div>
-      </div>
-    </div>
+      </button>
+    </button>
   );
 };
 
