@@ -645,17 +645,12 @@ const GitHubPRView = ({ url }: { url: string }) => {
                 <span>{prData.user.login}</span>
               </div>
               <div className="text-xs text-gray-500 mb-1">
-                <div>Created: {formatDate(prData.created_at)}</div>
-                <div>Updated: {formatDate(prData.updated_at)}</div>
                 {prData.review_assigned_at && (
                   <div>
                     Review Time: <span className="font-semibold">{calculateReviewTime(prData)} hours</span>
                     {prData.merged_at ? ' (Completed)' : ' (In Progress)'}
                   </div>
                 )}
-                <div className="mt-1">
-                  {prData.head.ref} → {prData.base.ref}
-                </div>
               </div>
             </div>
 
