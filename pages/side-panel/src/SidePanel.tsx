@@ -316,7 +316,26 @@ const GitHubPRView = ({ url }: { url: string }) => {
 
   return (
     <div className="App bg-slate-50">
-      <header className="App-header text-gray-900">
+      {prData && (
+        <div className="review-progress fixed top-0 left-0 right-0 z-10 bg-white shadow-md p-2 border-b border-gray-300 mb-2">
+          <h4 className="font-bold mb-1">Review Progress:</h4>
+          <div className="flex justify-between mb-1 text-sm">
+            <span>
+              Reviewed: {progress.reviewed}/{progress.total} files
+            </span>
+            <span>Approved: {progress.approved}</span>
+            <span>Needs Work: {progress.needsWork}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
+              style={{ width: `${(progress.reviewed / progress.total) * 100}%` }}></div>
+          </div>
+        </div>
+      )}
+      <header className="App-header text-gray-900 pt-16">
+        {' '}
+        {/* Added padding-top to make space for the fixed header */}
         {prData ? (
           <div className="w-full max-w-3xl px-4">
             <div className="pr-header mb-2">
@@ -338,22 +357,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
               <span className="text-green-600">+{prData.diffStats.additions}</span>
               <span className="text-red-600">-{prData.diffStats.deletions}</span>
               <span>{prData.diffStats.changedFiles} files</span>
-            </div>
-
-            <div className="review-progress border border-gray-300 rounded p-2 mb-2 w-full">
-              <h4 className="font-bold mb-1">Review Progress:</h4>
-              <div className="flex justify-between mb-1 text-sm">
-                <span>
-                  Reviewed: {progress.reviewed}/{progress.total} files
-                </span>
-                <span>Approved: {progress.approved}</span>
-                <span>Needs Work: {progress.needsWork}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full"
-                  style={{ width: `${(progress.reviewed / progress.total) * 100}%` }}></div>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
