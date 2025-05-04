@@ -705,12 +705,8 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
     }
 
     // Update the checklistItems in the parent component
-    const updatedFile = {
-      ...file,
-      checklistItems: checklistItems,
-    };
     onChecklistChange(file.filename, checklistItems);
-  }, [checklistItems, file.filename, onStatusChange]);
+  }, [checklistItems, file.filename, onStatusChange, onChecklistChange, file]);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -724,11 +720,6 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
     };
 
     setChecklistItems(newChecklistItems);
-
-    // Notify parent component about the change
-    if (onChecklistChange) {
-      onChecklistChange(file.filename, newChecklistItems);
-    }
   };
 
   // Get status label and style
@@ -801,7 +792,19 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
           <div className="flex flex-col gap-3">
             <div>
               <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
-              <p className="text-xs text-gray-500 mb-2">Complete all checklist items to mark this file as approved</p>
+              <div className="text-xs text-gray-500 mb-2">
+                <p>Complete all checklist items to mark this file as approved</p>
+                <p className="mt-1">
+                  <span className="font-medium">Auto Status: </span>
+                  {Object.values(checklistItems).every(item => item === true) ? (
+                    <span className="text-green-600">All complete ✓ (Approved)</span>
+                  ) : Object.values(checklistItems).some(item => item === true) ? (
+                    <span className="text-yellow-600">Partially complete ⚠ (In Progress)</span>
+                  ) : (
+                    <span className="text-gray-600">None complete ⊘ (Not Reviewed)</span>
+                  )}
+                </p>
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <input
