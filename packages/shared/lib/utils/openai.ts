@@ -44,9 +44,13 @@ class OpenAIClient {
   /**
    * Analyze a PR and generate checklist and summary
    */
-  async analyzePR(prData: any): Promise<PRAnalysisResult> {
+  async analyzePR(prData: any, languageOverride?: string): Promise<PRAnalysisResult> {
     try {
-      const prompt = this.buildPRAnalysisPrompt(prData);
+      // Get language preference from storage or use override if provided
+      const language = languageOverride || (await languagePreferenceStorage.get()) || navigator.language || 'en';
+
+      console.log(`Using language for analysis: ${language}`);
+      const prompt = this.buildPRAnalysisPrompt(prData, language);
       const response = await this.callOpenAI(prompt);
       return this.parseAnalysisResponse(response);
     } catch (error) {
@@ -56,9 +60,9 @@ class OpenAIClient {
   }
 
   /**
-   * Build the prompt for PR analysis
+   * Build the prompt for PR analysis with language preference
    */
-  private buildPRAnalysisPrompt(prData: any): string {
+  private buildPRAnalysisPrompt(prData: any, language: string = 'en'): string {
     // Format the PR data for the prompt
     const { title, description, files } = prData;
 
@@ -73,9 +77,12 @@ ${file.patch ? `Patch:\n${file.patch}` : 'No patch available'}
       })
       .join('\n---\n');
 
-    // Construct the full prompt
+    // Determine output language based on browser's language setting
+    const outputLanguage = language.startsWith('ja') ? 'Japanese' : language.startsWith('ko') ? 'Korean' : 'English';
+
+    // Construct the full prompt with language instruction
     return `
-Analyze this pull request and provide:
+Analyze this pull request and provide your response in ${outputLanguage}. Include:
 1. A summary of the PR, including:
    - Background
    - Problem being solved
@@ -118,6 +125,8 @@ Format your response as a JSON object with the following structure:
     ...more files
   ]
 }
+
+Important: All text content inside the JSON must be in ${outputLanguage}. Keep the JSON structure and field names in English.
 `;
   }
 
@@ -205,6 +214,37 @@ export const openaiApiKeyStorage = {
       await chrome.storage.local.remove('openaiApiKey');
     } catch (error) {
       console.error('Error clearing OpenAI API key:', error);
+      throw error;
+    }
+  },
+};
+
+// Storage for language preference
+export const languagePreferenceStorage = {
+  get: async (): Promise<string | null> => {
+    try {
+      const result = await chrome.storage.local.get('languagePreference');
+      return result.languagePreference || null;
+    } catch (error) {
+      console.error('Error getting language preference:', error);
+      return null;
+    }
+  },
+
+  set: async (language: string): Promise<void> => {
+    try {
+      await chrome.storage.local.set({ languagePreference: language });
+    } catch (error) {
+      console.error('Error setting language preference:', error);
+      throw error;
+    }
+  },
+
+  clear: async (): Promise<void> => {
+    try {
+      await chrome.storage.local.remove('languagePreference');
+    } catch (error) {
+      console.error('Error clearing language preference:', error);
       throw error;
     }
   },

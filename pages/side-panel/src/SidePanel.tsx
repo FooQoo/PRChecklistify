@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
-import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
+import { githubTokenStorage, openaiApiKeyStorage, languagePreferenceStorage } from '@extension/storage';
 import { type PRAnalysisResult, createOpenAIClient } from '@extension/shared';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+// import ReactMarkdown from 'react-markdown';
+// import remarkGfm from 'remark-gfm';
 
 // Type for page information
 type CurrentPage = {
@@ -970,6 +970,108 @@ const OpenAIKeySettings = () => {
   );
 };
 
+// Component for language preference settings
+const LanguageSettings = () => {
+  const [language, setLanguage] = useState('');
+  const [savedLanguage, setSavedLanguage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  // Load the saved language when component mounts
+  useEffect(() => {
+    const loadLanguage = async () => {
+      const lang = await languagePreferenceStorage.get();
+      setSavedLanguage(lang || navigator.language || 'en');
+    };
+    loadLanguage();
+  }, []);
+
+  const handleSaveLanguage = async () => {
+    try {
+      setIsSaving(true);
+      setMessage({ text: '', type: '' });
+
+      await languagePreferenceStorage.set(language);
+      setSavedLanguage(language);
+      setMessage({ text: 'Language preference saved successfully', type: 'success' });
+
+      // Clear the selection after successful save
+      setLanguage('');
+    } catch (error) {
+      console.error('Error saving language preference:', error);
+      setMessage({ text: 'Failed to save language preference', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleClearLanguage = async () => {
+    try {
+      setIsSaving(true);
+      await languagePreferenceStorage.set(null);
+      setSavedLanguage(navigator.language || 'en');
+      setMessage({ text: 'Language preference cleared successfully', type: 'success' });
+    } catch (error) {
+      console.error('Error clearing language preference:', error);
+      setMessage({ text: 'Failed to clear language preference', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const getLanguageDisplay = (lang: string) => {
+    if (lang.startsWith('ja')) return 'Japanese (日本語)';
+    if (lang.startsWith('ko')) return 'Korean (한국어)';
+    if (lang.startsWith('en')) return 'English';
+    return lang;
+  };
+
+  return (
+    <div className="border border-gray-300 rounded p-4 w-full mt-4">
+      <h3 className="text-lg font-bold mb-3">Language Settings</h3>
+      <div className="mb-4">
+        <p className="text-sm mb-2">
+          {savedLanguage
+            ? 'Current language preference is set to: ' + getLanguageDisplay(savedLanguage)
+            : 'Set your preferred language for AI-generated content.'}
+        </p>
+
+        <div className="flex">
+          <select
+            value={language}
+            onChange={e => setLanguage(e.target.value)}
+            className="flex-grow p-2 border rounded-l text-sm">
+            <option value="" disabled>
+              {'Select language...'}
+            </option>
+            <option value="en">English</option>
+            <option value="ja">Japanese (日本語)</option>
+            <option value="ko">Korean (한국어)</option>
+          </select>
+          <button
+            onClick={handleSaveLanguage}
+            disabled={isSaving || !language}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-r text-sm disabled:opacity-50">
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+
+        {message.text && (
+          <p className={`text-xs mt-2 ${message.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+            {message.text}
+          </p>
+        )}
+
+        <p className="text-xs text-gray-600 mt-3">
+          {
+            'When no preference is set, the system will use your browser language. Setting a preference will override this for all AI-generated content.'
+          }
+        </p>
+      </div>
+    </div>
+  );
+};
+
 // Component for file checklist items
 interface FileChecklistProps {
   file: PRData['files'][0];
@@ -1336,6 +1438,7 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   // Check if OpenAI API key is set
   useEffect(() => {
@@ -1343,7 +1446,13 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       const apiKey = await openaiApiKeyStorage.get();
       setHasOpenAIKey(!!apiKey);
     };
+    const loadLanguagePreference = async () => {
+      const lang = await languagePreferenceStorage.get();
+      setSelectedLanguage(lang || navigator.language || 'en');
+    };
+
     checkOpenAIKey();
+    loadLanguagePreference();
   }, []);
 
   // Generate PR checklist using OpenAI API
@@ -1358,8 +1467,8 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
         throw new Error('OpenAI API key is not set');
       }
 
-      // Call OpenAI API to analyze PR
-      const result = await openaiClient.analyzePR(prData);
+      // Use the selected language (or default to stored preference)
+      const result = await openaiClient.analyzePR(prData, selectedLanguage);
 
       // Save result to state
       setAnalysisResult(result);
@@ -1368,10 +1477,23 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       await saveAnalysisToStorage(url, result);
     } catch (err) {
       console.error('Error generating PR checklist:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while generating PR checklist');
+      setError('An error occurred while generating PR checklist');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Language selection handler
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedLanguage(e.target.value);
+  };
+
+  // Get language display name
+  const getLanguageDisplay = (lang: string) => {
+    if (lang.startsWith('ja')) return 'Japanese (日本語)';
+    if (lang.startsWith('ko')) return 'Korean (한국어)';
+    if (lang.startsWith('en')) return 'English';
+    return lang;
   };
 
   // Save analysis result to storage
@@ -1447,7 +1569,16 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
   return (
     <div className="mt-4 p-4 border border-gray-300 rounded">
-      <h3 className="font-bold text-lg mb-2 text-left">AI-Powered PR Analysis</h3>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="font-bold text-lg text-left">AI-Powered PR Analysis</h3>
+        {analysisResult && (
+          <button
+            onClick={generatePRChecklist}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+            Regenerate Analysis
+          </button>
+        )}
+      </div>
 
       {!analysisResult && !loading && (
         <div className="mb-4">
@@ -1455,6 +1586,25 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
             Generate an AI-powered analysis of this PR to get detailed descriptions and customized checklists for each
             file.
           </p>
+
+          <div className="mb-3">
+            <label htmlFor="language-select" className="block text-sm font-medium text-gray-700 mb-1">
+              Analysis Language:
+            </label>
+            <select
+              id="language-select"
+              value={selectedLanguage || ''}
+              onChange={handleLanguageChange}
+              className="w-full p-2 border rounded text-sm">
+              <option value="en">English</option>
+              <option value="ja">Japanese (日本語)</option>
+              <option value="ko">Korean (한국어)</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Current: {selectedLanguage ? getLanguageDisplay(selectedLanguage) : 'Using default'}
+            </p>
+          </div>
+
           <button
             onClick={generatePRChecklist}
             disabled={loading}
@@ -1524,21 +1674,66 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
               ))}
             </div>
           </div>
-
-          <div className="mt-4">
-            <button onClick={generatePRChecklist} className="text-blue-500 hover:text-blue-600 text-sm">
-              Regenerate Analysis
-            </button>
-          </div>
         </div>
       )}
     </div>
   );
 };
 
+// Settings Panel component
+const SettingsPanel = ({ onClose }: { onClose: () => void }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Settings</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="space-y-4">
+          <GitHubTokenSettings />
+          <OpenAIKeySettings />
+          <LanguageSettings />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Settings button component
+const SettingsButton = ({ onClick }: { onClick: () => void }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="fixed bottom-4 right-4 z-40 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg"
+      title="Settings">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+        />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    </button>
+  );
+};
+
 const SidePanel = () => {
   const [currentPage, setCurrentPage] = useState<CurrentPage | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     // Function to get current page information from storage
@@ -1582,16 +1777,20 @@ const SidePanel = () => {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  if (!currentPage || !currentPage.url) {
-    return <DefaultView />;
-  }
+  return (
+    <>
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      <SettingsButton onClick={() => setShowSettings(true)} />
 
-  // GitHub PR page
-  if (isGitHubPRPage(currentPage.url)) {
-    return <GitHubPRView url={currentPage.url} />;
-  }
-
-  return <DefaultView />;
+      {!currentPage || !currentPage.url ? (
+        <DefaultView />
+      ) : isGitHubPRPage(currentPage.url) ? (
+        <GitHubPRView url={currentPage.url} />
+      ) : (
+        <DefaultView />
+      )}
+    </>
+  );
 };
 
 export default withErrorBoundary(withSuspense(SidePanel, <div> Loading ... </div>), <div> Error Occur </div>);
