@@ -564,11 +564,59 @@ interface FileChecklistProps {
 const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistProps) => {
   const [expanded, setExpanded] = useState(true); // Default to expanded
   const [comment, setComment] = useState(file.comments || '');
+  // State to track checklist items
+  const [checklistItems, setChecklistItems] = useState({
+    formatting: false,
+    docs: false,
+    tests: false,
+    performance: false,
+  });
+
+  // Update review status whenever checklist items change
+  useEffect(() => {
+    const allChecked = Object.values(checklistItems).every(item => item === true);
+    const anyChecked = Object.values(checklistItems).some(item => item === true);
+
+    // If all checklist items are checked, automatically approve
+    if (allChecked) {
+      onStatusChange(file.filename, 'approved');
+    }
+    // If some are checked but not all, mark as needs work
+    else if (anyChecked) {
+      onStatusChange(file.filename, 'needs-work');
+    }
+    // If none are checked, mark as not reviewed
+    else {
+      onStatusChange(file.filename, 'not-reviewed');
+    }
+  }, [checklistItems, file.filename, onStatusChange]);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
     onCommentChange(file.filename, e.target.value);
   };
+
+  const handleChecklistChange = (item: keyof typeof checklistItems) => {
+    setChecklistItems(prev => ({
+      ...prev,
+      [item]: !prev[item],
+    }));
+  };
+
+  // Get status label and style
+  const getStatusDisplay = () => {
+    switch (file.reviewStatus) {
+      case 'approved':
+        return { label: '✓ Approved', class: 'bg-green-500 text-white' };
+      case 'needs-work':
+        return { label: '⚠ In Progress', class: 'bg-yellow-500 text-white' };
+      case 'not-reviewed':
+      default:
+        return { label: '⊘ Not Reviewed', class: 'bg-gray-500 text-white' };
+    }
+  };
+
+  const statusDisplay = getStatusDisplay();
 
   return (
     <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
@@ -596,82 +644,81 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
           </span>
           <span className="font-medium truncate">{file.filename}</span>
         </div>
-        <span className="text-gray-500">
-          {expanded ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fillRule="evenodd"
-                d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fillRule="evenodd"
-                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          )}
-        </span>
+        <div className="flex items-center">
+          <span className={`px-2 py-0.5 text-xs rounded-full mr-2 ${statusDisplay.class}`}>{statusDisplay.label}</span>
+          <span className="text-gray-500">
+            {expanded ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </span>
+        </div>
       </div>
 
       {expanded && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-3">
             <div>
-              <h4 className="text-sm font-semibold mb-2">Review Status</h4>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => onStatusChange(file.filename, 'approved')}
-                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                    file.reviewStatus === 'approved' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-100'
-                  }`}>
-                  ✓ Approved
-                </button>
-                <button
-                  onClick={() => onStatusChange(file.filename, 'needs-work')}
-                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                    file.reviewStatus === 'needs-work' ? 'bg-yellow-500 text-white' : 'bg-gray-100 hover:bg-yellow-100'
-                  }`}>
-                  ⚠ Needs Work
-                </button>
-                <button
-                  onClick={() => onStatusChange(file.filename, 'not-reviewed')}
-                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                    file.reviewStatus === 'not-reviewed' || !file.reviewStatus
-                      ? 'bg-gray-500 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  }`}>
-                  ⊘ Not Reviewed
-                </button>
-              </div>
-            </div>
-
-            <div>
               <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
+              <p className="text-xs text-gray-500 mb-2">Complete all checklist items to mark this file as approved</p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id={`${file.filename}-formatting`} className="rounded" />
+                  <input
+                    type="checkbox"
+                    id={`${file.filename}-formatting`}
+                    className="rounded"
+                    checked={checklistItems.formatting}
+                    onChange={() => handleChecklistChange('formatting')}
+                  />
                   <label htmlFor={`${file.filename}-formatting`} className="text-sm">
                     Code follows formatting standards
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id={`${file.filename}-docs`} className="rounded" />
+                  <input
+                    type="checkbox"
+                    id={`${file.filename}-docs`}
+                    className="rounded"
+                    checked={checklistItems.docs}
+                    onChange={() => handleChecklistChange('docs')}
+                  />
                   <label htmlFor={`${file.filename}-docs`} className="text-sm">
                     Documentation is updated
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id={`${file.filename}-tests`} className="rounded" />
+                  <input
+                    type="checkbox"
+                    id={`${file.filename}-tests`}
+                    className="rounded"
+                    checked={checklistItems.tests}
+                    onChange={() => handleChecklistChange('tests')}
+                  />
                   <label htmlFor={`${file.filename}-tests`} className="text-sm">
                     Tests are included/updated
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id={`${file.filename}-performance`} className="rounded" />
+                  <input
+                    type="checkbox"
+                    id={`${file.filename}-performance`}
+                    className="rounded"
+                    checked={checklistItems.performance}
+                    onChange={() => handleChecklistChange('performance')}
+                  />
                   <label htmlFor={`${file.filename}-performance`} className="text-sm">
                     Performance considerations addressed
                   </label>
@@ -691,6 +738,7 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange }: FileChecklistP
 
             {file.patch && (
               <div>
+                <h4 className="text-sm font-semibold mb-2">Code Changes</h4>
                 <pre className="text-xs p-2 bg-gray-100 rounded overflow-x-auto max-h-96">{file.patch}</pre>
               </div>
             )}
