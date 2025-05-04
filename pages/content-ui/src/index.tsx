@@ -1,8 +1,46 @@
 import { createRoot } from 'react-dom/client';
 import App from '@src/App';
+import initOpenAIIntegration from '@src/openai-integration';
 // @ts-expect-error Because file doesn't exist before build
 import tailwindcssOutput from '../dist/tailwind-output.css?inline';
 
+// Initialize OpenAI integration for GitHub PR pages
+const initGitHubPRFeatures = async () => {
+  try {
+    // Initialize OpenAI integration (for the "Generate PR Checklist" button)
+    await initOpenAIIntegration();
+
+    // Re-run on navigation changes (for single-page apps like GitHub)
+    const observer = new MutationObserver(async mutations => {
+      // Check if we need to reinitialize (i.e., navigated to a new PR page)
+      const shouldReinit = mutations.some(mutation => mutation.type === 'childList' && mutation.addedNodes.length > 0);
+
+      if (shouldReinit) {
+        await initOpenAIIntegration();
+      }
+    });
+
+    // Observe changes to the main content area
+    const targetNode = document.body;
+    observer.observe(targetNode, { childList: true, subtree: true });
+
+    // Also reinitialize on URL changes (for SPAs)
+    let lastUrl = window.location.href;
+    setInterval(() => {
+      if (lastUrl !== window.location.href) {
+        lastUrl = window.location.href;
+        initOpenAIIntegration();
+      }
+    }, 1000);
+  } catch (error) {
+    console.error('Error initializing GitHub PR features:', error);
+  }
+};
+
+// Initialize the GitHub PR features
+initGitHubPRFeatures();
+
+// Continue with React app initialization
 const root = document.createElement('div');
 root.id = 'chrome-extension-boilerplate-react-vite-content-view-root';
 

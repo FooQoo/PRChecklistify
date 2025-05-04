@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
-import { githubTokenStorage } from '@extension/storage';
+import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
+import { type PRAnalysisResult, createOpenAIClient } from '@extension/shared';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -371,6 +372,10 @@ const GitHubPRView = ({ url }: { url: string }) => {
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   // ステート更新トリガーの追加（プログレスバー更新用）
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  // OpenAI API Key状態の追加
+  const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
+  // 初期表示時にOpenAI APIキーの設定画面を表示するかどうか
+  const [showOpenAISetup, setShowOpenAISetup] = useState(false);
 
   // Fetch PR data - first try to load from storage, then from API if needed
   useEffect(() => {
@@ -379,9 +384,33 @@ const GitHubPRView = ({ url }: { url: string }) => {
       setHasToken(!!token);
     };
 
+    const checkOpenAIKey = async () => {
+      const key = await openaiApiKeyStorage.get();
+      setHasOpenAIKey(!!key);
+    };
+
+    // GitHub Tokenとともに OpenAI API Keyもチェック
     checkToken();
+    checkOpenAIKey();
   }, []);
 
+  // useEffect内でプロパティを設定
+  useEffect(() => {
+    // GitHubトークンが設定されていて、OpenAIキーが設定されていない場合は
+    // 初回表示時にOpenAI設定プロンプトを表示する
+    if (hasToken === true && hasOpenAIKey === false && !prData) {
+      setShowOpenAISetup(true);
+    }
+  }, [hasToken, hasOpenAIKey, prData]);
+
+  // OpenAI APIキー設定完了時のハンドラー
+  const handleOpenAIKeySetupComplete = async () => {
+    // OpenAIキーが設定されたのでステートを更新
+    setHasOpenAIKey(true);
+    setShowOpenAISetup(false);
+  };
+
+  // Fetch PR data - first try to load from storage, then from API if needed
   useEffect(() => {
     // Only fetch PR data if we have a token
     if (hasToken === true) {
@@ -580,6 +609,38 @@ const GitHubPRView = ({ url }: { url: string }) => {
     return <TokenSetupPrompt onComplete={() => setHasToken(true)} />;
   }
 
+  // OpenAI API Keyのセットアップ画面を表示（GitHubトークンあり、OpenAIキーなし、ユーザーが表示を選択）
+  if (showOpenAISetup) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen p-6">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <h2 className="text-xl font-bold mb-4">OpenAI API Key Setup</h2>
+          <p className="text-sm mb-4">
+            Set up an OpenAI API key to enable AI-powered PR analysis features. This will help you get automated
+            insights about this PR.
+          </p>
+
+          <div className="mb-4">
+            <OpenAIKeySettings />
+          </div>
+
+          <div className="flex justify-between mt-6">
+            <button
+              onClick={() => setShowOpenAISetup(false)}
+              className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm">
+              Skip for now
+            </button>
+            <button
+              onClick={handleOpenAIKeySetupComplete}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
+              Continue to PR
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading PR data...</div>;
   }
@@ -639,13 +700,16 @@ const GitHubPRView = ({ url }: { url: string }) => {
               <span>{prData.diffStats.changedFiles} files</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div className="description border border-gray-300 rounded p-2 w-full text-left text-sm">
+            {/* PRAnalysisコンポーネントを追加 - ファイル一覧の前に表示 */}
+            {prData && <PRAnalysis prData={prData} url={url} />}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+              {/* <div className="description border border-gray-300 rounded p-2 w-full text-left text-sm">
                 <h4 className="font-bold mb-1">Description:</h4>
                 <div className="markdown-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{prData.description}</ReactMarkdown>
                 </div>
-              </div>
+              </div> */}
 
               <div className="files-section border border-gray-300 rounded p-2 w-full text-left">
                 <div className="flex justify-between items-center mb-1">
@@ -783,6 +847,116 @@ const GitHubTokenSettings = () => {
             disabled={isSaving}
             className="text-xs text-red-500 hover:text-red-600 mt-2">
             Clear token
+          </button>
+        )}
+
+        {message.text && (
+          <p className={`text-xs mt-2 ${message.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+            {message.text}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Component for OpenAI API Key settings
+const OpenAIKeySettings = () => {
+  const [apiKey, setApiKey] = useState('');
+  const [savedApiKey, setSavedApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  // Load the saved API key when component mounts
+  useEffect(() => {
+    const loadApiKey = async () => {
+      const key = await openaiApiKeyStorage.get();
+      if (key) {
+        setSavedApiKey(key);
+      }
+    };
+    loadApiKey();
+  }, []);
+
+  const handleSaveApiKey = async () => {
+    try {
+      setIsSaving(true);
+      setMessage({ text: '', type: '' });
+
+      await openaiApiKeyStorage.set(apiKey);
+      setSavedApiKey(apiKey);
+      setMessage({ text: 'API key saved successfully', type: 'success' });
+
+      // Clear the input after successful save
+      setApiKey('');
+    } catch (error) {
+      console.error('Error saving API key:', error);
+      setMessage({ text: 'Failed to save API key', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleClearApiKey = async () => {
+    try {
+      setIsSaving(true);
+      await openaiApiKeyStorage.clear();
+      setSavedApiKey('');
+      setMessage({ text: 'API key cleared successfully', type: 'success' });
+    } catch (error) {
+      console.error('Error clearing API key:', error);
+      setMessage({ text: 'Failed to clear API key', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="border border-gray-300 rounded p-4 w-full mt-4">
+      <h3 className="text-lg font-bold mb-3">OpenAI API Key Settings</h3>
+      <div className="mb-4">
+        <p className="text-sm mb-2">
+          {savedApiKey
+            ? 'OpenAI API key is set. You can update or clear it below.'
+            : 'Set your OpenAI API key to generate PR checklists and summaries using AI.'}
+        </p>
+
+        {savedApiKey && (
+          <div className="flex items-center mb-3">
+            <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded flex-grow mr-2 font-mono">
+              {showApiKey ? savedApiKey : '•'.repeat(Math.min(savedApiKey.length, 24))}
+            </div>
+            <button
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="text-xs bg-gray-200 hover:bg-gray-300 p-1 rounded">
+              {showApiKey ? 'Hide' : 'Show'}
+            </button>
+          </div>
+        )}
+
+        <div className="flex">
+          <input
+            type="password"
+            value={apiKey}
+            onChange={e => setApiKey(e.target.value)}
+            placeholder="Enter OpenAI API Key..."
+            className="flex-grow p-2 border rounded-l text-sm"
+          />
+          <button
+            onClick={handleSaveApiKey}
+            disabled={isSaving || !apiKey}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-r text-sm disabled:opacity-50">
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+
+        {savedApiKey && (
+          <button
+            onClick={handleClearApiKey}
+            disabled={isSaving}
+            className="text-xs text-red-500 hover:text-red-600 mt-2">
+            Clear API key
           </button>
         )}
 
@@ -1156,10 +1330,215 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange }: FileCheckli
   );
 };
 
+// PRAnalysis component for OpenAI-powered PR analysis
+const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
+  const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
+
+  // Check if OpenAI API key is set
+  useEffect(() => {
+    const checkOpenAIKey = async () => {
+      const apiKey = await openaiApiKeyStorage.get();
+      setHasOpenAIKey(!!apiKey);
+    };
+    checkOpenAIKey();
+  }, []);
+
+  // Generate PR checklist using OpenAI API
+  const generatePRChecklist = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Create OpenAI client
+      const openaiClient = await createOpenAIClient();
+      if (!openaiClient) {
+        throw new Error('OpenAI API key is not set');
+      }
+
+      // Call OpenAI API to analyze PR
+      const result = await openaiClient.analyzePR(prData);
+
+      // Save result to state
+      setAnalysisResult(result);
+
+      // Save analysis result to storage for future reference
+      await saveAnalysisToStorage(url, result);
+    } catch (err) {
+      console.error('Error generating PR checklist:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while generating PR checklist');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Save analysis result to storage
+  const saveAnalysisToStorage = async (prUrl: string, result: PRAnalysisResult) => {
+    try {
+      // Create a unique ID for the PR (owner/repo/number)
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}_analysis`;
+
+      await chrome.storage.local.set({ [prId]: result });
+      console.log(`Saved PR analysis for ${prId}`);
+    } catch (error) {
+      console.error('Error saving PR analysis:', error);
+    }
+  };
+
+  // Load analysis result from storage
+  const loadAnalysisFromStorage = async (prUrl: string): Promise<PRAnalysisResult | null> => {
+    try {
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return null;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}_analysis`;
+
+      const result = await chrome.storage.local.get(prId);
+      const savedAnalysis = result[prId] as PRAnalysisResult | undefined;
+
+      if (savedAnalysis) {
+        console.log(`Loaded saved PR analysis for ${prId}`);
+        return savedAnalysis;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error loading PR analysis:', error);
+      return null;
+    }
+  };
+
+  // Load saved analysis on component mount
+  useEffect(() => {
+    const loadSavedAnalysis = async () => {
+      const savedAnalysis = await loadAnalysisFromStorage(url);
+      if (savedAnalysis) {
+        setAnalysisResult(savedAnalysis);
+      }
+    };
+
+    loadSavedAnalysis();
+  }, [url]);
+
+  if (hasOpenAIKey === null) {
+    return <div className="mt-4 p-4 border border-gray-300 rounded">Loading OpenAI configuration...</div>;
+  }
+
+  if (hasOpenAIKey === false) {
+    return (
+      <div className="mt-4 p-4 border border-gray-300 rounded">
+        <h3 className="font-bold text-lg mb-2">AI-Powered PR Analysis</h3>
+        <p className="text-sm mb-3">To use AI-powered PR analysis, please set your OpenAI API key in the settings.</p>
+        <button
+          onClick={() => window.open(chrome.runtime.getURL('side-panel.html') + '?settings=true', '_blank')}
+          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+          Open Settings
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 p-4 border border-gray-300 rounded">
+      <h3 className="font-bold text-lg mb-2 text-left">AI-Powered PR Analysis</h3>
+
+      {!analysisResult && !loading && (
+        <div className="mb-4">
+          <p className="text-sm mb-3">
+            Generate an AI-powered analysis of this PR to get detailed descriptions and customized checklists for each
+            file.
+          </p>
+          <button
+            onClick={generatePRChecklist}
+            disabled={loading}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
+            {loading ? 'Generating...' : 'Generate PR Checklist'}
+          </button>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex flex-col items-center justify-center p-6">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-sm text-gray-600">Analyzing PR with AI, this may take a moment...</p>
+        </div>
+      )}
+
+      {analysisResult && (
+        <div className="analysis-result text-left">
+          <div className="mb-4">
+            <div className="bg-gray-50 p-3 rounded text-sm">
+              <div className="mb-2">
+                <span className="font-semibold">Background:</span>
+                <p className="mt-1">{analysisResult.summary.background}</p>
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Problem:</span>
+                <p className="mt-1">{analysisResult.summary.problem}</p>
+              </div>
+              <div className="mb-2">
+                <span className="font-semibold">Solution:</span>
+                <p className="mt-1">{analysisResult.summary.solution}</p>
+              </div>
+              <div>
+                <span className="font-semibold">Implementation:</span>
+                <p className="mt-1">{analysisResult.summary.implementation}</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-md mb-2">File Checklists</h4>
+            <div className="space-y-3">
+              {analysisResult.fileChecklists.map((fileChecklist, index) => (
+                <div key={index} className="border border-gray-200 rounded-md overflow-hidden">
+                  <div className="bg-gray-50 p-3 font-medium text-xs">{fileChecklist.filename}</div>
+                  <div className="p-3">
+                    <ul className="list-none space-y-2">
+                      {fileChecklist.checklistItems.map(item => (
+                        <li key={item.id} className="flex items-start gap-2 text-sm">
+                          <span
+                            className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                              item.status === 'OK'
+                                ? 'bg-green-500 text-white'
+                                : item.status === 'NG'
+                                  ? 'bg-red-500 text-white'
+                                  : 'bg-gray-200'
+                            }`}>
+                            {item.status === 'OK' ? '✓' : item.status === 'NG' ? '✗' : '?'}
+                          </span>
+                          <span>{item.description}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <button onClick={generatePRChecklist} className="text-blue-500 hover:text-blue-600 text-sm">
+              Regenerate Analysis
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SidePanel = () => {
   const [currentPage, setCurrentPage] = useState<CurrentPage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     // Function to get current page information from storage
@@ -1203,49 +1582,16 @@ const SidePanel = () => {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  // Render appropriate view based on URL
-  return (
-    <div>
-      {isGitHubPRPage(currentPage?.url || '') ? <GitHubPRView url={currentPage.url} /> : <DefaultView />}
+  if (!currentPage || !currentPage.url) {
+    return <DefaultView />;
+  }
 
-      <div className="fixed bottom-4 right-4">
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"
-          title="Settings">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
+  // GitHub PR page
+  if (isGitHubPRPage(currentPage.url)) {
+    return <GitHubPRView url={currentPage.url} />;
+  }
 
-      {showSettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Settings</h2>
-              <button onClick={() => setShowSettings(false)} className="text-gray-500 hover:text-gray-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <GitHubTokenSettings />
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <DefaultView />;
 };
 
 export default withErrorBoundary(withSuspense(SidePanel, <div> Loading ... </div>), <div> Error Occur </div>);
