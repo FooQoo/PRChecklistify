@@ -497,42 +497,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
                 </div>
               </div>
             </div>
-
-            <div className="border border-gray-300 rounded p-2 w-full max-w-3xl mt-2">
-              <h3 className="text-md font-bold mb-1">PR Summary Checklist</h3>
-              <div className="grid grid-cols-2 gap-1 text-left">
-                <div className="flex items-start">
-                  <input type="checkbox" id="code-formatting" className="mt-1 mr-1 rounded" />
-                  <label htmlFor="code-formatting" className="text-sm">
-                    Code formatting
-                  </label>
-                </div>
-                <div className="flex items-start">
-                  <input type="checkbox" id="tests-added" className="mt-1 mr-1 rounded" />
-                  <label htmlFor="tests-added" className="text-sm">
-                    Tests updated
-                  </label>
-                </div>
-                <div className="flex items-start">
-                  <input type="checkbox" id="docs-updated" className="mt-1 mr-1 rounded" />
-                  <label htmlFor="docs-updated" className="text-sm">
-                    Documentation
-                  </label>
-                </div>
-                <div className="flex items-start">
-                  <input type="checkbox" id="performance" className="mt-1 mr-1 rounded" />
-                  <label htmlFor="performance" className="text-sm">
-                    Performance
-                  </label>
-                </div>
-                <div className="flex items-start">
-                  <input type="checkbox" id="security" className="mt-1 mr-1 rounded" />
-                  <label htmlFor="security" className="text-sm">
-                    Security
-                  </label>
-                </div>
-              </div>
-            </div>
           </div>
         ) : (
           <p className="text-red-500">Failed to load PR data. Please check your connection or PR URL.</p>
@@ -686,27 +650,32 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
     },
   );
 
-  // Update review status whenever checklist items change
-  useEffect(() => {
+  // Calculate review status directly from checklist items
+  const getReviewStatus = (): 'approved' | 'needs-work' | 'not-reviewed' => {
     const allChecked = Object.values(checklistItems).every(item => item === true);
     const anyChecked = Object.values(checklistItems).some(item => item === true);
 
-    // If all checklist items are checked, automatically approve
     if (allChecked) {
-      onStatusChange(file.filename, 'approved');
+      return 'approved';
+    } else if (anyChecked) {
+      return 'needs-work';
+    } else {
+      return 'not-reviewed';
     }
-    // If some are checked but not all, mark as needs work
-    else if (anyChecked) {
-      onStatusChange(file.filename, 'needs-work');
-    }
-    // If none are checked, mark as not reviewed
-    else {
-      onStatusChange(file.filename, 'not-reviewed');
+  };
+
+  // Update review status whenever checklist items change
+  useEffect(() => {
+    const status = getReviewStatus();
+
+    // Only update if status changed
+    if (status !== file.reviewStatus) {
+      onStatusChange(file.filename, status);
     }
 
     // Update the checklistItems in the parent component
     onChecklistChange(file.filename, checklistItems);
-  }, [checklistItems, file.filename, onStatusChange, onChecklistChange, file]);
+  }, [checklistItems, file.filename, file.reviewStatus, onStatusChange, onChecklistChange]);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -722,9 +691,11 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
     setChecklistItems(newChecklistItems);
   };
 
-  // Get status label and style
+  // Get status label and style based on calculated status
   const getStatusDisplay = () => {
-    switch (file.reviewStatus) {
+    const currentStatus = getReviewStatus();
+
+    switch (currentStatus) {
       case 'approved':
         return { label: '✓ Approved', class: 'bg-green-500 text-white' };
       case 'needs-work':
@@ -794,16 +765,6 @@ const FileChecklist = ({ file, onStatusChange, onCommentChange, onChecklistChang
               <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
               <div className="text-xs text-gray-500 mb-2">
                 <p>Complete all checklist items to mark this file as approved</p>
-                <p className="mt-1">
-                  <span className="font-medium">Auto Status: </span>
-                  {Object.values(checklistItems).every(item => item === true) ? (
-                    <span className="text-green-600">All complete ✓ (Approved)</span>
-                  ) : Object.values(checklistItems).some(item => item === true) ? (
-                    <span className="text-yellow-600">Partially complete ⚠ (In Progress)</span>
-                  ) : (
-                    <span className="text-gray-600">None complete ⊘ (Not Reviewed)</span>
-                  )}
-                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
