@@ -33,6 +33,7 @@ interface SavedPRData {
   prId: string; // Unique identifier for the PR
   timestamp: number; // When the data was saved
   prData: PRData; // The actual PR data with review statuses
+  analysisResult?: PRAnalysisResult; // Optional AI analysis result
 }
 
 // GitHub PR data interface
@@ -192,7 +193,7 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
 // Helper functions for PR data storage
 const prDataStorage = {
   // Save PR data to storage
-  save: async (prUrl: string, prData: PRData): Promise<void> => {
+  save: async (prUrl: string, prData: PRData, analysisResult?: PRAnalysisResult): Promise<void> => {
     try {
       // Create a unique ID for the PR (owner/repo/number)
       const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
@@ -206,6 +207,8 @@ const prDataStorage = {
         prId,
         timestamp: Date.now(),
         prData,
+        // Include analysisResult if provided
+        ...(analysisResult && { analysisResult }),
       };
 
       // Save to storage with retry logic
@@ -214,8 +217,13 @@ const prDataStorage = {
 
       const saveWithRetry = async (): Promise<void> => {
         try {
-          await chrome.storage.local.set({ [prId]: savedData });
-          console.log(`Saved PR data for ${prId}`);
+          // Save under the 'pr' key with the prId as property
+          await chrome.storage.local.set({
+            pr: {
+              [prId]: savedData,
+            },
+          });
+          console.log(`Saved PR data for ${prId} under 'pr' key`);
         } catch (error) {
           if (retryCount < maxRetries) {
             retryCount++;
@@ -245,8 +253,9 @@ const prDataStorage = {
       const prId = `${owner}/${repo}/${prNumber}`;
 
       // Try to load from storage
-      const result = await chrome.storage.local.get(prId);
-      const savedData = result[prId] as SavedPRData | undefined;
+      const result = await chrome.storage.local.get('pr');
+      const prStorage = result.pr || {};
+      const savedData = prStorage[prId] as SavedPRData | undefined;
 
       if (savedData && savedData.prData) {
         console.log(`Loaded saved PR data for ${prId} from ${new Date(savedData.timestamp).toLocaleString()}`);
@@ -256,6 +265,32 @@ const prDataStorage = {
       return null;
     } catch (error) {
       console.error('Error loading PR data:', error);
+      return null;
+    }
+  },
+
+  // Load analysis result from storage
+  loadAnalysis: async (prUrl: string): Promise<PRAnalysisResult | null> => {
+    try {
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return null;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      // Try to load from storage
+      const result = await chrome.storage.local.get('pr');
+      const prStorage = result.pr || {};
+      const savedData = prStorage[prId] as SavedPRData | undefined;
+
+      if (savedData && savedData.analysisResult) {
+        console.log(`Loaded saved PR analysis for ${prId}`);
+        return savedData.analysisResult;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error loading PR analysis:', error);
       return null;
     }
   },
@@ -270,8 +305,9 @@ const prDataStorage = {
       const prId = `${owner}/${repo}/${prNumber}`;
 
       // Check if data exists in storage
-      const result = await chrome.storage.local.get(prId);
-      return !!result[prId];
+      const result = await chrome.storage.local.get('pr');
+      const prStorage = result.pr || {};
+      return !!prStorage[prId];
     } catch (error) {
       console.error('Error verifying PR data:', error);
       return false;
@@ -1012,28 +1048,20 @@ const StorageManagement = () => {
       setIsClearing(true);
       setMessage({ text: '', type: '' });
 
-      // Get all keys from storage
-      const items = await chrome.storage.local.get(null);
+      // Get the 'pr' object from storage
+      const result = await chrome.storage.local.get('pr');
+      const prStorage = result.pr || {};
 
-      // Find all PR data keys (including analysis)
-      const prDataKeys = Object.keys(items).filter(key =>
-        // Match standard PR IDs (owner/repo/number) and analysis keys
-        /^[^/]+\/[^/]+\/\d+/.test(key),
-      );
-
-      if (prDataKeys.length === 0) {
+      if (Object.keys(prStorage).length === 0) {
         setMessage({ text: 'No PR data found to clear', type: 'info' });
         setIsClearing(false);
         return;
       }
 
-      // Create object with null values to remove from storage
-      const keysToRemove = prDataKeys;
+      // Clear the entire 'pr' object
+      await chrome.storage.local.remove('pr');
 
-      // Remove all PR data
-      await chrome.storage.local.remove(keysToRemove);
-
-      setMessage({ text: `Successfully cleared ${prDataKeys.length} PR data items`, type: 'success' });
+      setMessage({ text: `Successfully cleared ${Object.keys(prStorage).length} PR data items`, type: 'success' });
       setPRDataCount(0);
     } catch (error) {
       console.error('Error clearing PR data:', error);
@@ -1558,10 +1586,14 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       if (!match) return;
 
       const [, owner, repo, prNumber] = match;
-      const prId = `${owner}/${repo}/${prNumber}_analysis`;
+      const prId = `${owner}/${repo}/${prNumber}`;
 
-      await chrome.storage.local.set({ [prId]: result });
-      console.log(`Saved PR analysis for ${prId}`);
+      // Get current PR data if it exists
+      const storedData = await prDataStorage.load(prUrl);
+
+      // Save to storage with the same structure
+      await prDataStorage.save(prUrl, storedData || prData, result);
+      console.log(`Saved PR analysis for ${prId} under 'pr' key`);
     } catch (error) {
       console.error('Error saving PR analysis:', error);
     }
@@ -1594,14 +1626,14 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   // Load saved analysis on component mount
   useEffect(() => {
     const loadSavedAnalysis = async () => {
-      const savedAnalysis = await loadAnalysisFromStorage(url);
+      const savedAnalysis = await prDataStorage.loadAnalysis(url);
       if (savedAnalysis) {
         setAnalysisResult(savedAnalysis);
       }
     };
 
     loadSavedAnalysis();
-  }, [url]);
+  }, [url, setAnalysisResult]);
 
   if (hasOpenAIKey === null) {
     return <div className="mt-4 p-4 border border-gray-300 rounded">Loading OpenAI configuration...</div>;
