@@ -4,6 +4,12 @@ import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { githubTokenStorage, openaiApiKeyStorage, languagePreferenceStorage } from '@extension/storage';
 import { type PRAnalysisResult, createOpenAIClient, type FileChecklist } from '@extension/shared';
 import OpenAIKeySettings from './components/OpenAIKeySettings';
+import GitHubTokenSettings from './components/GitHubTokenSettings';
+import LanguageSettings from './components/LanguageSettings';
+import StorageManagement from './components/StorageManagement';
+import TokenSetupPrompt from './components/TokenSetupPrompt';
+import SettingsPanel from './components/SettingsPanel';
+import SettingsButton from './components/SettingsButton';
 // import ReactMarkdown from 'react-markdown';
 // import remarkGfm from 'remark-gfm';
 
@@ -1114,7 +1120,6 @@ const StorageManagement = () => {
   );
 };
 
-// Component for file checklist items
 interface FileChecklistProps {
   file: PRData['files'][0];
   onCommentChange: (filename: string, comments: string) => void;
