@@ -51,12 +51,7 @@ interface PRData {
     deletions: number;
     patch?: string;
     comments?: string; // Any review comments for this file
-    checklistItems?: {
-      formatting: 'PENDING' | 'OK' | 'NG';
-      docs: 'PENDING' | 'OK' | 'NG';
-      tests: 'PENDING' | 'OK' | 'NG';
-      performance: 'PENDING' | 'OK' | 'NG';
-    }; // Checklist items for this file with 3-state values
+    checklistItems?: Record<string, 'PENDING' | 'OK' | 'NG'>; // Dynamic checklist items with status values
   }[];
   user: {
     login: string;
@@ -1150,16 +1145,29 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
 };
 
 const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
-  // const [comment, setComment] = useState(file.comments || '');
+  // Prepare a dynamic object based on AI-generated checklist if available
+  const initializeChecklistItems = () => {
+    if (file.checklistItems) {
+      return file.checklistItems;
+    }
+
+    // If we have AI-generated checklist, create an object with those items
+    if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
+      const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+      aiGeneratedChecklist.checklistItems.forEach((item, index) => {
+        items[`item_${index}`] = item.status;
+      });
+      return items;
+    }
+
+    // Empty placeholder object until AI analysis is done
+    return {};
+  };
+
   // State to track checklist items - Initialize from saved data if available
-  const [checklistItems, setChecklistItems] = useState<Record<string, 'PENDING' | 'OK' | 'NG'>>(
-    file.checklistItems || {
-      formatting: 'PENDING',
-      docs: 'PENDING',
-      tests: 'PENDING',
-      performance: 'PENDING',
-    },
-  );
+  const [checklistItems, setChecklistItems] =
+    useState<Record<string, 'PENDING' | 'OK' | 'NG'>>(initializeChecklistItems());
+
   // Override to force expanded state (when user clicks to manually open/close)
   const [expandOverride, setExpandOverride] = useState<boolean | null>(null);
   // Track if all items were just checked to trigger auto-collapse
@@ -1167,8 +1175,13 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
 
   // Calculate review status directly from checklist items
   const getReviewStatus = (): 'approved' | 'reviewing' | 'not-reviewed' => {
+    if (!checklistItems || Object.keys(checklistItems).length === 0) {
+      return 'not-reviewed';
+    }
+
     const allOK = Object.values(checklistItems).every(item => item === 'OK');
     const anyReviewed = Object.values(checklistItems).some(item => item !== 'PENDING');
+
     if (allOK) {
       return 'approved';
     } else if (anyReviewed) {
@@ -1183,6 +1196,11 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
     // If user has explicitly set expand state via override, use that
     if (expandOverride !== null) {
       return expandOverride;
+    }
+
+    // If there are no checklist items yet, keep expanded
+    if (!checklistItems || Object.keys(checklistItems).length === 0) {
+      return true;
     }
 
     const allOK = Object.values(checklistItems).every(item => item === 'OK');
@@ -1210,29 +1228,30 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
 
   // Update review status whenever checklist items change
   useEffect(() => {
-    // Update the checklistItems in the parent component
-    console.log(`Updating checklist for file: ${file.filename}`, checklistItems);
-    onChecklistChange(file.filename, checklistItems);
+    // Only update if we have checklist items
+    if (checklistItems && Object.keys(checklistItems).length > 0) {
+      // Update the checklistItems in the parent component
+      console.log(`Updating checklist for file: ${file.filename}`, checklistItems);
+      onChecklistChange(file.filename, checklistItems);
 
-    // Check if all items just became OK
-    const allOK = Object.values(checklistItems).every(item => item === 'OK');
-    if (allOK && !allItemsJustChecked) {
-      setAllItemsJustChecked(true);
-      // Reset the override when items are all OK
-      setExpandOverride(null);
-    } else if (!allOK) {
-      setAllItemsJustChecked(false);
+      // Check if all items just became OK
+      const allOK = Object.values(checklistItems).every(item => item === 'OK');
+      if (allOK && !allItemsJustChecked) {
+        setAllItemsJustChecked(true);
+        // Reset the override when items are all OK
+        setExpandOverride(null);
+      } else if (!allOK) {
+        setAllItemsJustChecked(false);
+      }
     }
   }, [checklistItems, file.filename, onChecklistChange, allItemsJustChecked]);
 
-  // const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  //   setComment(e.target.value);
-  //   onCommentChange(file.filename, e.target.value);
-  // };
-
   // Toggle through the review states: PENDING -> NG -> OK -> NG
-  const toggleReviewState = (item: keyof typeof checklistItems) => {
+  const toggleReviewState = (item: string) => {
     console.log(`Toggling review state for '${item}' in file: ${file.filename}`);
+
+    if (!checklistItems) return;
+
     const currentState = checklistItems[item];
     let nextState: 'PENDING' | 'OK' | 'NG';
 
@@ -1244,7 +1263,7 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
     } else if (currentState === 'OK') {
       nextState = 'NG';
     } else {
-      nextState = 'PENDING'; // fallback case, though it shouldn't happen
+      nextState = 'NG'; // fallback case, though it shouldn't happen
     }
 
     const newChecklistItems = {
@@ -1263,19 +1282,21 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
   const toggleExpanded = () => {
     // タブを閉じる操作の場合
     if (expanded) {
-      // すべてのアイテムをOKに設定
-      const allOKItems = {
-        formatting: 'OK' as const,
-        docs: 'OK' as const,
-        tests: 'OK' as const,
-        performance: 'OK' as const,
-      };
+      // If we have checklist items, set them all to OK
+      if (checklistItems && Object.keys(checklistItems).length > 0) {
+        const allOKItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
 
-      // チェックリストを全てOKに変更
-      setChecklistItems(allOKItems);
+        // Set all items to OK
+        Object.keys(checklistItems).forEach(key => {
+          allOKItems[key] = 'OK';
+        });
 
-      // 親コンポーネントに変更を通知
-      onChecklistChange(file.filename, allOKItems);
+        // チェックリストを全てOKに変更
+        setChecklistItems(allOKItems);
+
+        // 親コンポーネントに変更を通知
+        onChecklistChange(file.filename, allOKItems);
+      }
 
       // 閉じる
       setExpandOverride(false);
@@ -1408,73 +1429,35 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
       {expanded && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-3">
-            {aiGeneratedChecklist ? (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
+            <div>
+              <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
+
+              {aiGeneratedChecklist ? (
                 <div className="space-y-2">
-                  {aiGeneratedChecklist.checklistItems.map(item => (
+                  {aiGeneratedChecklist.checklistItems.map((item, index) => (
                     <ChecklistItem
                       key={item.id}
                       label={item.description}
-                      status={item.status}
+                      status={checklistItems[`item_${index}`] || item.status}
                       onToggle={() => {
                         // Toggle the status in a circular manner: PENDING -> NG -> OK -> NG
-                        const nextStatus = item.status === 'PENDING' ? 'NG' : item.status === 'NG' ? 'OK' : 'NG';
-
-                        // Update the status in the FileChecklist state
-                        const updatedChecklist = { ...checklistItems };
-                        // We'll map the AI item to our standard checklist based on their status
-                        if (Object.keys(updatedChecklist).length >= aiGeneratedChecklist.checklistItems.length) {
-                          // Map to existing keys if we have enough
-                          const keys = Object.keys(updatedChecklist);
-                          const index = aiGeneratedChecklist.checklistItems.indexOf(item);
-                          if (index < keys.length) {
-                            updatedChecklist[keys[index] as keyof typeof updatedChecklist] = nextStatus;
-                          }
-                        } else {
-                          // Otherwise, just make sure all items are marked as same status
-                          Object.keys(updatedChecklist).forEach(key => {
-                            updatedChecklist[key as keyof typeof updatedChecklist] = nextStatus;
-                          });
-                        }
-
-                        setChecklistItems(updatedChecklist);
-                        onChecklistChange(file.filename, updatedChecklist);
+                        const itemKey = `item_${index}`;
+                        toggleReviewState(itemKey);
                       }}
                     />
                   ))}
                 </div>
-              </div>
-            ) : (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Review Checklist</h4>
-                <div className="text-xs text-gray-500 mb-2">
-                  <p>Click to toggle state: PENDING → NG → OK → NG</p>
-                </div>
+              ) : (
                 <div className="space-y-2">
                   <ChecklistItem
-                    label="Code follows formatting standards"
-                    status={checklistItems.formatting}
-                    onToggle={() => toggleReviewState('formatting')}
-                  />
-                  <ChecklistItem
-                    label="Documentation is updated"
-                    status={checklistItems.docs}
-                    onToggle={() => toggleReviewState('docs')}
-                  />
-                  <ChecklistItem
-                    label="Tests are included/updated"
-                    status={checklistItems.tests}
-                    onToggle={() => toggleReviewState('tests')}
-                  />
-                  <ChecklistItem
-                    label="Performance considerations addressed"
-                    status={checklistItems.performance}
-                    onToggle={() => toggleReviewState('performance')}
+                    key={'ai-checklist-placeholder'}
+                    label={'指摘事項なし'}
+                    status={checklistItems[`item_0`] || 'OK'}
+                    onToggle={() => {}}
                   />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {file.patch && (
               <div>
@@ -1531,6 +1514,31 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
       // Save result to state
       setAnalysisResult(result);
+
+      // Update file checklistItems with the AI-generated ones
+      if (prData && result.fileChecklists.length > 0) {
+        const updatedFiles = prData.files.map(file => {
+          const aiChecklist = result.fileChecklists.find(fc => fc.filename === file.filename);
+
+          if (aiChecklist) {
+            // Convert AI checklist items to the dynamic format
+            const newChecklistItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+            aiChecklist.checklistItems.forEach((item, index) => {
+              newChecklistItems[`item_${index}`] = item.status;
+            });
+
+            return {
+              ...file,
+              checklistItems: newChecklistItems,
+            };
+          }
+
+          return file;
+        });
+
+        // Update the PR data with the new checklist items
+        setPRData({ ...prData, files: updatedFiles });
+      }
 
       // Save analysis result to storage for future reference
       await saveAnalysisToStorage(url, result);
@@ -1670,36 +1678,6 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
                 <span className="font-semibold">Implementation:</span>
                 <p className="mt-1">{analysisResult.summary.implementation}</p>
               </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-bold text-md mb-2">File Checklists</h4>
-            <div className="space-y-3">
-              {analysisResult.fileChecklists.map((fileChecklist, index) => (
-                <div key={index} className="border border-gray-200 rounded-md overflow-hidden">
-                  <div className="bg-gray-50 p-3 font-medium text-xs">{fileChecklist.filename}</div>
-                  <div className="p-3">
-                    <ul className="list-none space-y-2">
-                      {fileChecklist.checklistItems.map(item => (
-                        <li key={item.id} className="flex items-start gap-2 text-sm">
-                          <span
-                            className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
-                              item.status === 'OK'
-                                ? 'bg-green-500 text-white'
-                                : item.status === 'NG'
-                                  ? 'bg-red-500 text-white'
-                                  : 'bg-gray-200'
-                            }`}>
-                            {item.status === 'OK' ? '✓' : item.status === 'NG' ? '✗' : '?'}
-                          </span>
-                          <span>{item.description}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
