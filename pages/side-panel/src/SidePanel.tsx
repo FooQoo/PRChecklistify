@@ -76,6 +76,30 @@ interface PRData {
 // Create Jotai atom for PR data
 const prDataAtom = atom<PRData | null>(null);
 
+// Create a derived atom that automatically saves to storage when updated
+const prDataWithStorageAtom = atom(
+  get => get(prDataAtom),
+  (get, set, newValue: PRData | null, url?: string) => {
+    // Set the base atom value
+    set(prDataAtom, newValue);
+
+    // If we have data and URL, save to storage
+    if (newValue && url) {
+      console.log('Auto-saving PR data to storage after state update...');
+      // We're using setTimeout to make the storage operation non-blocking
+      // This prevents UI jank while ensuring data is saved
+      setTimeout(async () => {
+        try {
+          await prDataStorage.save(url, newValue);
+          console.log('PR data auto-saved successfully');
+        } catch (error) {
+          console.error('Error auto-saving PR data to storage:', error);
+        }
+      }, 0);
+    }
+  },
+);
+
 // ストレージに保存するヘルパー関数
 const savePRDataToStorage = async (data: PRData, url: string) => {
   try {
@@ -363,7 +387,8 @@ const calculateReviewTime = (prData: PRData): number => {
 
 // Component for GitHub PR pages
 const GitHubPRView = ({ url }: { url: string }) => {
-  const [prData, setPrData] = useAtom(prDataAtom);
+  // Switch from basic atom to our storage-enabled atom with URL parameter
+  const [prData, setPrData] = useAtom(prDataWithStorageAtom);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
@@ -513,11 +538,8 @@ const GitHubPRView = ({ url }: { url: string }) => {
     // 更新されたPRデータ
     const updatedPRData = { ...prData, files: updatedFiles };
 
-    // ステートを更新
-    setPrData(updatedPRData);
-
-    // 明示的にストレージに保存（非同期で）
-    savePRDataToStorage(updatedPRData, url);
+    // Use our new atom setter with URL parameter to auto-save to storage
+    setPrData(updatedPRData, url);
   };
 
   // ファイルごとの承認状況を計算する関数
