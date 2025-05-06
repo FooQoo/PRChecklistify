@@ -1265,9 +1265,31 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       // Get current PR data if it exists
       const storedData = await prDataStorage.load(prUrl);
 
-      // Save to storage with the same structure
-      await prDataStorage.save(prUrl, storedData || prData, result);
-      console.log(`Saved PR analysis for ${prId} under 'pr' key`);
+      // ストレージから既存のデータを取得して、古い分析結果をクリア
+      const result = await chrome.storage.local.get('pr');
+      const prStorage = result.pr || {};
+
+      // 現在のPRデータを更新 - 分析結果を新しいものに置き換え
+      if (prStorage[prId]) {
+        // 既存のデータがある場合は、分析結果だけを更新
+        prStorage[prId] = {
+          ...prStorage[prId],
+          analysisResult: result,
+          timestamp: Date.now(), // タイムスタンプも更新
+        };
+      } else {
+        // 新規のPRデータを作成
+        prStorage[prId] = {
+          prId,
+          timestamp: Date.now(),
+          prData: storedData || prData,
+          analysisResult: result,
+        };
+      }
+
+      // 更新されたPRデータを保存
+      await chrome.storage.local.set({ pr: prStorage });
+      console.log(`Updated PR analysis for ${prId} under 'pr' key`);
     } catch (error) {
       console.error('Error saving PR analysis:', error);
     }
