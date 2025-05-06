@@ -1,4 +1,5 @@
 import { useEffect, useState, createContext, useContext } from 'react';
+import { atom, useAtom } from 'jotai';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { githubTokenStorage, openaiApiKeyStorage, languagePreferenceStorage } from '@extension/storage';
@@ -71,6 +72,9 @@ interface PRData {
     ref: string;
   };
 }
+
+// Create Jotai atom for PR data
+const prDataAtom = atom<PRData | null>(null);
 
 // ストレージに保存するヘルパー関数
 const savePRDataToStorage = async (data: PRData, url: string) => {
@@ -359,7 +363,7 @@ const calculateReviewTime = (prData: PRData): number => {
 
 // Component for GitHub PR pages
 const GitHubPRView = ({ url }: { url: string }) => {
-  const [prData, setPRData] = useState<PRData | null>(null);
+  const [prData, setPrData] = useAtom(prDataAtom);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
@@ -417,7 +421,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
             console.log('Loaded PR data from storage');
 
             // 正規化されたデータを設定
-            setPRData({
+            setPrData({
               ...savedData,
             });
             setLoading(false);
@@ -433,7 +437,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
             };
 
             // First set the state
-            setPRData(updatedPRData);
+            setPrData(updatedPRData);
 
             // Then explicitly save the initial data to storage with verification
             try {
@@ -492,7 +496,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
       return file;
     });
 
-    setPRData({ ...prData, files: updatedFiles });
+    setPrData({ ...prData, files: updatedFiles });
   };
 
   // Add handleChecklistChange function to update checklist items
@@ -510,7 +514,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
     const updatedPRData = { ...prData, files: updatedFiles };
 
     // ステートを更新
-    setPRData(updatedPRData);
+    setPrData(updatedPRData);
 
     // 明示的にストレージに保存（非同期で）
     savePRDataToStorage(updatedPRData, url);
