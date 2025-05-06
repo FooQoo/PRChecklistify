@@ -72,6 +72,25 @@ interface PRData {
   };
 }
 
+// ストレージに保存するヘルパー関数
+const savePRDataToStorage = async (data: PRData, url: string) => {
+  try {
+    console.log('Saving PR data to storage after checklist update...');
+    console.log(
+      'Files to save:',
+      data.files.map(f => ({
+        filename: f.filename,
+        checklist: f.checklistItems,
+      })),
+    );
+
+    await prDataStorage.save(url, data);
+    console.log('PR data saved successfully');
+  } catch (error) {
+    console.error('Error saving PR data to storage:', error);
+  }
+};
+
 // Service to fetch PR data from GitHub
 const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
   try {
@@ -494,26 +513,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
     setPRData(updatedPRData);
 
     // 明示的にストレージに保存（非同期で）
-    savePRDataToStorage(updatedPRData);
-  };
-
-  // ストレージに保存するヘルパー関数
-  const savePRDataToStorage = async (data: PRData) => {
-    try {
-      console.log('Saving PR data to storage after checklist update...');
-      console.log(
-        'Files to save:',
-        data.files.map(f => ({
-          filename: f.filename,
-          checklist: f.checklistItems,
-        })),
-      );
-
-      await prDataStorage.save(url, data);
-      console.log('PR data saved successfully');
-    } catch (error) {
-      console.error('Error saving PR data to storage:', error);
-    }
+    savePRDataToStorage(updatedPRData, url);
   };
 
   // ファイルごとの承認状況を計算する関数
@@ -1127,6 +1127,29 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   const generatePRChecklist = async () => {
     setLoading(true);
     setError(null);
+
+    // Reset all file statuses to 'PENDING' when regenerating analysis
+    if (prData) {
+      const updatedFiles = prData.files.map(file => {
+        // If file has checklistItems, reset all their status to 'PENDING'
+        if (file.checklistItems) {
+          const resetChecklistItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+          Object.keys(file.checklistItems).forEach(key => {
+            resetChecklistItems[key] = 'PENDING';
+          });
+          return { ...file, checklistItems: resetChecklistItems };
+        }
+        return file;
+      });
+
+      // Update the PR data with reset status values
+      const updatedPRData = { ...prData, files: updatedFiles };
+      // setPRData(updatedPRData);
+
+      // Save the updated data to storage
+      await savePRDataToStorage(updatedPRData, url);
+      console.log('Reset all file statuses to PENDING for regeneration');
+    }
 
     // ダミーの分析結果データを作成する関数
     const createDummyAnalysisResult = (): PRAnalysisResult => {
