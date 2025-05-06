@@ -155,7 +155,7 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         deletions: prData.deletions,
         changedFiles: prData.changed_files,
       },
-      files: filesData.map(file => ({
+      files: filesData.map((file: any) => ({
         filename: file.filename,
         status: file.status,
         additions: file.additions,
@@ -163,11 +163,11 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         patch: file.patch,
         comments: '',
         checklistItems: {
-          formatting: 'PENDING',
-          docs: 'PENDING',
-          tests: 'PENDING',
-          performance: 'PENDING',
-        }, // Initialize checklist items
+          formatting: 'PENDING' as const,
+          docs: 'PENDING' as const,
+          tests: 'PENDING' as const,
+          performance: 'PENDING' as const,
+        },
       })),
       user: {
         login: prData.user.login,
@@ -396,26 +396,10 @@ const GitHubPRView = ({ url }: { url: string }) => {
           const savedData = await prDataStorage.load(url);
           if (savedData) {
             console.log('Loaded PR data from storage');
-            // チェックリストが未定義の場合は初期化
-            const normalizedFiles = savedData.files.map(f => {
-              if (!f.checklistItems) {
-                return {
-                  ...f,
-                  checklistItems: {
-                    formatting: 'PENDING',
-                    docs: 'PENDING',
-                    tests: 'PENDING',
-                    performance: 'PENDING',
-                  },
-                };
-              }
-              return f;
-            });
 
             // 正規化されたデータを設定
             setPRData({
               ...savedData,
-              files: normalizedFiles,
             });
             setLoading(false);
             return;
@@ -425,26 +409,8 @@ const GitHubPRView = ({ url }: { url: string }) => {
           console.log('No saved data found, fetching from API');
           const data = await fetchPRData(url);
           if (data) {
-            // 全てのファイルにチェックリストアイテムが確実に初期化されていることを確認
-            const normalizedFiles = data.files.map((f, index) => {
-              console.log(`Initializing file ${index}: ${f.filename}`);
-              if (!f.checklistItems) {
-                return {
-                  ...f,
-                  checklistItems: {
-                    formatting: 'PENDING',
-                    docs: 'PENDING',
-                    tests: 'PENDING',
-                    performance: 'PENDING',
-                  },
-                };
-              }
-              return f;
-            });
-
             const updatedPRData = {
               ...data,
-              files: normalizedFiles,
             };
 
             // First set the state
@@ -511,7 +477,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
   };
 
   // Add handleChecklistChange function to update checklist items
-  const handleChecklistChange = (filename: string, checklistItems: Record<string, 'REVIEW' | 'OK' | 'NG'>) => {
+  const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
     if (!prData) return;
 
     const updatedFiles = prData.files.map(file => {
@@ -798,7 +764,9 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
 const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
   // Prepare a dynamic object based on AI-generated checklist if available
   const initializeChecklistItems = () => {
-    if (file.checklistItems) {
+    // If we already have checklist items saved from before, use those
+    if (file.checklistItems && Object.keys(file.checklistItems).length > 0) {
+      console.log(`Using saved checklist items for ${file.filename}`, file.checklistItems);
       return file.checklistItems;
     }
 
@@ -811,8 +779,8 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
       return items;
     }
 
-    // Empty placeholder object until AI analysis is done
-    return {};
+    // 空の場合はプレースホルダーとして1つの'OK'ステータスのアイテムを作成
+    return { item_0: 'OK' } as Record<string, 'PENDING' | 'OK' | 'NG'>;
   };
 
   // State to track checklist items - Initialize from saved data if available
@@ -823,6 +791,13 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
   const [expandOverride, setExpandOverride] = useState<boolean | null>(null);
   // Track if all items were just checked to trigger auto-collapse
   const [allItemsJustChecked, setAllItemsJustChecked] = useState(false);
+
+  // Initialize the allItemsJustChecked state based on initial checklist items
+  useEffect(() => {
+    const initialItems = initializeChecklistItems();
+    const allInitialItemsOK = Object.values(initialItems).every(item => item === 'OK');
+    setAllItemsJustChecked(allInitialItemsOK);
+  }, [initializeChecklistItems]);
 
   // Calculate review status directly from checklist items
   const getReviewStatus = (): 'approved' | 'reviewing' | 'not-reviewed' => {
@@ -1153,7 +1128,52 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
     setLoading(true);
     setError(null);
 
+    // ダミーの分析結果データを作成する関数
+    const createDummyAnalysisResult = (): PRAnalysisResult => {
+      return {
+        summary: {
+          background:
+            'This PR implements a new feature that allows users to filter search results by various criteria.',
+          problem: 'Users were having difficulty finding relevant items in large search result sets.',
+          solution: 'Add filter controls that allow narrowing results by category, date, and other attributes.',
+          implementation:
+            'Implemented filter components in React with state management using Context API. Backend API was extended to support filter parameters.',
+        },
+        fileChecklists:
+          prData?.files.map((file, index) => {
+            return {
+              // Use the filename as the key for checklist items  {
+              filename: file.filename,
+              checklistItems: [
+                {
+                  id: `${index}-1`,
+                  description: `Code is well-formatted and consistent with project style in ${file.filename.split('/').pop()}`,
+                  status: 'PENDING',
+                },
+                {
+                  id: `${index}-2`,
+                  description: `Implementation follows best practices for ${file.filename.includes('.ts') ? 'TypeScript' : file.filename.includes('.js') ? 'JavaScript' : 'this file type'}`,
+                  status: 'PENDING',
+                },
+                {
+                  id: `${index}-3`,
+                  description: 'Documentation is clear and sufficient',
+                  status: 'OK',
+                },
+                {
+                  id: `${index}-4`,
+                  description: 'Error handling is robust and appropriate',
+                  status: 'PENDING',
+                },
+              ],
+            };
+          }) || [],
+      };
+    };
+
     try {
+      // コメントアウト：元の実装
+      /*
       // Create OpenAI client
       const openaiClient = await createOpenAIClient();
       if (!openaiClient) {
@@ -1162,34 +1182,38 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
       // Use the selected language (or default to stored preference)
       const result = await openaiClient.analyzePR(prData, selectedLanguage);
+      */
+
+      // 実際の API 呼び出しをダミーデータに置き換え
+      const result = createDummyAnalysisResult();
 
       // Save result to state
       setAnalysisResult(result);
 
       // Update file checklistItems with the AI-generated ones
-      if (prData && result.fileChecklists.length > 0) {
-        const updatedFiles = prData.files.map(file => {
-          const aiChecklist = result.fileChecklists.find(fc => fc.filename === file.filename);
+      // if (prData && result.fileChecklists.length > 0) {
+      //   const updatedFiles = prData.files.map(file => {
+      //     const aiChecklist = result.fileChecklists.find(fc => fc.filename === file.filename);
 
-          if (aiChecklist) {
-            // Convert AI checklist items to the dynamic format
-            const newChecklistItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
-            aiChecklist.checklistItems.forEach((item, index) => {
-              newChecklistItems[`item_${index}`] = item.status;
-            });
+      //     if (aiChecklist) {
+      //       // Convert AI checklist items to the dynamic format
+      //       const newChecklistItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+      //       aiChecklist.checklistItems.forEach((item, index) => {
+      //         newChecklistItems[`item_${index}`] = item.status;
+      //       });
 
-            return {
-              ...file,
-              checklistItems: newChecklistItems,
-            };
-          }
+      //       return {
+      //         ...file,
+      //         checklistItems: newChecklistItems,
+      //       };
+      //     }
 
-          return file;
-        });
+      //     return file;
+      //   });
 
-        // Update the PR data with the new checklist items
-        setPRData({ ...prData, files: updatedFiles });
-      }
+      //   // Update the PR data with the new checklist items
+      //   setPRData({ ...prData, files: updatedFiles });
+      // }
 
       // Save analysis result to storage for future reference
       await saveAnalysisToStorage(url, result);
