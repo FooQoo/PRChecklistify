@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { atom, useAtom } from 'jotai';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
@@ -789,10 +789,9 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
 
 const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
   // Prepare a dynamic object based on AI-generated checklist if available
-  const initializeChecklistItems = () => {
+  const initializeChecklistItems = useCallback(() => {
     // If we already have checklist items saved from before, use those
     if (file.checklistItems && Object.keys(file.checklistItems).length > 0) {
-      console.log(`Using saved checklist items for ${file.filename}`, file.checklistItems);
       return file.checklistItems;
     }
 
@@ -807,7 +806,7 @@ const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedCh
 
     // 空の場合はプレースホルダーとして1つの'OK'ステータスのアイテムを作成
     return { item_0: 'OK' } as Record<string, 'PENDING' | 'OK' | 'NG'>;
-  };
+  }, [file.checklistItems, aiGeneratedChecklist]);
 
   // State to track checklist items - Initialize from saved data if available
   const [checklistItems, setChecklistItems] =
