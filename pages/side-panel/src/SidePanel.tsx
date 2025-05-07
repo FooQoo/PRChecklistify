@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext, useContext, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { atom, useAtom } from 'jotai';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
@@ -8,22 +8,6 @@ import OpenAIKeySettings from './components/OpenAIKeySettings';
 import TokenSetupPrompt from './components/TokenSetupPrompt';
 import SettingsPanel from './components/SettingsPanel';
 import SettingsButton from './components/SettingsButton';
-
-// Context for sharing analysis result between components
-interface AnalysisContextType {
-  analysisResult: PRAnalysisResult | null;
-  setAnalysisResult: React.Dispatch<React.SetStateAction<PRAnalysisResult | null>>;
-}
-
-const AnalysisContext = createContext<AnalysisContextType | null>(null);
-
-const useAnalysisContext = () => {
-  const context = useContext(AnalysisContext);
-  if (!context) {
-    throw new Error('useAnalysisContext must be used within an AnalysisProvider');
-  }
-  return context;
-};
 
 // Type for page information
 type CurrentPage = {
@@ -76,6 +60,9 @@ interface PRData {
 // Create Jotai atom for PR data
 const prDataAtom = atom<PRData | null>(null);
 
+// Create Jotai atom for analysis result data
+const analysisResultAtom = atom<PRAnalysisResult | null>(null);
+
 // Create a derived atom that automatically saves to storage when updated
 const prDataWithStorageAtom = atom(
   get => get(prDataAtom),
@@ -94,6 +81,36 @@ const prDataWithStorageAtom = atom(
           console.log('PR data auto-saved successfully');
         } catch (error) {
           console.error('Error auto-saving PR data to storage:', error);
+        }
+      }, 0);
+    }
+  },
+);
+
+// Create a derived atom for analysis result that automatically saves to storage when updated
+const analysisResultWithStorageAtom = atom(
+  get => get(analysisResultAtom),
+  (get, set, newValue: PRAnalysisResult | null, url?: string) => {
+    // Set the base atom value
+    set(analysisResultAtom, newValue);
+
+    // If we have data and URL, save to storage
+    if (newValue && url) {
+      console.log('Auto-saving PR analysis result to storage after state update...');
+      // We're using setTimeout to make the storage operation non-blocking
+      setTimeout(async () => {
+        try {
+          // Save the analysis result along with existing PR data
+          const prData = get(prDataAtom);
+          if (prData) {
+            // この部分が重要: PRのURLごとに分析結果を保存
+            await prDataStorage.save(url, prData, newValue);
+            console.log('PR analysis result auto-saved successfully');
+          } else {
+            console.warn('Cannot save analysis result without PR data');
+          }
+        } catch (error) {
+          console.error('Error auto-saving PR analysis result to storage:', error);
         }
       }, 0);
     }
@@ -396,7 +413,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   // 初期表示時にOpenAI APIキーの設定画面を表示するかどうか
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
-  const { analysisResult } = useAnalysisContext();
+  const [analysisResult, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
 
   // Fetch PR data - first try to load from storage, then from API if needed
   useEffect(() => {
@@ -442,6 +459,9 @@ const GitHubPRView = ({ url }: { url: string }) => {
         try {
           // First try to load from storage
           const savedData = await prDataStorage.load(url);
+          // Also load the analysis result for this PR
+          const savedAnalysis = await prDataStorage.loadAnalysis(url);
+
           if (savedData) {
             console.log('Loaded PR data from storage');
 
@@ -449,6 +469,16 @@ const GitHubPRView = ({ url }: { url: string }) => {
             setPrData({
               ...savedData,
             });
+
+            // 分析結果があれば設定
+            if (savedAnalysis) {
+              console.log('Loaded PR analysis from storage');
+              setAnalysisResult(savedAnalysis, url);
+            } else {
+              // 分析結果がない場合はnullにリセット
+              setAnalysisResult(null, url);
+            }
+
             setLoading(false);
             return;
           }
@@ -463,6 +493,8 @@ const GitHubPRView = ({ url }: { url: string }) => {
 
             // First set the state
             setPrData(updatedPRData);
+            // Reset analysis result when loading a new PR
+            setAnalysisResult(null, url);
 
             // Then explicitly save the initial data to storage with verification
             try {
@@ -499,7 +531,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
       // If token is explicitly falsy (not null which means still loading)
       setLoading(false);
     }
-  }, [url, hasToken]);
+  }, [url, hasToken, setPrData, setAnalysisResult]);
 
   // Save PR data whenever it changes
   useEffect(() => {
@@ -787,7 +819,7 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
   );
 };
 
-const FileChecklist = ({ file, onCommentChange, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
+const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
   // Prepare a dynamic object based on AI-generated checklist if available
   const initializeChecklistItems = useCallback(() => {
     // If we already have checklist items saved from before, use those
@@ -1128,10 +1160,10 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [, setSelectedLanguage] = useState<string>('en');
 
-  // Use the parent component's analysisResult and setAnalysisResult
-  const { analysisResult, setAnalysisResult } = useAnalysisContext();
+  // Replace Context with Jotai for analysis result
+  const [analysisResult, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
 
   // Check if OpenAI API key is set
   useEffect(() => {
@@ -1169,7 +1201,6 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
       // Update the PR data with reset status values
       const updatedPRData = { ...prData, files: updatedFiles };
-      // setPRData(updatedPRData);
 
       // Save the updated data to storage
       await savePRDataToStorage(updatedPRData, url);
@@ -1235,108 +1266,13 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       // 実際の API 呼び出しをダミーデータに置き換え
       const result = createDummyAnalysisResult();
 
-      // Save result to state
-      setAnalysisResult(result);
-
-      // Update file checklistItems with the AI-generated ones
-      // if (prData && result.fileChecklists.length > 0) {
-      //   const updatedFiles = prData.files.map(file => {
-      //     const aiChecklist = result.fileChecklists.find(fc => fc.filename === file.filename);
-
-      //     if (aiChecklist) {
-      //       // Convert AI checklist items to the dynamic format
-      //       const newChecklistItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
-      //       aiChecklist.checklistItems.forEach((item, index) => {
-      //         newChecklistItems[`item_${index}`] = item.status;
-      //       });
-
-      //       return {
-      //         ...file,
-      //         checklistItems: newChecklistItems,
-      //       };
-      //     }
-
-      //     return file;
-      //   });
-
-      //   // Update the PR data with the new checklist items
-      //   setPRData({ ...prData, files: updatedFiles });
-      // }
-
-      // Save analysis result to storage for future reference
-      await saveAnalysisToStorage(url, result);
+      // Use our Jotai setter with URL to autosave to storage
+      setAnalysisResult(result, url);
     } catch (err) {
       console.error('Error generating PR checklist:', err);
       setError('An error occurred while generating PR checklist');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Save analysis result to storage
-  const saveAnalysisToStorage = async (prUrl: string, result: PRAnalysisResult) => {
-    try {
-      // Create a unique ID for the PR (owner/repo/number)
-      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-      if (!match) return;
-
-      const [, owner, repo, prNumber] = match;
-      const prId = `${owner}/${repo}/${prNumber}`;
-
-      // Get current PR data if it exists
-      const storedData = await prDataStorage.load(prUrl);
-
-      // ストレージから既存のデータを取得して、古い分析結果をクリア
-      const result = await chrome.storage.local.get('pr');
-      const prStorage = result.pr || {};
-
-      // 現在のPRデータを更新 - 分析結果を新しいものに置き換え
-      if (prStorage[prId]) {
-        // 既存のデータがある場合は、分析結果だけを更新
-        prStorage[prId] = {
-          ...prStorage[prId],
-          analysisResult: result,
-          timestamp: Date.now(), // タイムスタンプも更新
-        };
-      } else {
-        // 新規のPRデータを作成
-        prStorage[prId] = {
-          prId,
-          timestamp: Date.now(),
-          prData: storedData || prData,
-          analysisResult: result,
-        };
-      }
-
-      // 更新されたPRデータを保存
-      await chrome.storage.local.set({ pr: prStorage });
-      console.log(`Updated PR analysis for ${prId} under 'pr' key`);
-    } catch (error) {
-      console.error('Error saving PR analysis:', error);
-    }
-  };
-
-  // Load analysis result from storage
-  const loadAnalysisFromStorage = async (prUrl: string): Promise<PRAnalysisResult | null> => {
-    try {
-      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-      if (!match) return null;
-
-      const [, owner, repo, prNumber] = match;
-      const prId = `${owner}/${repo}/${prNumber}_analysis`;
-
-      const result = await chrome.storage.local.get(prId);
-      const savedAnalysis = result[prId] as PRAnalysisResult | undefined;
-
-      if (savedAnalysis) {
-        console.log(`Loaded saved PR analysis for ${prId}`);
-        return savedAnalysis;
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Error loading PR analysis:', error);
-      return null;
     }
   };
 
@@ -1349,8 +1285,11 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       }
     };
 
-    loadSavedAnalysis();
-  }, [url, setAnalysisResult]);
+    // Only load if we don't already have an analysis result
+    if (!analysisResult) {
+      loadSavedAnalysis();
+    }
+  }, [url, analysisResult, setAnalysisResult]);
 
   if (hasOpenAIKey === null) {
     return <div className="mt-4 p-4 border border-gray-300 rounded">Loading OpenAI configuration...</div>;
@@ -1439,8 +1378,6 @@ const SidePanel = () => {
   const [currentPage, setCurrentPage] = useState<CurrentPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  // Create state for the analysis result at the top level
-  const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | null>(null);
 
   useEffect(() => {
     // Function to get current page information from storage
@@ -1492,9 +1429,7 @@ const SidePanel = () => {
       {!currentPage || !currentPage.url ? (
         <DefaultView />
       ) : isGitHubPRPage(currentPage.url) ? (
-        <AnalysisContext.Provider value={{ analysisResult, setAnalysisResult }}>
-          <GitHubPRView url={currentPage.url} />
-        </AnalysisContext.Provider>
+        <GitHubPRView url={currentPage.url} />
       ) : (
         <DefaultView />
       )}
