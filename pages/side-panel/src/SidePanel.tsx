@@ -150,6 +150,75 @@ const fetchers = {
 
     return null;
   },
+
+  // Fetcher for generating OpenAI analysis
+  generateAnalysis: async (key: string, prData: PRData, language: string) => {
+    console.log('Generating OpenAI analysis with SWR:', key);
+
+    // ダミーの分析結果データを作成する関数
+    const createDummyAnalysisResult = (): PRAnalysisResult => {
+      return {
+        summary: {
+          background:
+            'This PR implements a new feature that allows users to filter search results by various criteria.',
+          problem: 'Users were having difficulty finding relevant items in large search result sets.',
+          solution: 'Add filter controls that allow narrowing results by category, date, and other attributes.',
+          implementation:
+            'Implemented filter components in React with state management using Context API. Backend API was extended to support filter parameters.',
+        },
+        fileChecklists:
+          prData?.files.map((file, index) => {
+            return {
+              // Use the filename as the key for checklist items
+              filename: file.filename,
+              checklistItems: [
+                {
+                  id: `${index}-1`,
+                  description: `Code is well-formatted and consistent with project style in ${file.filename.split('/').pop()}`,
+                  status: 'PENDING',
+                },
+                {
+                  id: `${index}-2`,
+                  description: `Implementation follows best practices for ${file.filename.includes('.ts') ? 'TypeScript' : file.filename.includes('.js') ? 'JavaScript' : 'this file type'}`,
+                  status: 'PENDING',
+                },
+                {
+                  id: `${index}-3`,
+                  description: 'Documentation is clear and sufficient',
+                  status: 'OK',
+                },
+                {
+                  id: `${index}-4`,
+                  description: 'Error handling is robust and appropriate',
+                  status: 'PENDING',
+                },
+              ],
+            };
+          }) || [],
+      };
+    };
+
+    try {
+      // OpenAI APIコール（コメントアウト）
+      /*
+      // Create OpenAI client
+      const openaiClient = await createOpenAIClient();
+      if (!openaiClient) {
+        throw new Error('OpenAI API key is not set');
+      }
+
+      // Use the selected language to generate analysis
+      const result = await openaiClient.analyzePR(prData, language);
+      return result;
+      */
+
+      // 実際の API 呼び出しをダミーデータに置き換え
+      return createDummyAnalysisResult();
+    } catch (error) {
+      console.error('Error in generateAnalysis fetcher:', error);
+      throw error;
+    }
+  },
 };
 
 // ストレージに保存するヘルパー関数
@@ -1173,13 +1242,24 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
 
 // PRAnalysis component for OpenAI-powered PR analysis
 const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
-  const [, setSelectedLanguage] = useState<string>('en');
+  const [, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
 
-  // Replace Context with Jotai for analysis result
-  const [analysisResult, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
+  // Use useSWR for fetching analysis result
+  const {
+    data: analysisResult,
+    error,
+    isValidating: isLoading,
+    mutate: regenerateAnalysis,
+  } = useSWR(`analysis/${url}`, () => fetchers.fetchAnalysis(`analysis/${url}`), {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    onSuccess: data => {
+      if (data) {
+        setAnalysisResult(data, url);
+      }
+    },
+  });
 
   // Check if OpenAI API key is set
   useEffect(() => {
@@ -1187,21 +1267,12 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       const apiKey = await openaiApiKeyStorage.get();
       setHasOpenAIKey(!!apiKey);
     };
-    const loadLanguagePreference = async () => {
-      const lang = await languagePreferenceStorage.get();
-      setSelectedLanguage(lang || navigator.language || 'en');
-    };
 
     checkOpenAIKey();
-    loadLanguagePreference();
   }, []);
 
-  // Generate PR checklist using OpenAI API
-  const generatePRChecklist = async () => {
-    setLoading(true);
-    setError(null);
-
-    // Reset all file statuses to 'PENDING' when regenerating analysis
+  // Reset checklist status function
+  const resetChecklistStatus = async () => {
     if (prData) {
       const updatedFiles = prData.files.map(file => {
         // If file has checklistItems, reset all their status to 'PENDING'
@@ -1222,90 +1293,26 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       await savePRDataToStorage(updatedPRData, url);
       console.log('Reset all file statuses to PENDING for regeneration');
     }
-
-    // ダミーの分析結果データを作成する関数
-    const createDummyAnalysisResult = (): PRAnalysisResult => {
-      return {
-        summary: {
-          background:
-            'This PR implements a new feature that allows users to filter search results by various criteria.',
-          problem: 'Users were having difficulty finding relevant items in large search result sets.',
-          solution: 'Add filter controls that allow narrowing results by category, date, and other attributes.',
-          implementation:
-            'Implemented filter components in React with state management using Context API. Backend API was extended to support filter parameters.',
-        },
-        fileChecklists:
-          prData?.files.map((file, index) => {
-            return {
-              // Use the filename as the key for checklist items  {
-              filename: file.filename,
-              checklistItems: [
-                {
-                  id: `${index}-1`,
-                  description: `Code is well-formatted and consistent with project style in ${file.filename.split('/').pop()}`,
-                  status: 'PENDING',
-                },
-                {
-                  id: `${index}-2`,
-                  description: `Implementation follows best practices for ${file.filename.includes('.ts') ? 'TypeScript' : file.filename.includes('.js') ? 'JavaScript' : 'this file type'}`,
-                  status: 'PENDING',
-                },
-                {
-                  id: `${index}-3`,
-                  description: 'Documentation is clear and sufficient',
-                  status: 'OK',
-                },
-                {
-                  id: `${index}-4`,
-                  description: 'Error handling is robust and appropriate',
-                  status: 'PENDING',
-                },
-              ],
-            };
-          }) || [],
-      };
-    };
-
-    try {
-      // コメントアウト：元の実装
-      /*
-      // Create OpenAI client
-      const openaiClient = await createOpenAIClient();
-      if (!openaiClient) {
-        throw new Error('OpenAI API key is not set');
-      }
-
-      // Use the selected language (or default to stored preference)
-      const result = await openaiClient.analyzePR(prData, selectedLanguage);
-      */
-
-      // 実際の API 呼び出しをダミーデータに置き換え
-      const result = createDummyAnalysisResult();
-
-      // Use our Jotai setter with URL to autosave to storage
-      setAnalysisResult(result, url);
-    } catch (err) {
-      console.error('Error generating PR checklist:', err);
-      setError('An error occurred while generating PR checklist');
-    } finally {
-      setLoading(false);
-    }
   };
 
-  // Load saved analysis on component mount
-  useEffect(() => {
-    const loadSavedAnalysis = async () => {
-      const savedAnalysis = await prDataStorage.loadAnalysis(url);
-      if (savedAnalysis) {
-        setAnalysisResult(savedAnalysis);
-      }
-    };
+  // Generate PR checklist using SWR mutation
+  const handleGeneratePRChecklist = async () => {
+    // Reset all file statuses before generating
+    await resetChecklistStatus();
 
-    // Only load if we don't already have an analysis result
-    if (!analysisResult) {
-      loadSavedAnalysis();
+    try {
+      // Create a new analysis and update the cache
+      const newAnalysis = await fetchers.generateAnalysis(`analysis/${url}`, prData, 'en');
+
+      // Update SWR cache with the new result
+      regenerateAnalysis(newAnalysis, false);
+
+      // Also update Jotai state
+      setAnalysisResult(newAnalysis, url);
+    } catch (error) {
+      console.error('Error generating analysis:', error);
     }
-  }, [url, analysisResult, setAnalysisResult]);
+  };
 
   if (hasOpenAIKey === null) {
     return <div className="mt-4 p-4 border border-gray-300 rounded">Loading OpenAI configuration...</div>;
@@ -1331,14 +1338,14 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
         <h3 className="font-bold text-lg text-left">AI-Powered PR Analysis</h3>
         {analysisResult && (
           <button
-            onClick={generatePRChecklist}
+            onClick={handleGeneratePRChecklist}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
             Regenerate Analysis
           </button>
         )}
       </div>
 
-      {!analysisResult && !loading && (
+      {!analysisResult && !isLoading && (
         <div className="mb-4">
           <p className="text-sm mb-3">
             Generate an AI-powered analysis of this PR to get detailed descriptions and customized checklists for each
@@ -1346,16 +1353,16 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
           </p>
 
           <button
-            onClick={generatePRChecklist}
-            disabled={loading}
+            onClick={handleGeneratePRChecklist}
+            disabled={isLoading}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
-            {loading ? 'Generating...' : 'Generate PR Checklist'}
+            {isLoading ? 'Generating...' : 'Generate PR Checklist'}
           </button>
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          {error && <p className="text-red-500 text-sm mt-2">An error occurred while generating PR checklist</p>}
         </div>
       )}
 
-      {loading && (
+      {isLoading && (
         <div className="flex flex-col items-center justify-center p-6">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
           <p className="text-sm text-gray-600">Analyzing PR with AI, this may take a moment...</p>

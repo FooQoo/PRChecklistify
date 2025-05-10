@@ -26,7 +26,8 @@
     "@extension/ui": "workspace:*",
     "@tailwindcss/typography": "^0.5.16",
     "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "swr": "^2.2.4"
   },
   "devDependencies": {
     "@extension/tailwindcss-config": "workspace:*",
