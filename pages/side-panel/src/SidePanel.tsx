@@ -39,7 +39,7 @@ interface PRData {
     deletions: number;
     patch?: string;
     comments?: string; // Any review comments for this file
-    checklistItems?: Record<string, 'PENDING' | 'OK' | 'NG'>; // Dynamic checklist items with status values
+    // checklistItems property is removed - we'll use analysisResult instead
   }[];
   user: {
     login: string;
@@ -332,12 +332,7 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         deletions: file.deletions,
         patch: file.patch,
         comments: '',
-        checklistItems: {
-          formatting: 'PENDING' as const,
-          docs: 'PENDING' as const,
-          tests: 'PENDING' as const,
-          performance: 'PENDING' as const,
-        },
+        // checklistItemsプロパティの削除
       })),
       user: {
         login: prData.user.login,
@@ -627,17 +622,32 @@ const GitHubPRView = ({ url }: { url: string }) => {
 
   // チェックリスト変更時も統合された更新関数を使用
   const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
-    if (!prData) return;
+    if (!prData || !analysisResult) return;
 
-    const updatedFiles = prData.files.map(file => {
-      if (file.filename === filename) {
-        return { ...file, checklistItems };
+    // 分析結果のファイルチェックリストを更新する
+    const updatedFileChecklists = analysisResult.fileChecklists.map(checklist => {
+      if (checklist.filename === filename) {
+        // ステータスマッピングしたチェックリストアイテムを作成
+        const updatedItems = checklist.checklistItems.map((item, index) => {
+          const key = `item_${index}`;
+          if (checklistItems[key]) {
+            return { ...item, status: checklistItems[key] };
+          }
+          return item;
+        });
+        return { ...checklist, checklistItems: updatedItems };
       }
-      return file;
+      return checklist;
     });
 
-    // 統合された関数で一度に更新
-    updatePRData({ ...prData, files: updatedFiles });
+    // 更新後の分析結果オブジェクトを作成
+    const updatedAnalysisResult = {
+      ...analysisResult,
+      fileChecklists: updatedFileChecklists,
+    };
+
+    // 統合された関数で更新
+    updateAnalysisResult(updatedAnalysisResult);
   };
 
   // ファイルごとの承認状況を計算する関数
@@ -895,25 +905,21 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
 };
 
 const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
-  // Prepare a dynamic object based on AI-generated checklist if available
+  // AI生成されたチェックリストに基づいて動的オブジェクトを準備
   const initializeChecklistItems = useCallback(() => {
-    // If we already have checklist items saved from before, use those
-    if (file.checklistItems && Object.keys(file.checklistItems).length > 0) {
-      return file.checklistItems;
-    }
-
-    // If we have AI-generated checklist, create an object with those items
+    // AIによって生成されたチェックリストが利用可能な場合、そのアイテムを含むオブジェクトを作成
     if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
       const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
       aiGeneratedChecklist.checklistItems.forEach((item, index) => {
+        // AIチェックリストのステータスを初期値として使用
         items[`item_${index}`] = item.status;
       });
       return items;
     }
 
-    // 空の場合はプレースホルダーとして1つの'OK'ステータスのアイテムを作成
+    // AI生成チェックリストがない場合はプレースホルダーとして1つの'OK'ステータスのアイテムを作成
     return { item_0: 'OK' } as Record<string, 'PENDING' | 'OK' | 'NG'>;
-  }, [file.checklistItems, aiGeneratedChecklist]);
+  }, [aiGeneratedChecklist]);
 
   // State to track checklist items - Initialize from saved data if available
   const [checklistItems, setChecklistItems] =
@@ -1248,24 +1254,24 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
   // Reset checklist status function
   const resetChecklistStatus = async () => {
-    if (prData) {
-      const updatedFiles = prData.files.map(file => {
-        // If file has checklistItems, reset all their status to 'PENDING'
-        if (file.checklistItems) {
-          const resetChecklistItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
-          Object.keys(file.checklistItems).forEach(key => {
-            resetChecklistItems[key] = 'PENDING';
-          });
-          return { ...file, checklistItems: resetChecklistItems };
-        }
-        return file;
+    if (prData && analysisResult) {
+      // 各ファイルのチェックリストアイテムをPENDINGに更新
+      const updatedFileChecklists = analysisResult.fileChecklists.map(checklist => {
+        const updatedItems = checklist.checklistItems.map(item => ({
+          ...item,
+          status: 'PENDING',
+        }));
+        return { ...checklist, checklistItems: updatedItems };
       });
 
-      // Update the PR data with reset status values
-      const updatedPRData = { ...prData, files: updatedFiles };
+      // 分析結果を更新
+      const updatedAnalysisResult = {
+        ...analysisResult,
+        fileChecklists: updatedFileChecklists,
+      };
 
-      // Save the updated data to storage
-      await savePRDataToStorage(updatedPRData, url);
+      // 更新した分析結果を保存
+      setAnalysisResult(updatedAnalysisResult, url);
       console.log('Reset all file statuses to PENDING for regeneration');
     }
   };
