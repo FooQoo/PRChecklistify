@@ -922,14 +922,20 @@ const usePRData = (url: string) => {
   const [, setPrData] = useAtom(prDataWithStorageAtom);
   const [, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
 
-  // PR data with SWR
+  // PR data with SWR - キャッシュ設定を最適化
   const {
     data: prData,
     error: prError,
     mutate: mutatePrData,
   } = useSWR(`pr/${url}`, fetchers.fetchPR, {
+    // フォーカス時の再検証を無効化
     revalidateOnFocus: false,
+    // 古いデータでも再検証しない
     revalidateIfStale: false,
+    // 再接続時の再検証も無効化
+    revalidateOnReconnect: false,
+    // キャッシュの有効期間を10秒に設定
+    dedupingInterval: 10 * 1000,
     onSuccess: data => {
       // SWRがデータを取得したらJotai atomにも同期
       if (data) {
@@ -938,37 +944,40 @@ const usePRData = (url: string) => {
     },
   });
 
-  // Analysis data - using Jotai atom directly instead of SWR
-  const [analysisResult] = useAtom(analysisResultWithStorageAtom);
-  const analysisError = null; // No SWR error since we're not using SWR
-
-  /**
-   * 統合されたデータ更新関数
-   * - SWRキャッシュを更新
-   * - Jotaiステートを更新（ストレージへの保存も自動で行われる）
-   */
-  const updatePRData = (updatedData: PRData) => {
-    // SWRキャッシュを更新（UIの即時更新）
-    mutatePrData(updatedData, false);
-
-    // Jotaiステートを更新（ストレージ保存）
-    setPrData(updatedData, url);
-  };
-
-  /**
-   * 統合された分析結果更新関数
-   */
-  const updateAnalysisResult = (updatedResult: PRAnalysisResult) => {
-    setAnalysisResult(updatedResult, url);
-  };
+  // Analysis data with SWR - キャッシュ設定を最適化
+  const {
+    data: analysisResult,
+    error: analysisError,
+    mutate: mutateAnalysis,
+  } = useSWR(`analysis/${url}`, () => fetchers.fetchAnalysis(`analysis/${url}`), {
+    // 分析結果のキャッシュ設定も同様に最適化
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    revalidateOnReconnect: false,
+    // キャッシュの有効期間を10秒に設定
+    dedupingInterval: 10 * 1000,
+    onSuccess: data => {
+      if (data) {
+        setAnalysisResult(data, url);
+      }
+    },
+  });
 
   return {
     prData,
     prError,
     analysisResult,
     analysisError,
-    updatePRData,
-    updateAnalysisResult,
+    updatePRData: (updatedData: PRData) => {
+      // SWRキャッシュを更新
+      mutatePrData(updatedData, false);
+      // Jotai state も更新（ストレージに保存）
+      setPrData(updatedData, url);
+    },
+    updateAnalysisResult: (updatedResult: PRAnalysisResult) => {
+      mutateAnalysis(updatedResult, false);
+      setAnalysisResult(updatedResult, url);
+    },
   };
 };
 
