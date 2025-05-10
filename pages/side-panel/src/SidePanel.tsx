@@ -377,19 +377,17 @@ const prDataStorage = {
         ...(analysisResult && { analysisResult }),
       };
 
-      // Save to storage with retry logic
+      // Save with retry logic
       let retryCount = 0;
       const maxRetries = 3;
 
       const saveWithRetry = async (): Promise<void> => {
         try {
-          // Save under the 'pr' key with the prId as property
+          // 修正: 各PRを独立したキーとして保存
           await chrome.storage.local.set({
-            pr: {
-              [prId]: savedData,
-            },
+            [`pr_${prId}`]: savedData,
           });
-          console.log(`Saved PR data for ${prId} under 'pr' key`);
+          console.log(`Saved PR data for ${prId} under independent key 'pr_${prId}'`);
         } catch (error) {
           if (retryCount < maxRetries) {
             retryCount++;
@@ -418,10 +416,9 @@ const prDataStorage = {
       const [, owner, repo, prNumber] = match;
       const prId = `${owner}/${repo}/${prNumber}`;
 
-      // Try to load from storage
-      const result = await chrome.storage.local.get('pr');
-      const prStorage = result.pr || {};
-      const savedData = prStorage[prId] as SavedPRData | undefined;
+      // 修正: 独立したキーからデータを取得
+      const result = await chrome.storage.local.get(`pr_${prId}`);
+      const savedData = result[`pr_${prId}`] as SavedPRData | undefined;
 
       if (savedData && savedData.prData) {
         console.log(`Loaded saved PR data for ${prId} from ${new Date(savedData.timestamp).toLocaleString()}`);
@@ -444,10 +441,9 @@ const prDataStorage = {
       const [, owner, repo, prNumber] = match;
       const prId = `${owner}/${repo}/${prNumber}`;
 
-      // Try to load from storage
-      const result = await chrome.storage.local.get('pr');
-      const prStorage = result.pr || {};
-      const savedData = prStorage[prId] as SavedPRData | undefined;
+      // 修正: 独立したキーからデータを取得
+      const result = await chrome.storage.local.get(`pr_${prId}`);
+      const savedData = result[`pr_${prId}`] as SavedPRData | undefined;
 
       if (savedData && savedData.analysisResult) {
         console.log(`Loaded saved PR analysis for ${prId}`);
@@ -470,13 +466,39 @@ const prDataStorage = {
       const [, owner, repo, prNumber] = match;
       const prId = `${owner}/${repo}/${prNumber}`;
 
-      // Check if data exists in storage
-      const result = await chrome.storage.local.get('pr');
-      const prStorage = result.pr || {};
-      return !!prStorage[prId];
+      // 修正: 独立したキーで検証
+      const result = await chrome.storage.local.get(`pr_${prId}`);
+      return !!result[`pr_${prId}`];
     } catch (error) {
       console.error('Error verifying PR data:', error);
       return false;
+    }
+  },
+
+  // 新機能: 古いPRデータをクリーンアップ
+  cleanupOldData: async (maxAgeInDays = 30): Promise<void> => {
+    try {
+      // ストレージから全てのキーを取得
+      const allData = await chrome.storage.local.get(null);
+
+      // PR関連のキーをフィルタリング
+      const prKeys = Object.keys(allData).filter(key => key.startsWith('pr_'));
+
+      // 指定した日数より古いデータを削除
+      const cutoffTimestamp = Date.now() - maxAgeInDays * 24 * 60 * 60 * 1000;
+      let deletedCount = 0;
+
+      for (const key of prKeys) {
+        const savedData = allData[key] as SavedPRData;
+        if (savedData && savedData.timestamp < cutoffTimestamp) {
+          await chrome.storage.local.remove(key);
+          deletedCount++;
+        }
+      }
+
+      console.log(`Cleaned up ${deletedCount} old PR entries that were older than ${maxAgeInDays} days`);
+    } catch (error) {
+      console.error('Error cleaning up old PR data:', error);
     }
   },
 };
@@ -1411,6 +1433,10 @@ const SidePanel = () => {
     };
 
     chrome.storage.onChanged.addListener(handleStorageChange);
+
+    // アプリ起動時に古いPRデータをクリーンアップ（30日以上前のデータ）
+    prDataStorage.cleanupOldData(30);
+    console.log('Automatic cleanup of old PR data initiated');
 
     // Cleanup listener
     return () => {
