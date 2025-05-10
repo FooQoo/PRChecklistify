@@ -1298,10 +1298,13 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
   // Generate PR checklist using SWR mutation
   const handleGeneratePRChecklist = async () => {
-    // Reset all file statuses before generating
-    await resetChecklistStatus();
+    // Set loading state to true
+    setIsLoading(true);
 
     try {
+      // Reset all file statuses before generating
+      await resetChecklistStatus();
+
       // Create a new analysis and update the cache
       const newAnalysis = await fetchers.generateAnalysis(`analysis/${url}`, prData, 'en');
 
@@ -1309,6 +1312,9 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       setAnalysisResult(newAnalysis);
     } catch (error) {
       console.error('Error generating analysis:', error);
+    } finally {
+      // Set loading state back to false when done
+      setIsLoading(false);
     }
   };
 
@@ -1334,7 +1340,7 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
     <div className="mt-4 p-4 border border-gray-300 rounded">
       <div className="flex justify-between items-center mb-2">
         <h3 className="font-bold text-lg text-left">AI-Powered PR Analysis</h3>
-        {analysisResult && (
+        {analysisResult && !isLoading && (
           <button
             onClick={handleGeneratePRChecklist}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
@@ -1343,7 +1349,7 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
         )}
       </div>
 
-      {!analysisResult && (
+      {!analysisResult && !isLoading && (
         <div className="mb-4">
           <p className="text-sm mb-3">
             Generate an AI-powered analysis of this PR to get detailed descriptions and customized checklists for each
@@ -1352,18 +1358,21 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
           <button
             onClick={handleGeneratePRChecklist}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50"></button>
+            disabled={isLoading}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
+            Generate Analysis
+          </button>
         </div>
       )}
 
-      {!analysisResult && (
+      {isLoading && (
         <div className="flex flex-col items-center justify-center p-6">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
           <p className="text-sm text-gray-600">Analyzing PR with AI, this may take a moment...</p>
         </div>
       )}
 
-      {analysisResult && (
+      {analysisResult && !isLoading && (
         <div className="analysis-result text-left">
           <div className="mb-4">
             <div className="bg-gray-50 p-3 rounded text-sm">
