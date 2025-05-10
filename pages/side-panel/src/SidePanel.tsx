@@ -503,25 +503,6 @@ const prDataStorage = {
   },
 };
 
-// ストレージに保存するヘルパー関数（既存のもの）
-const savePRDataToStorage = async (data: PRData, url: string) => {
-  try {
-    console.log('Saving PR data to storage after checklist update...');
-    console.log(
-      'Files to save:',
-      data.files.map(f => ({
-        filename: f.filename,
-        checklist: f.checklistItems,
-      })),
-    );
-
-    await prDataStorage.save(url, data);
-    console.log('PR data saved successfully');
-  } catch (error) {
-    console.error('Error saving PR data to storage:', error);
-  }
-};
-
 // Service to fetch PR data from GitHub
 const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
   try {
@@ -636,262 +617,6 @@ const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
   }
 };
 
-// Helper functions for PR data storage
-const prDataStorage = {
-  // Save PR data to storage
-  save: async (prUrl: string, prData: PRData, analysisResult?: PRAnalysisResult): Promise<void> => {
-    try {
-      // prIdを生成
-      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-      if (!match) return;
-
-      const [, owner, repo, prNumber] = match;
-      const prId = `${owner}/${repo}/${prNumber}`;
-
-      const db = await prDataStorage.initDB();
-      const tx = db.transaction('prData', 'readwrite');
-      const store = tx.objectStore('prData');
-
-      const savedData: SavedPRData = {
-        prId,
-        timestamp: Date.now(),
-        prData,
-        ...(analysisResult && { analysisResult }),
-      };
-
-      // データ保存
-      store.put(savedData);
-
-      return new Promise((resolve, reject) => {
-        tx.oncomplete = () => {
-          db.close();
-          resolve();
-          console.log(`Saved PR data for ${prId} to IndexedDB`);
-        };
-        tx.onerror = () => {
-          db.close();
-          reject(tx.error);
-          console.error(`Failed to save PR data for ${prId} to IndexedDB:`, tx.error);
-        };
-      });
-    } catch (error) {
-      console.error('Error saving PR data to IndexedDB:', error);
-    }
-  },
-
-  // Load PR data from storage
-  load: async (prUrl: string): Promise<PRData | null> => {
-    try {
-      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-      if (!match) return null;
-
-      const [, owner, repo, prNumber] = match;
-      const prId = `${owner}/${repo}/${prNumber}`;
-
-      const db = await prDataStorage.initDB();
-      const tx = db.transaction('prData', 'readonly');
-      const store = tx.objectStore('prData');
-
-      return new Promise((resolve, reject) => {
-        const request = store.get(prId);
-        request.onsuccess = () => {
-          db.close();
-          const savedData = request.result as SavedPRData | undefined;
-          if (savedData && savedData.prData) {
-            console.log(
-              `Loaded saved PR data for ${prId} from IndexedDB (${new Date(savedData.timestamp).toLocaleString()})`,
-            );
-            resolve(savedData.prData);
-          } else {
-            resolve(null);
-          }
-        };
-        request.onerror = () => {
-          db.close();
-          console.error(`Failed to load PR data for ${prId} from IndexedDB:`, request.error);
-          reject(request.error);
-        };
-      });
-    } catch (error) {
-      console.error('Error loading PR data from IndexedDB:', error);
-      return null;
-    }
-  },
-
-  // Load analysis result from storage
-  loadAnalysis: async (prUrl: string): Promise<PRAnalysisResult | null> => {
-    try {
-      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-      if (!match) return null;
-
-      const [, owner, repo, prNumber] = match;
-      const prId = `${owner}/${repo}/${prNumber}`;
-
-      const db = await prDataStorage.initDB();
-      const tx = db.transaction('prData', 'readonly');
-      const store = tx.objectStore('prData');
-
-      return new Promise((resolve, reject) => {
-        const request = store.get(prId);
-        request.onsuccess = () => {
-          db.close();
-          const savedData = request.result as SavedPRData | undefined;
-          if (savedData && savedData.analysisResult) {
-            console.log(`Loaded saved PR analysis for ${prId} from IndexedDB`);
-            resolve(savedData.analysisResult);
-          } else {
-            resolve(null);
-          }
-        };
-        request.onerror = () => {
-          db.close();
-          console.error(`Failed to load PR analysis for ${prId} from IndexedDB:`, request.error);
-          reject(request.error);
-        };
-      });
-    } catch (error) {
-      console.error('Error loading PR analysis from IndexedDB:', error);
-      return null;
-    }
-  },
-
-  // Verify if data was saved correctly
-  verify: async (prUrl: string): Promise<boolean> => {
-    try {
-      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-      if (!match) return false;
-
-      const [, owner, repo, prNumber] = match;
-      const prId = `${owner}/${repo}/${prNumber}`;
-
-      const db = await prDataStorage.initDB();
-      const tx = db.transaction('prData', 'readonly');
-      const store = tx.objectStore('prData');
-
-      return new Promise(resolve => {
-        const request = store.get(prId);
-        request.onsuccess = () => {
-          db.close();
-          resolve(!!request.result);
-        };
-        request.onerror = () => {
-          db.close();
-          resolve(false);
-        };
-      });
-    } catch (error) {
-      console.error('Error verifying PR data in IndexedDB:', error);
-      return false;
-    }
-  },
-
-  // 新機能: 古いPRデータをクリーンアップ
-  cleanupOldData: async (maxAgeInDays = 30): Promise<void> => {
-    try {
-      const db = await prDataStorage.initDB();
-      const tx = db.transaction('prData', 'readwrite');
-      const store = tx.objectStore('prData');
-
-      // 指定日数より古いデータを削除するためのカットオフタイムスタンプ
-      const cutoffTimestamp = Date.now() - maxAgeInDays * 24 * 60 * 60 * 1000;
-      const request = store.openCursor();
-      let deletedCount = 0;
-
-      request.onsuccess = event => {
-        const cursor = (event.target as IDBRequest).result as IDBCursorWithValue;
-        if (cursor) {
-          const savedData = cursor.value as SavedPRData;
-          if (savedData.timestamp < cutoffTimestamp) {
-            cursor.delete(); // 古いデータを削除
-            deletedCount++;
-          }
-          cursor.continue();
-        }
-      };
-
-      return new Promise((resolve, reject) => {
-        tx.oncomplete = () => {
-          console.log(
-            `Cleaned up ${deletedCount} old PR entries from IndexedDB that were older than ${maxAgeInDays} days`,
-          );
-          db.close();
-          resolve();
-        };
-        tx.onerror = () => {
-          console.error('Error during cleanup of old PR data:', tx.error);
-          db.close();
-          reject(tx.error);
-        };
-      });
-    } catch (error) {
-      console.error('Error cleaning up old PR data from IndexedDB:', error);
-    }
-  },
-
-  // chrome.storageからIndexedDBへの移行（一度だけ実行）
-  migrateFromChromeStorage: async (): Promise<void> => {
-    try {
-      console.log('Starting migration from chrome.storage to IndexedDB...');
-      // chrome.storage.localからすべてのデータを取得
-      const allData = await chrome.storage.local.get(null);
-
-      // PR関連のキーをフィルタリング
-      const prKeys = Object.keys(allData).filter(key => key.startsWith('pr_'));
-
-      if (prKeys.length === 0) {
-        console.log('No PR data found in chrome.storage to migrate.');
-        return;
-      }
-
-      console.log(`Found ${prKeys.length} PR entries to migrate.`);
-
-      // IndexedDBに保存
-      for (const key of prKeys) {
-        const savedData = allData[key] as SavedPRData;
-        if (savedData && savedData.prId) {
-          const db = await prDataStorage.initDB();
-          const tx = db.transaction('prData', 'readwrite');
-          const store = tx.objectStore('prData');
-
-          // データを保存
-          store.put(savedData);
-
-          await new Promise<void>((resolve, reject) => {
-            tx.oncomplete = () => {
-              db.close();
-              resolve();
-            };
-            tx.onerror = () => {
-              db.close();
-              reject(tx.error);
-            };
-          });
-
-          // 移行後、chrome.storageからデータを削除
-          await chrome.storage.local.remove(key);
-        }
-      }
-
-      console.log('Migration from chrome.storage to IndexedDB completed.');
-      // 移行完了フラグを設定
-      await chrome.storage.local.set({ indexedDB_migration_completed: true });
-    } catch (error) {
-      console.error('Error migrating data from chrome.storage to IndexedDB:', error);
-    }
-  },
-
-  // 移行が完了しているか確認
-  checkMigrationStatus: async (): Promise<boolean> => {
-    try {
-      const result = await chrome.storage.local.get('indexedDB_migration_completed');
-      return !!result.indexedDB_migration_completed;
-    } catch (error) {
-      console.error('Error checking migration status:', error);
-      return false;
-    }
-  },
-};
-
 // レビュー時間を計算する関数（単位：時間）
 const calculateReviewTime = (prData: PRData): number => {
   if (!prData.review_assigned_at) {
@@ -971,7 +696,7 @@ const usePRData = (url: string) => {
     // 明示的にキャッシュを無効化
     mutateAnalysis(null, false);
     // Jotai stateもリセット
-    setAnalysisResult(null);
+    setAnalysisResult(null, url);
   }, [url, mutateAnalysis, setAnalysisResult]);
 
   return {
@@ -1723,11 +1448,14 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
       // Reset all file statuses before generating
       await resetChecklistStatus();
 
+      // 明示的に現在のURLを使用して適切にスコープする
+      console.log(`Generating analysis for PR URL: ${url}`);
+
       // Create a new analysis and update the cache
       const newAnalysis = await fetchers.generateAnalysis(`analysis/${url}`, prData, 'en');
 
-      // Also update Jotai state
-      setAnalysisResult(newAnalysis);
+      // Also update Jotai state - 必ずURLを渡して正しいPRにデータを関連付ける
+      setAnalysisResult(newAnalysis, url);
     } catch (error) {
       console.error('Error generating analysis:', error);
     } finally {
