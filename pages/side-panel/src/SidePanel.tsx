@@ -1243,23 +1243,8 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
 // PRAnalysis component for OpenAI-powered PR analysis
 const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
-  const [, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
-
-  // Use useSWR for fetching analysis result
-  const {
-    data: analysisResult,
-    error,
-    isValidating: isLoading,
-    mutate: regenerateAnalysis,
-  } = useSWR(`analysis/${url}`, () => fetchers.fetchAnalysis(`analysis/${url}`), {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-    onSuccess: data => {
-      if (data) {
-        setAnalysisResult(data, url);
-      }
-    },
-  });
+  const [analysisResult, setAnalysisResult] = useAtom(analysisResultAtom);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Check if OpenAI API key is set
   useEffect(() => {
@@ -1270,6 +1255,22 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
     checkOpenAIKey();
   }, []);
+
+  // Load analysis result when component mounts
+  useEffect(() => {
+    const loadAnalysisResult = async () => {
+      try {
+        const result = await prDataStorage.loadAnalysis(url);
+        if (result) {
+          setAnalysisResult(result);
+        }
+      } catch (error) {
+        console.error('Error loading analysis result:', error);
+      }
+    };
+
+    loadAnalysisResult();
+  }, [url, setAnalysisResult]);
 
   // Reset checklist status function
   const resetChecklistStatus = async () => {
@@ -1297,20 +1298,23 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
   // Generate PR checklist using SWR mutation
   const handleGeneratePRChecklist = async () => {
-    // Reset all file statuses before generating
-    await resetChecklistStatus();
+    // Set loading state to true at the beginning
+    setIsLoading(true);
 
     try {
+      // Reset all file statuses before generating
+      await resetChecklistStatus();
+
       // Create a new analysis and update the cache
       const newAnalysis = await fetchers.generateAnalysis(`analysis/${url}`, prData, 'en');
 
-      // Update SWR cache with the new result
-      regenerateAnalysis(newAnalysis, false);
-
       // Also update Jotai state
-      setAnalysisResult(newAnalysis, url);
+      setAnalysisResult(newAnalysis);
     } catch (error) {
       console.error('Error generating analysis:', error);
+    } finally {
+      // Always set loading state back to false when finished
+      setIsLoading(false);
     }
   };
 
@@ -1336,7 +1340,7 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
     <div className="mt-4 p-4 border border-gray-300 rounded">
       <div className="flex justify-between items-center mb-2">
         <h3 className="font-bold text-lg text-left">AI-Powered PR Analysis</h3>
-        {analysisResult && (
+        {analysisResult && !isLoading && (
           <button
             onClick={handleGeneratePRChecklist}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
@@ -1356,9 +1360,8 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
             onClick={handleGeneratePRChecklist}
             disabled={isLoading}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
-            {isLoading ? 'Generating...' : 'Generate PR Checklist'}
+            Generate Analysis
           </button>
-          {error && <p className="text-red-500 text-sm mt-2">An error occurred while generating PR checklist</p>}
         </div>
       )}
 
@@ -1369,7 +1372,7 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
         </div>
       )}
 
-      {analysisResult && (
+      {analysisResult && !isLoading && (
         <div className="analysis-result text-left">
           <div className="mb-4">
             <div className="bg-gray-50 p-3 rounded text-sm">
