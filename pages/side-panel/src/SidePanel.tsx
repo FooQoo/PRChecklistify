@@ -223,7 +223,287 @@ const fetchers = {
   },
 };
 
-// ストレージに保存するヘルパー関数
+// ヘルパー関数
+const prDataStorage = {
+  // IndexedDBの初期化
+  initDB: () => {
+    return new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('PRChecklistifyDB', 1);
+
+      request.onerror = event => {
+        console.error('IndexedDB open error:', request.error);
+        reject('IndexedDB open error');
+      };
+
+      request.onupgradeneeded = event => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains('prData')) {
+          // prIdをkeyPathとするオブジェクトストアを作成
+          db.createObjectStore('prData', { keyPath: 'prId' });
+        }
+      };
+
+      request.onsuccess = event => {
+        resolve((event.target as IDBOpenDBRequest).result);
+      };
+    });
+  },
+
+  // PR情報を保存
+  save: async (prUrl: string, prData: PRData, analysisResult?: PRAnalysisResult): Promise<void> => {
+    try {
+      // prIdを生成
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readwrite');
+      const store = tx.objectStore('prData');
+
+      const savedData: SavedPRData = {
+        prId,
+        timestamp: Date.now(),
+        prData,
+        ...(analysisResult && { analysisResult }),
+      };
+
+      // データ保存
+      store.put(savedData);
+
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+          console.log(`Saved PR data for ${prId} to IndexedDB`);
+        };
+        tx.onerror = () => {
+          db.close();
+          reject(tx.error);
+          console.error(`Failed to save PR data for ${prId} to IndexedDB:`, tx.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error saving PR data to IndexedDB:', error);
+    }
+  },
+
+  // PR情報を読み込み
+  load: async (prUrl: string): Promise<PRData | null> => {
+    try {
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return null;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readonly');
+      const store = tx.objectStore('prData');
+
+      return new Promise((resolve, reject) => {
+        const request = store.get(prId);
+        request.onsuccess = () => {
+          db.close();
+          const savedData = request.result as SavedPRData | undefined;
+          if (savedData && savedData.prData) {
+            console.log(
+              `Loaded saved PR data for ${prId} from IndexedDB (${new Date(savedData.timestamp).toLocaleString()})`,
+            );
+            resolve(savedData.prData);
+          } else {
+            resolve(null);
+          }
+        };
+        request.onerror = () => {
+          db.close();
+          console.error(`Failed to load PR data for ${prId} from IndexedDB:`, request.error);
+          reject(request.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error loading PR data from IndexedDB:', error);
+      return null;
+    }
+  },
+
+  // 分析結果を読み込み
+  loadAnalysis: async (prUrl: string): Promise<PRAnalysisResult | null> => {
+    try {
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return null;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readonly');
+      const store = tx.objectStore('prData');
+
+      return new Promise((resolve, reject) => {
+        const request = store.get(prId);
+        request.onsuccess = () => {
+          db.close();
+          const savedData = request.result as SavedPRData | undefined;
+          if (savedData && savedData.analysisResult) {
+            console.log(`Loaded saved PR analysis for ${prId} from IndexedDB`);
+            resolve(savedData.analysisResult);
+          } else {
+            resolve(null);
+          }
+        };
+        request.onerror = () => {
+          db.close();
+          console.error(`Failed to load PR analysis for ${prId} from IndexedDB:`, request.error);
+          reject(request.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error loading PR analysis from IndexedDB:', error);
+      return null;
+    }
+  },
+
+  // データが保存されているか確認
+  verify: async (prUrl: string): Promise<boolean> => {
+    try {
+      const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+      if (!match) return false;
+
+      const [, owner, repo, prNumber] = match;
+      const prId = `${owner}/${repo}/${prNumber}`;
+
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readonly');
+      const store = tx.objectStore('prData');
+
+      return new Promise(resolve => {
+        const request = store.get(prId);
+        request.onsuccess = () => {
+          db.close();
+          resolve(!!request.result);
+        };
+        request.onerror = () => {
+          db.close();
+          resolve(false);
+        };
+      });
+    } catch (error) {
+      console.error('Error verifying PR data in IndexedDB:', error);
+      return false;
+    }
+  },
+
+  // 古いデータをクリーンアップ
+  cleanupOldData: async (maxAgeInDays = 30): Promise<void> => {
+    try {
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readwrite');
+      const store = tx.objectStore('prData');
+
+      // 指定日数より古いデータを削除するためのカットオフタイムスタンプ
+      const cutoffTimestamp = Date.now() - maxAgeInDays * 24 * 60 * 60 * 1000;
+      const request = store.openCursor();
+      let deletedCount = 0;
+
+      request.onsuccess = event => {
+        const cursor = (event.target as IDBRequest).result as IDBCursorWithValue;
+        if (cursor) {
+          const savedData = cursor.value as SavedPRData;
+          if (savedData.timestamp < cutoffTimestamp) {
+            cursor.delete(); // 古いデータを削除
+            deletedCount++;
+          }
+          cursor.continue();
+        }
+      };
+
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => {
+          console.log(
+            `Cleaned up ${deletedCount} old PR entries from IndexedDB that were older than ${maxAgeInDays} days`,
+          );
+          db.close();
+          resolve();
+        };
+        tx.onerror = () => {
+          console.error('Error during cleanup of old PR data:', tx.error);
+          db.close();
+          reject(tx.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error cleaning up old PR data from IndexedDB:', error);
+    }
+  },
+
+  // chrome.storageからIndexedDBへの移行（一度だけ実行）
+  migrateFromChromeStorage: async (): Promise<void> => {
+    try {
+      console.log('Starting migration from chrome.storage to IndexedDB...');
+      // chrome.storage.localからすべてのデータを取得
+      const allData = await chrome.storage.local.get(null);
+
+      // PR関連のキーをフィルタリング
+      const prKeys = Object.keys(allData).filter(key => key.startsWith('pr_'));
+
+      if (prKeys.length === 0) {
+        console.log('No PR data found in chrome.storage to migrate.');
+        return;
+      }
+
+      console.log(`Found ${prKeys.length} PR entries to migrate.`);
+
+      // IndexedDBに保存
+      for (const key of prKeys) {
+        const savedData = allData[key] as SavedPRData;
+        if (savedData && savedData.prId) {
+          const db = await prDataStorage.initDB();
+          const tx = db.transaction('prData', 'readwrite');
+          const store = tx.objectStore('prData');
+
+          // データを保存
+          store.put(savedData);
+
+          await new Promise<void>((resolve, reject) => {
+            tx.oncomplete = () => {
+              db.close();
+              resolve();
+            };
+            tx.onerror = () => {
+              db.close();
+              reject(tx.error);
+            };
+          });
+
+          // 移行後、chrome.storageからデータを削除
+          await chrome.storage.local.remove(key);
+        }
+      }
+
+      console.log('Migration from chrome.storage to IndexedDB completed.');
+      // 移行完了フラグを設定
+      await chrome.storage.local.set({ indexedDB_migration_completed: true });
+    } catch (error) {
+      console.error('Error migrating data from chrome.storage to IndexedDB:', error);
+    }
+  },
+
+  // 移行が完了しているか確認
+  checkMigrationStatus: async (): Promise<boolean> => {
+    try {
+      const result = await chrome.storage.local.get('indexedDB_migration_completed');
+      return !!result.indexedDB_migration_completed;
+    } catch (error) {
+      console.error('Error checking migration status:', error);
+      return false;
+    }
+  },
+};
+
+// ストレージに保存するヘルパー関数（既存のもの）
 const savePRDataToStorage = async (data: PRData, url: string) => {
   try {
     console.log('Saving PR data to storage after checklist update...');
@@ -361,73 +641,79 @@ const prDataStorage = {
   // Save PR data to storage
   save: async (prUrl: string, prData: PRData, analysisResult?: PRAnalysisResult): Promise<void> => {
     try {
-      // Create a unique ID for the PR (owner/repo/number)
+      // prIdを生成
       const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
       if (!match) return;
 
       const [, owner, repo, prNumber] = match;
       const prId = `${owner}/${repo}/${prNumber}`;
 
-      // Create the data object to save
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readwrite');
+      const store = tx.objectStore('prData');
+
       const savedData: SavedPRData = {
         prId,
         timestamp: Date.now(),
         prData,
-        // Include analysisResult if provided
         ...(analysisResult && { analysisResult }),
       };
 
-      // Save with retry logic
-      let retryCount = 0;
-      const maxRetries = 3;
+      // データ保存
+      store.put(savedData);
 
-      const saveWithRetry = async (): Promise<void> => {
-        try {
-          // 修正: 各PRを独立したキーとして保存
-          await chrome.storage.local.set({
-            [`pr_${prId}`]: savedData,
-          });
-          console.log(`Saved PR data for ${prId} under independent key 'pr_${prId}'`);
-        } catch (error) {
-          if (retryCount < maxRetries) {
-            retryCount++;
-            console.warn(`Retry attempt ${retryCount} for saving PR data for ${prId}`);
-            await new Promise(resolve => setTimeout(resolve, 300)); // Wait before retry
-            return saveWithRetry();
-          } else {
-            throw error;
-          }
-        }
-      };
-
-      await saveWithRetry();
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+          console.log(`Saved PR data for ${prId} to IndexedDB`);
+        };
+        tx.onerror = () => {
+          db.close();
+          reject(tx.error);
+          console.error(`Failed to save PR data for ${prId} to IndexedDB:`, tx.error);
+        };
+      });
     } catch (error) {
-      console.error('Error saving PR data:', error);
+      console.error('Error saving PR data to IndexedDB:', error);
     }
   },
 
   // Load PR data from storage
   load: async (prUrl: string): Promise<PRData | null> => {
     try {
-      // Create a unique ID for the PR
       const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
       if (!match) return null;
 
       const [, owner, repo, prNumber] = match;
       const prId = `${owner}/${repo}/${prNumber}`;
 
-      // 修正: 独立したキーからデータを取得
-      const result = await chrome.storage.local.get(`pr_${prId}`);
-      const savedData = result[`pr_${prId}`] as SavedPRData | undefined;
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readonly');
+      const store = tx.objectStore('prData');
 
-      if (savedData && savedData.prData) {
-        console.log(`Loaded saved PR data for ${prId} from ${new Date(savedData.timestamp).toLocaleString()}`);
-        return savedData.prData;
-      }
-
-      return null;
+      return new Promise((resolve, reject) => {
+        const request = store.get(prId);
+        request.onsuccess = () => {
+          db.close();
+          const savedData = request.result as SavedPRData | undefined;
+          if (savedData && savedData.prData) {
+            console.log(
+              `Loaded saved PR data for ${prId} from IndexedDB (${new Date(savedData.timestamp).toLocaleString()})`,
+            );
+            resolve(savedData.prData);
+          } else {
+            resolve(null);
+          }
+        };
+        request.onerror = () => {
+          db.close();
+          console.error(`Failed to load PR data for ${prId} from IndexedDB:`, request.error);
+          reject(request.error);
+        };
+      });
     } catch (error) {
-      console.error('Error loading PR data:', error);
+      console.error('Error loading PR data from IndexedDB:', error);
       return null;
     }
   },
@@ -441,18 +727,30 @@ const prDataStorage = {
       const [, owner, repo, prNumber] = match;
       const prId = `${owner}/${repo}/${prNumber}`;
 
-      // 修正: 独立したキーからデータを取得
-      const result = await chrome.storage.local.get(`pr_${prId}`);
-      const savedData = result[`pr_${prId}`] as SavedPRData | undefined;
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readonly');
+      const store = tx.objectStore('prData');
 
-      if (savedData && savedData.analysisResult) {
-        console.log(`Loaded saved PR analysis for ${prId}`);
-        return savedData.analysisResult;
-      }
-
-      return null;
+      return new Promise((resolve, reject) => {
+        const request = store.get(prId);
+        request.onsuccess = () => {
+          db.close();
+          const savedData = request.result as SavedPRData | undefined;
+          if (savedData && savedData.analysisResult) {
+            console.log(`Loaded saved PR analysis for ${prId} from IndexedDB`);
+            resolve(savedData.analysisResult);
+          } else {
+            resolve(null);
+          }
+        };
+        request.onerror = () => {
+          db.close();
+          console.error(`Failed to load PR analysis for ${prId} from IndexedDB:`, request.error);
+          reject(request.error);
+        };
+      });
     } catch (error) {
-      console.error('Error loading PR analysis:', error);
+      console.error('Error loading PR analysis from IndexedDB:', error);
       return null;
     }
   },
@@ -466,11 +764,23 @@ const prDataStorage = {
       const [, owner, repo, prNumber] = match;
       const prId = `${owner}/${repo}/${prNumber}`;
 
-      // 修正: 独立したキーで検証
-      const result = await chrome.storage.local.get(`pr_${prId}`);
-      return !!result[`pr_${prId}`];
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readonly');
+      const store = tx.objectStore('prData');
+
+      return new Promise(resolve => {
+        const request = store.get(prId);
+        request.onsuccess = () => {
+          db.close();
+          resolve(!!request.result);
+        };
+        request.onerror = () => {
+          db.close();
+          resolve(false);
+        };
+      });
     } catch (error) {
-      console.error('Error verifying PR data:', error);
+      console.error('Error verifying PR data in IndexedDB:', error);
       return false;
     }
   },
@@ -478,27 +788,106 @@ const prDataStorage = {
   // 新機能: 古いPRデータをクリーンアップ
   cleanupOldData: async (maxAgeInDays = 30): Promise<void> => {
     try {
-      // ストレージから全てのキーを取得
+      const db = await prDataStorage.initDB();
+      const tx = db.transaction('prData', 'readwrite');
+      const store = tx.objectStore('prData');
+
+      // 指定日数より古いデータを削除するためのカットオフタイムスタンプ
+      const cutoffTimestamp = Date.now() - maxAgeInDays * 24 * 60 * 60 * 1000;
+      const request = store.openCursor();
+      let deletedCount = 0;
+
+      request.onsuccess = event => {
+        const cursor = (event.target as IDBRequest).result as IDBCursorWithValue;
+        if (cursor) {
+          const savedData = cursor.value as SavedPRData;
+          if (savedData.timestamp < cutoffTimestamp) {
+            cursor.delete(); // 古いデータを削除
+            deletedCount++;
+          }
+          cursor.continue();
+        }
+      };
+
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => {
+          console.log(
+            `Cleaned up ${deletedCount} old PR entries from IndexedDB that were older than ${maxAgeInDays} days`,
+          );
+          db.close();
+          resolve();
+        };
+        tx.onerror = () => {
+          console.error('Error during cleanup of old PR data:', tx.error);
+          db.close();
+          reject(tx.error);
+        };
+      });
+    } catch (error) {
+      console.error('Error cleaning up old PR data from IndexedDB:', error);
+    }
+  },
+
+  // chrome.storageからIndexedDBへの移行（一度だけ実行）
+  migrateFromChromeStorage: async (): Promise<void> => {
+    try {
+      console.log('Starting migration from chrome.storage to IndexedDB...');
+      // chrome.storage.localからすべてのデータを取得
       const allData = await chrome.storage.local.get(null);
 
       // PR関連のキーをフィルタリング
       const prKeys = Object.keys(allData).filter(key => key.startsWith('pr_'));
 
-      // 指定した日数より古いデータを削除
-      const cutoffTimestamp = Date.now() - maxAgeInDays * 24 * 60 * 60 * 1000;
-      let deletedCount = 0;
+      if (prKeys.length === 0) {
+        console.log('No PR data found in chrome.storage to migrate.');
+        return;
+      }
 
+      console.log(`Found ${prKeys.length} PR entries to migrate.`);
+
+      // IndexedDBに保存
       for (const key of prKeys) {
         const savedData = allData[key] as SavedPRData;
-        if (savedData && savedData.timestamp < cutoffTimestamp) {
+        if (savedData && savedData.prId) {
+          const db = await prDataStorage.initDB();
+          const tx = db.transaction('prData', 'readwrite');
+          const store = tx.objectStore('prData');
+
+          // データを保存
+          store.put(savedData);
+
+          await new Promise<void>((resolve, reject) => {
+            tx.oncomplete = () => {
+              db.close();
+              resolve();
+            };
+            tx.onerror = () => {
+              db.close();
+              reject(tx.error);
+            };
+          });
+
+          // 移行後、chrome.storageからデータを削除
           await chrome.storage.local.remove(key);
-          deletedCount++;
         }
       }
 
-      console.log(`Cleaned up ${deletedCount} old PR entries that were older than ${maxAgeInDays} days`);
+      console.log('Migration from chrome.storage to IndexedDB completed.');
+      // 移行完了フラグを設定
+      await chrome.storage.local.set({ indexedDB_migration_completed: true });
     } catch (error) {
-      console.error('Error cleaning up old PR data:', error);
+      console.error('Error migrating data from chrome.storage to IndexedDB:', error);
+    }
+  },
+
+  // 移行が完了しているか確認
+  checkMigrationStatus: async (): Promise<boolean> => {
+    try {
+      const result = await chrome.storage.local.get('indexedDB_migration_completed');
+      return !!result.indexedDB_migration_completed;
+    } catch (error) {
+      console.error('Error checking migration status:', error);
+      return false;
     }
   },
 };
