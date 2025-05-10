@@ -929,13 +929,13 @@ const usePRData = (url: string) => {
     mutate: mutatePrData,
   } = useSWR(`pr/${url}`, fetchers.fetchPR, {
     // フォーカス時の再検証を無効化
-    revalidateOnFocus: false,
+    revalidateOnFocus: true,
     // 古いデータでも再検証しない
-    revalidateIfStale: false,
-    // 再接続時の再検証も無効化
-    revalidateOnReconnect: false,
-    // キャッシュの有効期間を10秒に設定
-    dedupingInterval: 10 * 1000,
+    revalidateIfStale: true,
+    // 再接続時の再検証も有効化
+    revalidateOnReconnect: true,
+    // キャッシュの有効期間を短くする
+    dedupingInterval: 0,
     onSuccess: data => {
       // SWRがデータを取得したらJotai atomにも同期
       if (data) {
@@ -944,24 +944,35 @@ const usePRData = (url: string) => {
     },
   });
 
-  // Analysis data with SWR - キャッシュ設定を最適化
+  // Analysis data with SWR - URL変更時に再検証するための最適化
   const {
     data: analysisResult,
     error: analysisError,
     mutate: mutateAnalysis,
   } = useSWR(`analysis/${url}`, () => fetchers.fetchAnalysis(`analysis/${url}`), {
-    // 分析結果のキャッシュ設定も同様に最適化
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-    revalidateOnReconnect: false,
-    // キャッシュの有効期間を10秒に設定
-    dedupingInterval: 10 * 1000,
+    // フォーカス時の再検証を有効化
+    revalidateOnFocus: true,
+    // 古いデータは再検証する
+    revalidateIfStale: true,
+    // 再接続時の再検証も有効化
+    revalidateOnReconnect: true,
+    // キャッシュの有効期間を短くする
+    dedupingInterval: 0,
     onSuccess: data => {
       if (data) {
         setAnalysisResult(data, url);
       }
     },
   });
+
+  // *** URLが変更されたときに分析結果とPRデータをリセットする ***
+  useEffect(() => {
+    console.log('PR URL changed, resetting data for:', url);
+    // 明示的にキャッシュを無効化
+    mutateAnalysis(null, false);
+    // Jotai stateもリセット
+    setAnalysisResult(null);
+  }, [url, mutateAnalysis, setAnalysisResult]);
 
   return {
     prData,
@@ -1661,6 +1672,13 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [analysisResult, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
   const [isLoading, setIsLoading] = useState(false);
+
+  // URL変更時に分析結果をリセットする - 重要な修正
+  useEffect(() => {
+    console.log('PRAnalysis: URL changed to', url);
+    // URLが変わったら分析結果をリセット
+    setAnalysisResult(null, url);
+  }, [url, setAnalysisResult]);
 
   // Check if OpenAI API key is set
   useEffect(() => {
