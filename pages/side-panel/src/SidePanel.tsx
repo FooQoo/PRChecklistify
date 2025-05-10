@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { atom, useAtom } from 'jotai';
+import useSWR from 'swr';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { githubTokenStorage, openaiApiKeyStorage, languagePreferenceStorage } from '@extension/storage';
@@ -116,6 +117,40 @@ const analysisResultWithStorageAtom = atom(
     }
   },
 );
+
+// Add SWR fetchers for use with useSWR
+const fetchers = {
+  // Fetcher for PR data from GitHub API
+  fetchPR: async (key: string) => {
+    const url = key.split('pr/')[1];
+
+    console.log('Fetching PR data from API or storage:', key);
+
+    // Try to load from storage first
+    const savedData = await prDataStorage.load(url);
+    if (savedData) {
+      console.log('Loaded PR data from storage');
+      return savedData;
+    }
+
+    // If no saved data, fetch from API
+    console.log('No saved data found, fetching from API');
+    return fetchPRData(url);
+  },
+
+  // Fetcher for PR analysis result from storage
+  fetchAnalysis: async (key: string) => {
+    const url = key.split('analysis/')[1];
+    const savedAnalysis = await prDataStorage.loadAnalysis(url);
+
+    if (savedAnalysis) {
+      console.log('Loaded PR analysis from storage');
+      return savedAnalysis;
+    }
+
+    return null;
+  },
+};
 
 // ストレージに保存するヘルパー関数
 const savePRDataToStorage = async (data: PRData, url: string) => {
@@ -402,18 +437,87 @@ const calculateReviewTime = (prData: PRData): number => {
   return Math.round(diffInHours * 10) / 10; // 小数第1位まで表示
 };
 
+/**
+ * カスタムフックでJotaiとSWRの状態管理を統合
+ */
+const usePRData = (url: string) => {
+  // Jotai atoms
+  const [, setPrData] = useAtom(prDataWithStorageAtom);
+  const [, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
+
+  // PR data with SWR
+  const {
+    data: prData,
+    error: prError,
+    mutate: mutatePrData,
+  } = useSWR(`pr/${url}`, fetchers.fetchPR, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    onSuccess: data => {
+      // SWRがデータを取得したらJotai atomにも同期
+      if (data) {
+        setPrData(data, url);
+      }
+    },
+  });
+
+  // Analysis data with SWR
+  const {
+    data: analysisResult,
+    error: analysisError,
+    mutate: mutateAnalysis,
+  } = useSWR(`analysis/${url}`, fetchers.fetchAnalysis, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    onSuccess: data => {
+      if (data) {
+        setAnalysisResult(data, url);
+      }
+    },
+  });
+
+  /**
+   * 統合されたデータ更新関数
+   * - SWRキャッシュを更新
+   * - Jotaiステートを更新（ストレージへの保存も自動で行われる）
+   */
+  const updatePRData = (updatedData: PRData) => {
+    // SWRキャッシュを更新（UIの即時更新）
+    mutatePrData(updatedData, false);
+
+    // Jotaiステートを更新（ストレージ保存）
+    setPrData(updatedData, url);
+  };
+
+  /**
+   * 統合された分析結果更新関数
+   */
+  const updateAnalysisResult = (updatedResult: PRAnalysisResult) => {
+    mutateAnalysis(updatedResult, false);
+    setAnalysisResult(updatedResult, url);
+  };
+
+  return {
+    prData,
+    prError,
+    analysisResult,
+    analysisError,
+    updatePRData,
+    updateAnalysisResult,
+  };
+};
+
 // Component for GitHub PR pages
 const GitHubPRView = ({ url }: { url: string }) => {
-  // Switch from basic atom to our storage-enabled atom with URL parameter
-  const [prData, setPrData] = useAtom(prDataWithStorageAtom);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // 統合された状態管理フックを使用
+  const { prData, prError, analysisResult, analysisError, updatePRData, updateAnalysisResult } = usePRData(url);
+
+  const [loading, setLoading] = useState(false);
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   // OpenAI API Key状態の追加
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   // 初期表示時にOpenAI APIキーの設定画面を表示するかどうか
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
-  const [analysisResult, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
 
   // Fetch PR data - first try to load from storage, then from API if needed
   useEffect(() => {
@@ -448,101 +552,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
     setShowOpenAISetup(false);
   };
 
-  // Fetch PR data - first try to load from storage, then from API if needed
-  useEffect(() => {
-    // Only fetch PR data if we have a token
-    if (hasToken === true) {
-      const getPRData = async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-          // First try to load from storage
-          const savedData = await prDataStorage.load(url);
-          // Also load the analysis result for this PR
-          const savedAnalysis = await prDataStorage.loadAnalysis(url);
-
-          if (savedData) {
-            console.log('Loaded PR data from storage');
-
-            // 正規化されたデータを設定
-            setPrData({
-              ...savedData,
-            });
-
-            // 分析結果があれば設定
-            if (savedAnalysis) {
-              console.log('Loaded PR analysis from storage');
-              setAnalysisResult(savedAnalysis, url);
-            } else {
-              // 分析結果がない場合はnullにリセット
-              setAnalysisResult(null, url);
-            }
-
-            setLoading(false);
-            return;
-          }
-
-          // If no saved data, fetch from API
-          console.log('No saved data found, fetching from API');
-          const data = await fetchPRData(url);
-          if (data) {
-            const updatedPRData = {
-              ...data,
-            };
-
-            // First set the state
-            setPrData(updatedPRData);
-            // Reset analysis result when loading a new PR
-            setAnalysisResult(null, url);
-
-            // Then explicitly save the initial data to storage with verification
-            try {
-              console.log('Saving initial PR data to storage...');
-              await prDataStorage.save(url, updatedPRData);
-
-              // Verify the data was saved correctly
-              const saved = await prDataStorage.verify(url);
-              if (saved) {
-                console.log('Initial PR data saved and verified successfully');
-              } else {
-                console.warn('Initial PR data may not have saved correctly, retrying...');
-                // Retry saving after a delay
-                setTimeout(async () => {
-                  await prDataStorage.save(url, updatedPRData);
-                }, 500);
-              }
-            } catch (saveError) {
-              console.error('Error saving initial PR data:', saveError);
-            }
-          } else {
-            setError('Failed to retrieve PR data');
-          }
-        } catch (err) {
-          console.error('Error in fetching PR data:', err);
-          setError('An error occurred while fetching PR data');
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      getPRData();
-    } else if (hasToken === false) {
-      // If token is explicitly falsy (not null which means still loading)
-      setLoading(false);
-    }
-  }, [url, hasToken, setPrData, setAnalysisResult]);
-
-  // Save PR data whenever it changes
-  useEffect(() => {
-    if (prData) {
-      const saveData = async () => {
-        await prDataStorage.save(url, prData);
-      };
-      saveData();
-    }
-  }, [prData, url]);
-
   const handleFileCommentChange = (filename: string, comments: string) => {
     if (!prData) return;
 
@@ -553,10 +562,11 @@ const GitHubPRView = ({ url }: { url: string }) => {
       return file;
     });
 
-    setPrData({ ...prData, files: updatedFiles });
+    // 統合された更新関数を使用
+    updatePRData({ ...prData, files: updatedFiles });
   };
 
-  // Add handleChecklistChange function to update checklist items
+  // チェックリスト変更時も統合された更新関数を使用
   const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
     if (!prData) return;
 
@@ -567,11 +577,8 @@ const GitHubPRView = ({ url }: { url: string }) => {
       return file;
     });
 
-    // 更新されたPRデータ
-    const updatedPRData = { ...prData, files: updatedFiles };
-
-    // Use our new atom setter with URL parameter to auto-save to storage
-    setPrData(updatedPRData, url);
+    // 統合された関数で一度に更新
+    updatePRData({ ...prData, files: updatedFiles });
   };
 
   // ファイルごとの承認状況を計算する関数
@@ -639,10 +646,19 @@ const GitHubPRView = ({ url }: { url: string }) => {
     return <div className="flex items-center justify-center h-screen">Loading PR data...</div>;
   }
 
-  if (error) {
+  if (prError) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <p className="text-red-500 mb-4">{error}</p>
+        <p className="text-red-500 mb-4">Failed to load PR data</p>
+        <p className="text-sm">Current PR URL: {url}</p>
+      </div>
+    );
+  }
+
+  if (analysisError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <p className="text-red-500 mb-4">Failed to load analysis result</p>
         <p className="text-sm">Current PR URL: {url}</p>
       </div>
     );

@@ -42,7 +42,8 @@
     "jotai": "^2.12.3",
     "openai": "^4.28.0",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "swr": "^2.3.3"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
