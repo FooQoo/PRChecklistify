@@ -90,7 +90,9 @@ const prDataWithStorageAtom = atom(
 
 // Create a derived atom for analysis result that automatically saves to storage when updated
 const analysisResultWithStorageAtom = atom(
+  // ゲッター: 現在の値を返す
   get => get(analysisResultAtom),
+  // セッター: 値を更新し、ストレージにも保存
   (get, set, newValue: PRAnalysisResult | null, url?: string) => {
     // Set the base atom value
     set(analysisResultAtom, newValue);
@@ -104,7 +106,7 @@ const analysisResultWithStorageAtom = atom(
           // Save the analysis result along with existing PR data
           const prData = get(prDataAtom);
           if (prData) {
-            // この部分が重要: PRのURLごとに分析結果を保存
+            // URLを指定して分析結果を保存
             await prDataStorage.save(url, prData, newValue);
             console.log('PR analysis result auto-saved successfully');
           } else {
@@ -530,20 +532,9 @@ const usePRData = (url: string) => {
     },
   });
 
-  // Analysis data with SWR
-  const {
-    data: analysisResult,
-    error: analysisError,
-    mutate: mutateAnalysis,
-  } = useSWR(`analysis/${url}`, fetchers.fetchAnalysis, {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-    onSuccess: data => {
-      if (data) {
-        setAnalysisResult(data, url);
-      }
-    },
-  });
+  // Analysis data - using Jotai atom directly instead of SWR
+  const [analysisResult] = useAtom(analysisResultWithStorageAtom);
+  const analysisError = null; // No SWR error since we're not using SWR
 
   /**
    * 統合されたデータ更新関数
@@ -562,7 +553,6 @@ const usePRData = (url: string) => {
    * 統合された分析結果更新関数
    */
   const updateAnalysisResult = (updatedResult: PRAnalysisResult) => {
-    mutateAnalysis(updatedResult, false);
     setAnalysisResult(updatedResult, url);
   };
 
@@ -732,6 +722,9 @@ const GitHubPRView = ({ url }: { url: string }) => {
       </div>
     );
   }
+
+  // console.warn(JSON.stringify(prData?.files));
+  console.warn(JSON.stringify(analysisResult));
 
   return (
     <div className="App bg-slate-50">
@@ -1243,7 +1236,7 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
 // PRAnalysis component for OpenAI-powered PR analysis
 const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
-  const [analysisResult, setAnalysisResult] = useAtom(analysisResultAtom);
+  const [analysisResult, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
   const [isLoading, setIsLoading] = useState(false);
 
   // Check if OpenAI API key is set
@@ -1258,19 +1251,13 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
   // Load analysis result when component mounts
   useEffect(() => {
-    const loadAnalysisResult = async () => {
-      try {
-        const result = await prDataStorage.loadAnalysis(url);
-        if (result) {
-          setAnalysisResult(result);
-        }
-      } catch (error) {
-        console.error('Error loading analysis result:', error);
-      }
+    const initialize = async () => {
+      // 新しい初期化関数を使用してatomを初期化
+      await initializeAtoms(url);
     };
 
-    loadAnalysisResult();
-  }, [url, setAnalysisResult]);
+    initialize();
+  }, [url]);
 
   // Reset checklist status function
   const resetChecklistStatus = async () => {
