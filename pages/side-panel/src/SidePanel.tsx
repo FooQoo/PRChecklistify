@@ -723,9 +723,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
     );
   }
 
-  // console.warn(JSON.stringify(prData?.files));
-  console.warn(JSON.stringify(analysisResult));
-
   return (
     <div className="App bg-slate-50">
       {prData && (
@@ -1248,16 +1245,6 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
     checkOpenAIKey();
   }, []);
-
-  // Load analysis result when component mounts
-  useEffect(() => {
-    const initialize = async () => {
-      // 新しい初期化関数を使用してatomを初期化
-      await initializeAtoms(url);
-    };
-
-    initialize();
-  }, [url]);
 
   // Reset checklist status function
   const resetChecklistStatus = async () => {
