@@ -3,7 +3,6 @@ import type { PRData } from '../types';
 import { usePRData } from '../hooks/usePRData';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/prDataService';
-import FileChecklist from './FileChecklist';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -15,7 +14,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
   const [generating, setGenerating] = useState(false);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
-  const [, setChecklistStates] = useState<Record<string, Record<string, 'PENDING' | 'OK' | 'NG'>>>({});
 
   // 言語設定を読み込む
   useEffect(() => {
@@ -51,14 +49,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
     } finally {
       setGenerating(false);
     }
-  };
-
-  // チェックリストの状態が変更されたときに呼ばれるハンドラー
-  const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
-    setChecklistStates(prev => ({
-      ...prev,
-      [filename]: checklistItems,
-    }));
   };
 
   if (!prData) {
