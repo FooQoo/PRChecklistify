@@ -64,24 +64,33 @@ const prDataAtom = atom<PRData | null>(null);
 // Create Jotai atom for analysis result data
 const analysisResultAtom = atom<PRAnalysisResult | null>(null);
 
+// Create a flag to prevent save loops
+const preventSaveLoopAtom = atom<boolean>(false);
+
 // Create a derived atom that automatically saves to storage when updated
 const prDataWithStorageAtom = atom(
   get => get(prDataAtom),
-  (get, set, newValue: PRData | null, url?: string) => {
+  (get, set, newValue: PRData | null, url?: string, skipStorage: boolean = false) => {
     // Set the base atom value
     set(prDataAtom, newValue);
 
-    // If we have data and URL, save to storage
-    if (newValue && url) {
+    // If we have data and URL, save to storage (unless skipStorage is true)
+    if (newValue && url && !skipStorage && !get(preventSaveLoopAtom)) {
       console.log('Auto-saving PR data to storage after state update...');
+      // Set the flag to prevent save loops
+      set(preventSaveLoopAtom, true);
+
       // We're using setTimeout to make the storage operation non-blocking
       // This prevents UI jank while ensuring data is saved
       setTimeout(async () => {
         try {
           await prDataStorage.save(url, newValue);
           console.log('PR data auto-saved successfully');
+          // Reset the flag after a delay
+          setTimeout(() => set(preventSaveLoopAtom, false), 100);
         } catch (error) {
           console.error('Error auto-saving PR data to storage:', error);
+          set(preventSaveLoopAtom, false);
         }
       }, 0);
     }
@@ -93,13 +102,16 @@ const analysisResultWithStorageAtom = atom(
   // ゲッター: 現在の値を返す
   get => get(analysisResultAtom),
   // セッター: 値を更新し、ストレージにも保存
-  (get, set, newValue: PRAnalysisResult | null, url?: string) => {
+  (get, set, newValue: PRAnalysisResult | null, url?: string, skipStorage: boolean = false) => {
     // Set the base atom value
     set(analysisResultAtom, newValue);
 
-    // If we have data and URL, save to storage
-    if (newValue && url) {
+    // If we have data and URL, save to storage (unless skipStorage is true)
+    if (newValue && url && !skipStorage && !get(preventSaveLoopAtom)) {
       console.log('Auto-saving PR analysis result to storage after state update...');
+      // Set the flag to prevent save loops
+      set(preventSaveLoopAtom, true);
+
       // We're using setTimeout to make the storage operation non-blocking
       setTimeout(async () => {
         try {
@@ -109,11 +121,15 @@ const analysisResultWithStorageAtom = atom(
             // URLを指定して分析結果を保存
             await prDataStorage.save(url, prData, newValue);
             console.log('PR analysis result auto-saved successfully');
+            // Reset the flag after a delay
+            setTimeout(() => set(preventSaveLoopAtom, false), 100);
           } else {
             console.warn('Cannot save analysis result without PR data');
+            set(preventSaveLoopAtom, false);
           }
         } catch (error) {
           console.error('Error auto-saving PR analysis result to storage:', error);
+          set(preventSaveLoopAtom, false);
         }
       }, 0);
     }
@@ -126,17 +142,13 @@ const fetchers = {
   fetchPR: async (key: string) => {
     const url = key.split('pr/')[1];
 
-    console.log('Fetching PR data from API or storage:', key);
-
     // Try to load from storage first
     const savedData = await prDataStorage.load(url);
     if (savedData) {
-      console.log('Loaded PR data from storage');
       return savedData;
     }
 
     // If no saved data, fetch from API
-    console.log('No saved data found, fetching from API');
     return fetchPRData(url);
   },
 
@@ -146,7 +158,6 @@ const fetchers = {
     const savedAnalysis = await prDataStorage.loadAnalysis(url);
 
     if (savedAnalysis) {
-      console.log('Loaded PR analysis from storage');
       return savedAnalysis;
     }
 
@@ -646,6 +657,7 @@ const usePRData = (url: string) => {
   // Jotai atoms
   const [, setPrData] = useAtom(prDataWithStorageAtom);
   const [, setAnalysisResult] = useAtom(analysisResultWithStorageAtom);
+  const [preventSaveLoop, setPreventSaveLoop] = useAtom(preventSaveLoopAtom);
 
   // PR data with SWR - キャッシュ設定を最適化
   const {
@@ -662,9 +674,9 @@ const usePRData = (url: string) => {
     // キャッシュの有効期間を短くする
     dedupingInterval: 0,
     onSuccess: data => {
-      // SWRがデータを取得したらJotai atomにも同期
+      // SWRがデータを取得したらJotai atomにも同期 (but skip storage save)
       if (data) {
-        setPrData(data, url);
+        setPrData(data, url, true); // Pass skipStorage=true to prevent loops
       }
     },
   });
@@ -685,7 +697,7 @@ const usePRData = (url: string) => {
     dedupingInterval: 0,
     onSuccess: data => {
       if (data) {
-        setAnalysisResult(data, url);
+        setAnalysisResult(data, url, true); // Pass skipStorage=true to prevent loops
       }
     },
   });
@@ -693,8 +705,6 @@ const usePRData = (url: string) => {
   // *** URLが変更されたときに分析結果とPRデータをリセットする ***
   useEffect(() => {
     console.log('PR URL changed, resetting data for:', url);
-    // 明示的にキャッシュを無効化
-    mutateAnalysis(null, false);
     // Jotai stateもリセット
     setAnalysisResult(null, url);
   }, [url, mutateAnalysis, setAnalysisResult]);
@@ -705,14 +715,26 @@ const usePRData = (url: string) => {
     analysisResult,
     analysisError,
     updatePRData: (updatedData: PRData) => {
+      // Set flag to prevent save loops
+      setPreventSaveLoop(true);
+
       // SWRキャッシュを更新
       mutatePrData(updatedData, false);
       // Jotai state も更新（ストレージに保存）
       setPrData(updatedData, url);
+
+      // Reset flag after a delay
+      setTimeout(() => setPreventSaveLoop(false), 100);
     },
     updateAnalysisResult: (updatedResult: PRAnalysisResult) => {
+      // Set flag to prevent save loops
+      setPreventSaveLoop(true);
+
       mutateAnalysis(updatedResult, false);
       setAnalysisResult(updatedResult, url);
+
+      // Reset flag after a delay
+      setTimeout(() => setPreventSaveLoop(false), 100);
     },
   };
 };
@@ -1081,6 +1103,12 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
   const [checklistItems, setChecklistItems] =
     useState<Record<string, 'PENDING' | 'OK' | 'NG'>>(initializeChecklistItems());
 
+  // aiGeneratedChecklistが変更されたときだけ状態を更新
+  useEffect(() => {
+    // 明示的にaiGeneratedChecklistが変更されたときだけchecklistItemsを初期化
+    setChecklistItems(initializeChecklistItems());
+  }, [initializeChecklistItems]);
+
   // Override to force expanded state (when user clicks to manually open/close)
   const [expandOverride, setExpandOverride] = useState<boolean | null>(null);
   // Track if all items were just checked to trigger auto-collapse
@@ -1146,13 +1174,13 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
   // Computed expanded state
   const expanded = getCalculatedExpandedState();
 
-  // Update review status whenever checklist items change
+  // 親コンポーネントへの通知を最適化するため、ローカル状態変更時のみ通知する
+  // これによって無限ループを防止
   useEffect(() => {
-    // Only update if we have checklist items
+    // checklistItemsがローカルで変更されたときだけ実行
     if (checklistItems && Object.keys(checklistItems).length > 0) {
-      // Update the checklistItems in the parent component
+      // 不要な更新を避けるため、必要なときだけ親コンポーネントに通知
       console.log(`Updating checklist for file: ${file.filename}`, checklistItems);
-      onChecklistChange(file.filename, checklistItems);
 
       // Check if all items just became OK
       const allOK = Object.values(checklistItems).every(item => item === 'OK');
@@ -1164,7 +1192,7 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
         setAllItemsJustChecked(false);
       }
     }
-  }, [checklistItems, file.filename, onChecklistChange, allItemsJustChecked]);
+  }, [checklistItems, file.filename, allItemsJustChecked]);
 
   // Toggle through the review states: PENDING -> NG -> OK -> NG
   const toggleReviewState = (item: string) => {
@@ -1191,10 +1219,10 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
       [item]: nextState,
     };
 
-    // 変更を即座に適用
+    // ローカル状態を更新
     setChecklistItems(newChecklistItems);
 
-    // useEffectを待たずに親コンポーネントに即座に通知
+    // 明示的に親コンポーネントに通知（useEffectとは別に）
     onChecklistChange(file.filename, newChecklistItems);
   };
 
@@ -1453,6 +1481,7 @@ const PRAnalysis = ({ prData, url }: { prData: PRData; url: string }) => {
 
       // Create a new analysis and update the cache
       const newAnalysis = await fetchers.generateAnalysis(`analysis/${url}`, prData, 'en');
+      console.log('Generated analysis result:', newAnalysis);
 
       // Also update Jotai state - 必ずURLを渡して正しいPRにデータを関連付ける
       setAnalysisResult(newAnalysis, url);
