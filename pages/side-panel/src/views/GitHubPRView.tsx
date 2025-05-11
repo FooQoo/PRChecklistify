@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import { usePRData } from '../hooks/usePRData';
 import TokenSetupPrompt from '../components/TokenSetupPrompt';
@@ -17,7 +17,7 @@ const GitHubPRView = () => {
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
-  const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState(0);
+  const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
   const [showCompleteMessage, setShowCompleteMessage] = useState(false);
   const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
     elementCount: 200,
@@ -91,7 +91,7 @@ const GitHubPRView = () => {
   };
 
   // ファイルごとの承認状況を計算する関数
-  const getApprovedFiles = () => {
+  const getApprovedFiles = useCallback(() => {
     if (!prData || !analysisResult) return 0;
 
     return prData.files.filter(file => {
@@ -102,20 +102,20 @@ const GitHubPRView = () => {
       // すべてのチェックリストアイテムが'OK'になっているか確認
       return fileChecklist.checklistItems.every(item => item.status === 'OK');
     }).length;
-  };
+  }, [prData, analysisResult]);
 
   // 承認率を計算する関数 (0-100%)
-  const getApprovalPercentage = () => {
-    if (!prData || prData.files.length === 0) return 0;
+  const getApprovalPercentage = useCallback(() => {
+    if (!prData || prData.files.length === 0) return null;
     return (getApprovedFiles() / prData.files.length) * 100;
-  };
+  }, [prData, getApprovedFiles]);
 
   // 承認率が変化したときのエフェクト
   useEffect(() => {
     const currentApprovalPercentage = getApprovalPercentage();
 
     // 承認率が100%に達したときに紙吹雪アニメーションをトリガー
-    if (currentApprovalPercentage === 100 && previousApprovalPercentage < 100) {
+    if (currentApprovalPercentage === 100 && previousApprovalPercentage !== null && previousApprovalPercentage < 100) {
       confettiReward();
       setShowCompleteMessage(true); // 追加: 完了メッセージを表示
     } else {
@@ -297,7 +297,7 @@ const GitHubPRView = () => {
                   d="M9 12l2 2 4-4m2.293-1.293a1 1 0 011.414 0l3.293 3.293a1 1 0 010 1.414l-9 9a1 1 0 01-1.414 0l-3.293-3.293a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
                 />
               </svg>
-              All files approved! Review complete. &#x1f389;
+              All files approved! Review complete.
             </div>
           )}
         </div>
