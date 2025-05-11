@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, languagePreferenceStorage } from '@extension/storage';
 
 const SettingsView: React.FC = () => {
-  const navigate = useNavigate();
+  const { navigateToHome } = useNavigation();
   const [githubToken, setGithubToken] = useState('');
   const [hasToken, setHasToken] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -79,7 +79,7 @@ const SettingsView: React.FC = () => {
   const handleRemoveToken = async () => {
     try {
       setIsLoading(true);
-      await githubTokenStorage.remove();
+      await githubTokenStorage.clear();
       setHasToken(false);
       setGithubToken('');
     } catch (err) {
@@ -102,17 +102,12 @@ const SettingsView: React.FC = () => {
     }
   };
 
-  // 戻るボタンのハンドラ - 直前の画面に戻る
-  const handleGoBack = () => {
-    navigate(-1);
-  };
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold">Settings</h1>
-          <button onClick={handleGoBack} className="text-blue-500 hover:text-blue-700 text-sm flex items-center">
+          <button onClick={navigateToHome} className="text-blue-500 hover:text-blue-700 text-sm flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-4 w-4 mr-1"
@@ -121,7 +116,7 @@ const SettingsView: React.FC = () => {
               stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back
+            Back to Home
           </button>
         </div>
 
