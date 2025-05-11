@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
 import { languagePreferenceStorage } from '@extension/storage';
-import { fetchers } from '@src/services/prDataService';
+import { fetchers } from '@src/services/aiService';
 import FileChecklist from './FileChecklist';
 
 interface PRAnalysisProps {
