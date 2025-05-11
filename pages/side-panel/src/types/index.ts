@@ -93,5 +93,5 @@ export interface PRAnalysisSummary {
 // PR分析結果の型
 export interface PRAnalysisResult {
   summary: PRAnalysisSummary;
-  fileChecklists: FileChecklist[];
+  fileAnalysis: FileChecklist[];
 }

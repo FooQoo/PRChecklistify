@@ -44,7 +44,7 @@ class OpenAIClient {
    */
   private buildPRAnalysisPrompt(prData: PRData, language: string = 'en'): string {
     // Format the PR data for the prompt
-    const { title, description, files } = prData;
+    const { title, body, files } = prData;
 
     // List of changed files with stats and patches
     const fileChanges = files
@@ -63,13 +63,19 @@ ${file.patch ? `Patch:\n${file.patch}` : 'No patch available'}
     // Construct the full prompt with language instruction
     return `
 Analyze this pull request and provide your response in ${outputLanguage}. Include:
-1. A summary of the PR, including:
+1. (Must Require) A summary of the PR, including:
    - Background
    - Problem being solved
    - Solution approach
    - Implementation details
 
-2. For each changed file, create a checklist of specific items to review, focusing on:
+2. (Must Require) For each changed file, create a explanation of the changes, focusing on:
+   - Why the changes were made
+   - How they relate to the overall PR
+   - Any specific areas of concern or interest
+   - Any additional context that would help in the review
+
+2. (Optional) For each changed file, create a checklist of specific items to review, focusing on:
    - Code correctness
    - Best practices
    - Potential bugs
@@ -77,7 +83,7 @@ Analyze this pull request and provide your response in ${outputLanguage}. Includ
    - Security implications
 
 PR Title: ${title}
-PR Description: ${description}
+PR Description: ${body}
 
 Changed Files:
 ${fileChanges}
@@ -90,7 +96,7 @@ Format your response as a JSON object with the following structure:
     "solution": "...",
     "implementation": "..."
   },
-  "fileChecklists": [
+  "fileAnalysis": [
     {
       "id": "file-1",
       "filename": "path/to/file.ts",
@@ -150,7 +156,7 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
       const parsedResponse = JSON.parse(responseText);
 
       // Ensure all file checklist items have IDs
-      const fileChecklists = parsedResponse.fileChecklists.map((fileChecklist: any) => ({
+      const fileAnalysis = parsedResponse.fileAnalysis.map((fileChecklist: any) => ({
         ...fileChecklist,
         checklistItems: fileChecklist.checklistItems.map((item: any, index: number) => ({
           id: item.id || `${fileChecklist.filename}-item-${index}`,
@@ -161,7 +167,7 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
 
       return {
         summary: parsedResponse.summary,
-        fileChecklists,
+        fileAnalysis: fileAnalysis,
       };
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);

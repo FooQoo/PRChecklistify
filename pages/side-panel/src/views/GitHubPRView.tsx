@@ -63,7 +63,7 @@ const GitHubPRView = () => {
     if (!prData || !analysisResult) return 0;
 
     return prData.files.filter(file => {
-      const fileChecklist = analysisResult.fileChecklists.find(checklist => checklist.filename === file.filename);
+      const fileChecklist = analysisResult.fileAnalysis.find(checklist => checklist.filename === file.filename);
 
       if (!fileChecklist) return false;
 

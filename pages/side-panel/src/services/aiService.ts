@@ -1,4 +1,3 @@
-import OpenAIClient from '@extension/shared/lib/utils/openai';
 import type { PRData } from '@src/types';
 import { createOpenAIClient } from './openai';
 

@@ -8,7 +8,7 @@ interface PRAnalysisProps {
   prData: PRData;
   url: string;
   analysisResult: PRAnalysisResult | undefined;
-  saveAnalysisResult: (result: PRAnalysisResult) => void;
+  saveAnalysisResult: (result: PRAnalysisResult | undefined) => void;
 }
 
 const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, saveAnalysisResult }) => {
@@ -35,6 +35,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
     try {
       setGenerating(true);
       setError(null);
+      saveAnalysisResult(undefined); // Reset analysis result
 
       // Generate analysis using the fetcher
       const generatedAnalysis = await fetchers.generateAnalysis(url, prData, language);
@@ -61,7 +62,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
     if (!prData || !analysisResult) return;
 
     // 分析結果のファイルチェックリストを更新する
-    const updatedFileChecklists = analysisResult.fileChecklists.map(checklist => {
+    const updatedFileChecklists = analysisResult.fileAnalysis.map(checklist => {
       if (checklist.filename === filename) {
         // ステータスマッピングしたチェックリストアイテムを作成
         const updatedItems = checklist.checklistItems.map((item, index) => {
@@ -91,11 +92,11 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
       <div className="pr-analysis p-4 border border-gray-300 rounded-md mb-4 bg-white shadow-sm">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-lg font-bold">PR Analysis</h3>
-          {!analysisResult && !generating && (
+          {!generating && (
             <button
               onClick={generateAnalysis}
               className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm">
-              Generate Analysis
+              {!analysisResult ? 'Generate Analysis' : 'Regenerate Analysis'}
             </button>
           )}
           {generating && (
@@ -159,7 +160,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
             <div className="detailed-checklists">
               {prData.files.map((file, index) => {
                 // Find AI-generated checklist for this file if available
-                const aiGeneratedChecklist = analysisResult?.fileChecklists.find(
+                const aiGeneratedChecklist = analysisResult?.fileAnalysis.find(
                   checklist => checklist.filename === file.filename,
                 );
 

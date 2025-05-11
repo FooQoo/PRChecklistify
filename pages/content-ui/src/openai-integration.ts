@@ -215,10 +215,10 @@ const formatPRChecklistMarkdown = (result: PRAnalysisResult): string => {
   // Add file checklists
   markdown += '### Checklist by File\n\n';
 
-  result.fileChecklists.forEach(fileChecklist => {
+  result.fileAnalysis.forEach(fileChecklist => {
     markdown += `#### ${fileChecklist.filename}\n\n`;
 
-    fileChecklist.checklistItems.forEach(item => {
+    fileChecklist.fileAnalysis.forEach(item => {
       markdown += `- [ ] ${item.description}\n`;
     });
 

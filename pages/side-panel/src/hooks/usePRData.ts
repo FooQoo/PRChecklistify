@@ -123,7 +123,7 @@ export const usePRData = () => {
   }, [currentPage?.url]);
 
   // 分析結果を保存する関数
-  const saveAnalysisResult = async (result: PRAnalysisResult) => {
+  const saveAnalysisResult = async (result: PRAnalysisResult | undefined) => {
     if (!prData || !currentPage?.url) return;
 
     setAnalysisResult(result);

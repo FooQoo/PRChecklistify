@@ -354,10 +354,12 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
       {expanded && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-3">
-            <div>
-              <h4 className="text-sm font-semibold mb-2">AI-Generated Explanation</h4>
-              <p className="text-xs text-gray-500 mb-2">{aiGeneratedChecklist?.explanation}</p>
-            </div>
+            {aiGeneratedChecklist?.explanation && (
+              <div className="mb-2">
+                <h4 className="text-sm font-semibold mb-2">AI-Generated Summary</h4>
+                <p className="text-xs text-gray-500">{aiGeneratedChecklist?.explanation}</p>
+              </div>
+            )}
             <div>
               <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
 
