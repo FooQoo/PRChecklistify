@@ -1,4 +1,5 @@
-import type { PRData, PRAnalysisResult } from '@src/types';
+import OpenAIClient from '@extension/shared/lib/utils/openai';
+import type { PRData } from '@src/types';
 
 // Add SWR fetchers for use with useSWR
 
@@ -6,9 +7,10 @@ export const fetchers = {
   // Fetcher for generating OpenAI analysis
   generateAnalysis: async (key: string, prData: PRData, language: string) => {
     console.log('Generating OpenAI analysis with SWR:', key);
+    console.log(`Using language for analysis: ${language}`);
 
-    // ダミーの分析結果データを作成する関数
-    const createDummyAnalysisResult = (): PRAnalysisResult => {
+    /**
+     * const createDummyAnalysisResult = (): PRAnalysisResult => {
       return {
         summary: {
           background:
@@ -50,10 +52,25 @@ export const fetchers = {
           }) || [],
       };
     };
+     */
 
     try {
-      // 実際の API 呼び出しをダミーデータに置き換え
-      return createDummyAnalysisResult();
+      // プロパティを確認して確実にPRDataがあることを確認
+      if (!prData || !prData.files || !Array.isArray(prData.files)) {
+        throw new Error('Invalid PR data provided');
+      }
+
+      // OpenAIクライアントを取得
+      const client = new OpenAIClient({
+        apiKey: await chrome.storage.local.get('openaiApiKey').then(result => result.openaiApiKey),
+        apiEndpoint: 'https://api.example.com/v2/',
+        model: 'gpt-4o',
+      });
+
+      // OpenAIを使用してPRを分析
+      const analysisResult = await client.analyzePR(prData, language);
+
+      return analysisResult;
     } catch (error) {
       console.error('Error in generateAnalysis fetcher:', error);
       throw error;

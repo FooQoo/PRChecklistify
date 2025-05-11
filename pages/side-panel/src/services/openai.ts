@@ -1,4 +1,5 @@
 // OpenAI API integration for PR checklist generation
+import type { PRAnalysisResult, PRData } from '@src/types';
 import OpenAI from 'openai';
 
 export interface OpenAIConfig {
@@ -23,7 +24,7 @@ class OpenAIClient {
   /**
    * Analyze a PR and generate checklist and summary
    */
-  async analyzePR(prData: any, languageOverride?: string): Promise<PRAnalysisResult> {
+  async analyzePR(prData: PRData, languageOverride?: string): Promise<PRAnalysisResult> {
     try {
       // Get language preference from storage or use override if provided
       const language = languageOverride || (await languagePreferenceStorage.get()) || navigator.language || 'en';
@@ -41,7 +42,7 @@ class OpenAIClient {
   /**
    * Build the prompt for PR analysis with language preference
    */
-  private buildPRAnalysisPrompt(prData: any, language: string = 'en'): string {
+  private buildPRAnalysisPrompt(prData: PRData, language: string = 'en'): string {
     // Format the PR data for the prompt
     const { title, description, files } = prData;
 

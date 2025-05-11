@@ -39,8 +39,6 @@ export interface PRData {
   changed_files: number;
   files: PRFile[];
   commits: number;
-  mergeable: boolean | null;
-  rebaseable: boolean | null;
   comments: number;
   review_comments: number;
 }

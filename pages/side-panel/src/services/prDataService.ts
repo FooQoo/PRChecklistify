@@ -1,4 +1,4 @@
-import type { PRData, SavedPRData, PRAnalysisResult } from '../types';
+import type { PRData, SavedPRData, PRAnalysisResult, PRFile } from '../types';
 import { normalizePRUrl } from '../utils/prUtils';
 import { githubTokenStorage } from '@extension/storage';
 
@@ -234,14 +234,33 @@ export const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
     }
 
     return {
+      id: prData.id,
+      number: prData.number,
       title: prData.title,
-      description: prData.body || 'No description provided.',
-      diffStats: {
-        additions: prData.additions,
-        deletions: prData.deletions,
-        changedFiles: prData.changed_files,
+      state: prData.state,
+      body: prData.body || 'No description provided.',
+      html_url: prData.html_url,
+      user: {
+        login: prData.user.login,
+        avatar_url: prData.user.avatar_url,
       },
-      files: filesData.map((file: any) => ({
+      created_at: prData.created_at,
+      updated_at: prData.updated_at,
+      closed_at: prData.closed_at,
+      merged_at: prData.merged_at,
+      merge_commit_sha: prData.merge_commit_sha,
+      base: {
+        ref: prData.base.ref,
+        sha: prData.base.sha,
+      },
+      head: {
+        ref: prData.head.ref,
+        sha: prData.head.sha,
+      },
+      additions: prData.additions,
+      deletions: prData.deletions,
+      changed_files: prData.changed_files,
+      files: filesData.map((file: PRFile) => ({
         filename: file.filename,
         status: file.status,
         additions: file.additions,
@@ -249,21 +268,10 @@ export const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
         patch: file.patch,
         comments: '',
       })),
-      user: {
-        login: prData.user.login,
-        avatar_url: prData.user.avatar_url,
-      },
-      created_at: prData.created_at,
-      updated_at: prData.updated_at,
-      review_assigned_at: reviewAssignedAt,
-      merged_at: prData.merged_at,
-      state: prData.state,
-      base: {
-        ref: prData.base.ref,
-      },
-      head: {
-        ref: prData.head.ref,
-      },
+      // draft: prData.draft,
+      commits: prData.commits,
+      comments: prData.comments,
+      review_comments: prData.review_comments,
     };
   } catch (error) {
     console.error('Error fetching PR data:', error);
