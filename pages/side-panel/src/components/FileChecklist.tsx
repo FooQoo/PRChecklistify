@@ -306,7 +306,7 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
   return (
     <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
       <button
-        className="flex items-center justify-between p-3 cursor-pointer bg-gray-50"
+        className="flex items-center justify-between p-3 cursor-pointer bg-gray-50 w-full"
         onClick={toggleExpanded}
         onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -325,7 +325,7 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
             }`}>
             {file.status === 'added' ? 'A' : file.status === 'removed' ? 'D' : 'M'}
           </span>
-          <span className="font-medium text-xs break-all line-clamp-2">{file.filename}</span>
+          <span className="font-medium text-xs break-all line-clamp-2 text-left">{file.filename}</span>
         </div>
         <div className="flex items-center flex-shrink-0 ml-2">
           <span className={`px-2 py-0.5 text-xs rounded-full mr-2 ${statusDisplay.class}`}>{statusDisplay.label}</span>
