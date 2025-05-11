@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 const StorageManagement = () => {
   const [isClearing, setIsClearing] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
-  const [prDataCount, setPRDataCount] = useState<number | null>(null);
+  const [hasPrData, setHasPRData] = useState(false);
 
   // Get count of saved PR data
   useEffect(() => {
@@ -14,13 +14,9 @@ const StorageManagement = () => {
         const items = await chrome.storage.local.get(null);
 
         // Count only PR data (keys that don't end with "_analysis")
-        const prDataKeys = Object.keys(items).filter(
-          key =>
-            // Match standard PR IDs (owner/repo/number) but not analysis keys
-            /^[^/]+\/[^/]+\/\d+$/.test(key) && !key.endsWith('_analysis'),
-        );
+        const prDataKeys = Object.keys(items);
 
-        setPRDataCount(prDataKeys.length);
+        setHasPRData(prDataKeys.length > 0);
       } catch (error) {
         console.error('Error counting PR data:', error);
       }
@@ -40,7 +36,7 @@ const StorageManagement = () => {
       setMessage({ text: '', type: '' });
 
       // Get the 'pr' object from storage
-      const result = await chrome.storage.local.get('pr');
+      const result = await chrome.storage.local.get('pr_data_cache');
       const prStorage = result.pr || {};
 
       if (Object.keys(prStorage).length === 0) {
@@ -50,10 +46,10 @@ const StorageManagement = () => {
       }
 
       // Clear the entire 'pr' object
-      await chrome.storage.local.remove('pr');
+      await chrome.storage.local.remove('pr_data_cache');
 
-      setMessage({ text: `Successfully cleared ${Object.keys(prStorage).length} PR data items`, type: 'success' });
-      setPRDataCount(0);
+      setMessage({ text: `Successfully cleared  PR data items`, type: 'success' });
+      setHasPRData(false);
     } catch (error) {
       console.error('Error clearing PR data:', error);
       setMessage({ text: 'Failed to clear PR data', type: 'error' });
@@ -68,17 +64,13 @@ const StorageManagement = () => {
 
       <div className="mb-4">
         <p className="text-sm mb-2">
-          {prDataCount === null
-            ? 'Counting saved PR data...'
-            : prDataCount === 0
-              ? 'No PR data currently saved in storage.'
-              : `You have ${prDataCount} PR(s) saved in storage.`}
+          {hasPrData ? 'No PR data currently saved in storage.' : `You have PR(s) saved in storage.`}
         </p>
 
         <div className="mt-4">
           <button
             onClick={handleClearAllPRData}
-            disabled={isClearing || prDataCount === 0}
+            disabled={isClearing || !hasPrData}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
             {isClearing ? 'Clearing...' : 'Clear All PR Data'}
           </button>
