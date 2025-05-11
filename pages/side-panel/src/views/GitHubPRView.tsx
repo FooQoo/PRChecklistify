@@ -9,6 +9,7 @@ import { calculateReviewTime } from '../utils/prUtils';
 import PRAnalysis from '../components/PRAnalysis';
 import FileChecklist from '../components/FileChecklist';
 import type { ChecklistItemStatus } from '@src/types';
+import { useReward } from 'react-rewards';
 
 const GitHubPRView = () => {
   const { owner, repo, prNumber } = useParams();
@@ -16,6 +17,13 @@ const GitHubPRView = () => {
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
+  const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState(0);
+  const [showCompleteMessage, setShowCompleteMessage] = useState(false);
+  const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
+    elementCount: 200,
+    elementSize: 10,
+    spread: 160,
+  });
 
   // PRのURLを構築
   const url = currentURL || `https://github.com/${owner}/${repo}/pull/${prNumber}`;
@@ -102,6 +110,20 @@ const GitHubPRView = () => {
     return (getApprovedFiles() / prData.files.length) * 100;
   };
 
+  // 承認率が変化したときのエフェクト
+  useEffect(() => {
+    const currentApprovalPercentage = getApprovalPercentage();
+
+    // 承認率が100%に達したときに紙吹雪アニメーションをトリガー
+    if (currentApprovalPercentage === 100 && previousApprovalPercentage < 100) {
+      confettiReward();
+      setShowCompleteMessage(true); // 追加: 完了メッセージを表示
+    } else {
+      setShowCompleteMessage(false); // 追加: 完了メッセージを非表示
+      setPreviousApprovalPercentage(currentApprovalPercentage);
+    }
+  }, [getApprovalPercentage, previousApprovalPercentage, confettiReward]);
+
   if (hasToken === null) {
     return <div className="flex items-center justify-center h-screen">Checking configuration...</div>;
   }
@@ -173,6 +195,18 @@ const GitHubPRView = () => {
 
   return (
     <div className="App bg-slate-50">
+      {/* 紙吹雪アニメーションを表示するための要素 */}
+      <span id="confettiReward" className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" />
+
+      {/* 完了メッセージの大きなアニメーション表示 */}
+      {showCompleteMessage && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-40 pointer-events-none">
+          <div className="complete-text text-6xl font-bold text-green-600 animate-fade-in-up animate-pulse-effect">
+            COMPLETE
+          </div>
+        </div>
+      )}
+
       <div className="review-progress fixed top-0 left-0 right-0 z-10 bg-white shadow-md p-2 border-b border-gray-300 mb-2">
         <h4 className="font-bold mb-1">Review Progress:</h4>
         <div className="flex justify-between mb-1 text-sm">
@@ -244,6 +278,26 @@ const GitHubPRView = () => {
                   })}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* 追加: 完了メッセージの表示 */}
+          {showCompleteMessage && (
+            <div className="complete-message p-4 mb-4 rounded bg-green-100 text-green-800">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 inline-block mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m2.293-1.293a1 1 0 011.414 0l3.293 3.293a1 1 0 010 1.414l-9 9a1 1 0 01-1.414 0l-3.293-3.293a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                />
+              </svg>
+              All files approved! Review complete. &#x1f389;
             </div>
           )}
         </div>
