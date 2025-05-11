@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react';
 import type { PRData } from '../types';
 import { usePRData } from '../hooks/usePRData';
 import { languagePreferenceStorage } from '@extension/storage';
+import { fetchers } from '@src/services/prDataService';
 
 interface PRAnalysisProps {
   prData: PRData;
   url: string;
 }
 
-const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData }) => {
-  const { analysisResult, updateAnalysisResult } = usePRData();
+const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
+  const { analysisResult, saveAnalysisResult } = usePRData();
   const [generating, setGenerating] = useState(false);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
@@ -35,21 +36,10 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData }) => {
       setError(null);
 
       // Generate analysis using the fetcher
-      const generatedAnalysis = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prData, language }),
-      }).then(res => {
-        if (!res.ok) {
-          throw new Error('Analysis generation failed');
-        }
-        return res.json();
-      });
+      const generatedAnalysis = await fetchers.generateAnalysis(url, prData, language);
 
       // 分析結果を更新
-      updateAnalysisResult(generatedAnalysis);
+      saveAnalysisResult(generatedAnalysis);
     } catch (err) {
       console.error('Error generating analysis:', err);
       setError('Failed to generate analysis. Please try again.');

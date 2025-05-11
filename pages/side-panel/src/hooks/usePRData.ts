@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
-import type { PRData, PRAnalysisResult, PRIdentifier, ReviewLevel } from '../types';
-import { prDataStorage, getPRData, savePRDataToStorage } from '../services/prDataService';
+import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
+import { prDataStorage } from '../services/prDataService';
 import { githubTokenStorage } from '@extension/storage';
 
 export const currentPageAtom = atom<{ url: string | null }>({ url: null });
@@ -168,25 +168,21 @@ export const usePRData = () => {
 };
 
 // レビュー時間を計算するユーティリティ関数
-export const calculateReviewTime = (prData: PRData): { minutes: number; level: ReviewLevel } => {
+export const calculateReviewTime = (prData: PRData): { minutes: number } => {
   // ファイル数と変更行数から推定時間を計算
   const totalFiles = prData.files.length;
   const totalChanges = prData.files.reduce((sum, file) => sum + file.additions + file.deletions, 0);
 
   let minutes = 0;
-  let level: ReviewLevel = 'quick';
 
   // 基本的な計算ロジック（例）
   if (totalChanges < 100 && totalFiles < 5) {
     minutes = Math.max(5, Math.ceil(totalChanges / 10));
-    level = 'quick';
   } else if (totalChanges < 500 && totalFiles < 20) {
     minutes = Math.max(10, Math.ceil(totalChanges / 8));
-    level = 'moderate';
   } else {
     minutes = Math.max(30, Math.ceil(totalChanges / 5));
-    level = 'detailed';
   }
 
-  return { minutes, level };
+  return { minutes };
 };

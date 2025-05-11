@@ -73,10 +73,7 @@ export type ChecklistItemStatus = 'OK' | 'WARNING' | 'ERROR' | 'PENDING';
 export interface ChecklistItem {
   id: string;
   description: string;
-  filename: string;
   status: ChecklistItemStatus;
-  suggestion?: string;
-  lineNumbers?: number[];
 }
 
 // ファイルチェックリストの型
@@ -98,12 +95,4 @@ export interface PRAnalysisSummary {
 export interface PRAnalysisResult {
   summary: PRAnalysisSummary;
   fileChecklists: FileChecklist[];
-  reviewTime: {
-    minutes: number;
-    level: 'quick' | 'moderate' | 'detailed';
-  };
-  generated: {
-    timestamp: number;
-    model: string;
-  };
 }

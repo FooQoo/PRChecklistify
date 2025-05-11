@@ -294,7 +294,7 @@ export const fetchers = {
         fileChecklists:
           prData?.files.map((file, index) => {
             return {
-              // Use the filename as the key for checklist items
+              id: `file-${index}`, // 必須の id プロパティを追加
               filename: file.filename,
               checklistItems: [
                 {
