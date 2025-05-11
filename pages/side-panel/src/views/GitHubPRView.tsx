@@ -8,6 +8,7 @@ import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
 import { calculateReviewTime } from '../utils/prUtils';
 import PRAnalysis from '../components/PRAnalysis';
 import FileChecklist from '../components/FileChecklist';
+import type { ChecklistItemStatus } from '@src/types';
 
 const GitHubPRView = () => {
   const { owner, repo, prNumber } = useParams();
@@ -51,20 +52,6 @@ const GitHubPRView = () => {
     setShowOpenAISetup(false);
   };
 
-  const handleFileCommentChange = (filename: string, comments: string) => {
-    if (!prData) return;
-
-    const updatedFiles = prData.files.map(file => {
-      if (file.filename === filename) {
-        return { ...file, comments };
-      }
-      return file;
-    });
-
-    // 更新されたデータを保存
-    refreshData();
-  };
-
   // チェックリスト変更時のハンドラー
   const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
     if (!prData || !analysisResult) return;
@@ -76,7 +63,7 @@ const GitHubPRView = () => {
         const updatedItems = checklist.checklistItems.map((item, index) => {
           const key = `item_${index}`;
           if (checklistItems[key]) {
-            return { ...item, status: checklistItems[key] };
+            return { ...item, status: checklistItems[key] as ChecklistItemStatus };
           }
           return item;
         });
@@ -182,7 +169,7 @@ const GitHubPRView = () => {
     );
   }
 
-  const { reviewTime } = analysisResult || { reviewTime: calculateReviewTime(prData) };
+  const { reviewTime } = { reviewTime: calculateReviewTime(prData) };
 
   return (
     <div className="App bg-slate-50">
@@ -192,9 +179,7 @@ const GitHubPRView = () => {
           <span>
             Approved: {getApprovedFiles()} /{prData.files.length} files
           </span>
-          <span>
-            Estimated review time: {reviewTime?.minutes || 0} minutes ({reviewTime?.level || 'quick'})
-          </span>
+          <span>Estimated review time: {reviewTime || 0} hours</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div
@@ -252,7 +237,6 @@ const GitHubPRView = () => {
                       <FileChecklist
                         key={index}
                         file={file}
-                        onCommentChange={handleFileCommentChange}
                         onChecklistChange={handleChecklistChange}
                         aiGeneratedChecklist={aiGeneratedChecklist}
                       />

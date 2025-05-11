@@ -3,7 +3,6 @@ import type { PRData, FileChecklist as FileChecklistType } from '../types';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
-  onCommentChange: (filename: string, comments: string) => void;
   onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
   aiGeneratedChecklist?: FileChecklistType;
 }
@@ -66,7 +65,9 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
       const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
       aiGeneratedChecklist.checklistItems.forEach((item, index) => {
         // AIチェックリストのステータスを初期値として使用
-        items[`item_${index}`] = item.status;
+        items[`item_${index}`] = ['PENDING', 'OK', 'NG'].includes(item.status)
+          ? (item.status as 'PENDING' | 'OK' | 'NG')
+          : 'PENDING';
       });
       return items;
     }

@@ -67,7 +67,7 @@ const OpenAIKeySettings = () => {
   const handleRemoveKey = async () => {
     try {
       setIsLoading(true);
-      await openaiApiKeyStorage.remove();
+      await openaiApiKeyStorage.clear();
       setSavedKey(null);
       setApiKey('');
     } catch (err) {

@@ -11,7 +11,7 @@ type CurrentPage = {
 };
 
 const SidePanel = () => {
-  const [currentPage, setCurrentPage] = useState<CurrentPage | null>(null);
+  const [, setCurrentPage] = useState<CurrentPage | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Set up the atom for current page to be used by the hook

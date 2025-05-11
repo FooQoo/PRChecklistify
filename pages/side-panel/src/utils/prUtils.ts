@@ -2,11 +2,11 @@ import type { PRData } from '../types';
 
 // レビュー時間を計算する関数（単位：時間）
 export const calculateReviewTime = (prData: PRData): number => {
-  if (!prData.review_assigned_at) {
+  if (!prData.created_at) {
     return 0; // レビューがまだアサインされていない
   }
 
-  const reviewStartTime = new Date(prData.review_assigned_at).getTime();
+  const reviewStartTime = new Date(prData.created_at).getTime();
   let reviewEndTime: number;
 
   if (prData.merged_at) {
