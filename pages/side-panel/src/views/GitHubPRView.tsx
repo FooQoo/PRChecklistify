@@ -7,8 +7,6 @@ import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
 import { calculateReviewTime } from '../utils/prUtils';
 import PRAnalysis from '../components/PRAnalysis';
-import FileChecklist from '../components/FileChecklist';
-import type { ChecklistItemStatus } from '@src/types';
 import { useReward } from 'react-rewards';
 
 const GitHubPRView = () => {
@@ -29,7 +27,7 @@ const GitHubPRView = () => {
   const url = currentURL || `https://github.com/${owner}/${repo}/pull/${prNumber}`;
 
   // 統合された状態管理フックを使用
-  const { prData, isLoading, error: prError, analysisResult, refreshData, saveAnalysisResult } = usePRData();
+  const { prData, isLoading, error: prError, analysisResult, saveAnalysisResult, refreshData } = usePRData();
 
   // トークンの確認
   useEffect(() => {
@@ -60,36 +58,6 @@ const GitHubPRView = () => {
     setShowOpenAISetup(false);
   };
 
-  // チェックリスト変更時のハンドラー
-  const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
-    if (!prData || !analysisResult) return;
-
-    // 分析結果のファイルチェックリストを更新する
-    const updatedFileChecklists = analysisResult.fileChecklists.map(checklist => {
-      if (checklist.filename === filename) {
-        // ステータスマッピングしたチェックリストアイテムを作成
-        const updatedItems = checklist.checklistItems.map((item, index) => {
-          const key = `item_${index}`;
-          if (checklistItems[key]) {
-            return { ...item, status: checklistItems[key] as ChecklistItemStatus };
-          }
-          return item;
-        });
-        return { ...checklist, checklistItems: updatedItems };
-      }
-      return checklist;
-    });
-
-    // 更新後の分析結果オブジェクトを作成
-    const updatedAnalysisResult = {
-      ...analysisResult,
-      fileChecklists: updatedFileChecklists,
-    };
-
-    // 分析結果を更新
-    saveAnalysisResult(updatedAnalysisResult);
-  };
-
   // ファイルごとの承認状況を計算する関数
   const getApprovedFiles = useCallback(() => {
     if (!prData || !analysisResult) return 0;
@@ -110,10 +78,10 @@ const GitHubPRView = () => {
     return (getApprovedFiles() / prData.files.length) * 100;
   }, [prData, getApprovedFiles]);
 
+  const currentApprovalPercentage = getApprovalPercentage();
+
   // 承認率が変化したときのエフェクト
   useEffect(() => {
-    const currentApprovalPercentage = getApprovalPercentage();
-
     // 承認率が100%に達したときに紙吹雪アニメーションをトリガー
     if (currentApprovalPercentage === 100 && previousApprovalPercentage !== null && previousApprovalPercentage < 100) {
       confettiReward();
@@ -122,7 +90,7 @@ const GitHubPRView = () => {
       setShowCompleteMessage(false); // 追加: 完了メッセージを非表示
       setPreviousApprovalPercentage(currentApprovalPercentage);
     }
-  }, [getApprovalPercentage, previousApprovalPercentage, confettiReward]);
+  }, [currentApprovalPercentage, previousApprovalPercentage, confettiReward]);
 
   if (hasToken === null) {
     return <div className="flex items-center justify-center h-screen">Checking configuration...</div>;
@@ -251,35 +219,12 @@ const GitHubPRView = () => {
           </div>
 
           {/* PRAnalysisコンポーネントを追加 - ファイル一覧の前に表示 */}
-          <PRAnalysis prData={prData} url={url} />
-
-          {analysisResult && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
-              <div className="changed-files p-4 border border-gray-300 rounded-md mb-4 bg-white shadow-sm w-full text-left">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-lg font-bold">Changed Files</h3>
-                </div>
-
-                <div className="detailed-checklists">
-                  {prData.files.map((file, index) => {
-                    // Find AI-generated checklist for this file if available
-                    const aiGeneratedChecklist = analysisResult?.fileChecklists.find(
-                      checklist => checklist.filename === file.filename,
-                    );
-
-                    return (
-                      <FileChecklist
-                        key={index}
-                        file={file}
-                        onChecklistChange={handleChecklistChange}
-                        aiGeneratedChecklist={aiGeneratedChecklist}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
+          <PRAnalysis
+            prData={prData}
+            url={url}
+            analysisResult={analysisResult}
+            saveAnalysisResult={saveAnalysisResult}
+          />
 
           {/* 追加: 完了メッセージの表示 */}
           {showCompleteMessage && (
