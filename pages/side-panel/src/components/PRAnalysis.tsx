@@ -3,6 +3,7 @@ import type { PRData } from '../types';
 import { usePRData } from '../hooks/usePRData';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/prDataService';
+import FileChecklist from './FileChecklist';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -14,6 +15,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
   const [generating, setGenerating] = useState(false);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
+  const [, setChecklistStates] = useState<Record<string, Record<string, 'PENDING' | 'OK' | 'NG'>>>({});
 
   // 言語設定を読み込む
   useEffect(() => {
@@ -38,6 +40,9 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
       // Generate analysis using the fetcher
       const generatedAnalysis = await fetchers.generateAnalysis(url, prData, language);
 
+      // デバッグ用
+      console.log('Generated analysis result:', generatedAnalysis);
+
       // 分析結果を更新
       saveAnalysisResult(generatedAnalysis);
     } catch (err) {
@@ -46,6 +51,14 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
     } finally {
       setGenerating(false);
     }
+  };
+
+  // チェックリストの状態が変更されたときに呼ばれるハンドラー
+  const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
+    setChecklistStates(prev => ({
+      ...prev,
+      [filename]: checklistItems,
+    }));
   };
 
   if (!prData) {
@@ -105,6 +118,30 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
               </div>
             </div>
           </div>
+
+          {/* ファイルチェックリストのセクションを追加 */}
+          {analysisResult.fileChecklists && analysisResult.fileChecklists.length > 0 && (
+            <div className="file-checklists mt-4 text-left">
+              <h3 className="text-md font-bold mb-2">File Checklists</h3>
+              <div className="space-y-2">
+                {prData.files.map(file => {
+                  // 対応するファイルのチェックリストを検索
+                  const aiGeneratedChecklist = analysisResult.fileChecklists.find(
+                    checklist => checklist.filename === file.filename,
+                  );
+
+                  return (
+                    <FileChecklist
+                      key={file.filename}
+                      file={file}
+                      aiGeneratedChecklist={aiGeneratedChecklist}
+                      onChecklistChange={handleChecklistChange}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-gray-50 p-4 rounded-md text-gray-500 text-center">
