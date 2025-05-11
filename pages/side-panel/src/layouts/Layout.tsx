@@ -6,7 +6,6 @@ const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isSettingsPage = location.pathname === '/settings';
-  const isPRPage = location.pathname.includes('/pr/');
 
   return (
     <div className="layout-container">
@@ -16,9 +15,8 @@ const Layout = () => {
         <Outlet />
       </main>
 
-      {/* PRページの場合だけホームに戻るリンクを左下に固定表示 */}
-      {isPRPage && (
-        <div className="fixed bottom-4 left-4 z-50">
+      {!isSettingsPage && (
+        <div className="fixed bottom-8 right-4 z-50 flex flex-col gap-4">
           <button
             onClick={() => navigate('/')}
             className="flex items-center bg-blue-500 hover:bg-blue-600 p-3 rounded-full shadow-lg text-white transition-all duration-300 ease-in-out">
@@ -36,12 +34,6 @@ const Layout = () => {
               />
             </svg>
           </button>
-        </div>
-      )}
-
-      {/* 設定画面以外でのみ設定ボタンを表示 */}
-      {!isSettingsPage && (
-        <div className="fixed bottom-4 right-4 z-50">
           <SettingsButton className="bg-blue-500 hover:bg-blue-600 p-3 rounded-full shadow-lg text-white transition-all duration-300 ease-in-out flex items-center justify-center" />
         </div>
       )}
