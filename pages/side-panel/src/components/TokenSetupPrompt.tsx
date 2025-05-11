@@ -1,76 +1,96 @@
 import { useState } from 'react';
 import { githubTokenStorage } from '@extension/storage';
 
-// Component for GitHub token setup prompt
-const TokenSetupPrompt = ({ onComplete }: { onComplete: () => void }) => {
+interface TokenSetupPromptProps {
+  onComplete: () => void;
+}
+
+const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
   const [token, setToken] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSaveToken = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!token.trim()) {
+      setError('Please enter a valid GitHub token');
+      return;
+    }
+
     try {
-      setIsSaving(true);
-      setMessage({ text: '', type: '' });
+      setIsLoading(true);
 
-      await githubTokenStorage.set(token);
-      setMessage({ text: 'Token saved successfully', type: 'success' });
+      // Verify the token works by making a test API call
+      const response = await fetch('https://api.github.com/user', {
+        headers: {
+          Authorization: `token ${token}`,
+        },
+      });
 
-      // Wait a moment to show success message before proceeding
-      setTimeout(() => {
+      if (response.ok) {
+        // Save the token only if it's verified
+        await githubTokenStorage.set(token);
         onComplete();
-      }, 1500);
-    } catch (error) {
-      console.error('Error saving token:', error);
-      setMessage({ text: 'Failed to save token', type: 'error' });
-      setIsSaving(false);
+      } else {
+        setError(`Invalid token: ${response.statusText}`);
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+      console.error('Token verification error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen p-6">
+    <div className="flex items-center justify-center h-screen p-6 bg-gray-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-xl font-bold mb-4">GitHub Token Required</h2>
-
+        <h2 className="text-xl font-bold mb-4">GitHub Token Setup</h2>
         <p className="text-sm mb-4">
-          A GitHub Personal Access Token (PAT) is required to access PR data. This helps with API rate limits and allows
-          access to private repositories.
+          To use PR Checklistify, you need to provide a GitHub Personal Access Token with 'repo' scope permissions.
         </p>
 
-        <div className="mb-4 border-l-4 border-blue-500 pl-3 py-2 bg-blue-50 text-xs">
-          <p className="mb-1 font-semibold">How to create a GitHub PAT:</p>
-          <ol className="list-decimal ml-4">
-            <li>Go to GitHub Settings → Developer settings → Personal access tokens</li>
-            <li>
-              Generate a new token with at least <code>repo</code> scope
-            </li>
-            <li>Copy and paste the token below</li>
-          </ol>
-        </div>
-
         <div className="mb-4">
-          <input
-            type="password"
-            value={token}
-            onChange={e => setToken(e.target.value)}
-            placeholder="Enter GitHub PAT..."
-            className="w-full p-2 border rounded text-sm"
-          />
+          <a
+            href="https://github.com/settings/tokens/new?scopes=repo&description=PR+Checklistify+Extension"
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-500 hover:text-blue-700 text-sm">
+            Create a new token on GitHub →
+          </a>
         </div>
 
-        <div className="flex justify-between">
-          <button
-            onClick={handleSaveToken}
-            disabled={isSaving || !token}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50 flex-grow">
-            {isSaving ? 'Saving...' : 'Save Token'}
-          </button>
-        </div>
+        {error && <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-md mb-4">{error}</div>}
 
-        {message.text && (
-          <p className={`text-xs mt-2 ${message.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-            {message.text}
-          </p>
-        )}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
+              GitHub Personal Access Token
+            </label>
+            <input
+              type="password"
+              id="token"
+              value={token}
+              onChange={e => setToken(e.target.value)}
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`px-4 py-2 rounded-md ${
+                isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+              } text-white`}>
+              {isLoading ? 'Verifying...' : 'Save Token'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

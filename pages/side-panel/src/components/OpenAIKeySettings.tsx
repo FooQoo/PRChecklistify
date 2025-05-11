@@ -1,115 +1,148 @@
 import { useState, useEffect } from 'react';
 import { openaiApiKeyStorage } from '@extension/storage';
 
-/**
- * Component for OpenAI API Key settings
- * Allows users to set, view, and manage their OpenAI API key
- */
 const OpenAIKeySettings = () => {
   const [apiKey, setApiKey] = useState('');
-  const [savedApiKey, setSavedApiKey] = useState('');
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
+  const [savedKey, setSavedKey] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load the saved API key when component mounts
+  // Load the saved API key on mount
   useEffect(() => {
     const loadApiKey = async () => {
-      const key = await openaiApiKeyStorage.get();
-      if (key) {
-        setSavedApiKey(key);
+      try {
+        const key = await openaiApiKeyStorage.get();
+        setSavedKey(key);
+        // マスク表示のためにプレースホルダーを設定
+        if (key) {
+          setApiKey(''); // 入力フィールドはクリアしておく
+        }
+      } catch (err) {
+        console.error('Error loading OpenAI API key:', err);
+        setError('Failed to load saved API key');
       }
     };
+
     loadApiKey();
   }, []);
 
-  const handleSaveApiKey = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setShowSuccess(false);
+
+    if (!apiKey.trim()) {
+      setError('Please enter a valid OpenAI API key');
+      return;
+    }
+
     try {
-      setIsSaving(true);
-      setMessage({ text: '', type: '' });
+      setIsLoading(true);
 
+      // Basic validation - OpenAI API keys typically start with 'sk-'
+      if (!apiKey.startsWith('sk-')) {
+        setError('Invalid API key format. OpenAI API keys typically start with "sk-"');
+        return;
+      }
+
+      // Save the API key to storage
       await openaiApiKeyStorage.set(apiKey);
-      setSavedApiKey(apiKey);
-      setMessage({ text: 'API key saved successfully', type: 'success' });
+      setSavedKey(apiKey);
+      setApiKey(''); // Clear the input field
+      setShowSuccess(true);
 
-      // Clear the input after successful save
-      setApiKey('');
-    } catch (error) {
-      console.error('Error saving API key:', error);
-      setMessage({ text: 'Failed to save API key', type: 'error' });
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+    } catch (err) {
+      console.error('Error saving OpenAI API key:', err);
+      setError('Failed to save API key');
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
-  const handleClearApiKey = async () => {
+  const handleRemoveKey = async () => {
     try {
-      setIsSaving(true);
-      await openaiApiKeyStorage.clear();
-      setSavedApiKey('');
-      setMessage({ text: 'API key cleared successfully', type: 'success' });
-    } catch (error) {
-      console.error('Error clearing API key:', error);
-      setMessage({ text: 'Failed to clear API key', type: 'error' });
+      setIsLoading(true);
+      await openaiApiKeyStorage.remove();
+      setSavedKey(null);
+      setApiKey('');
+    } catch (err) {
+      console.error('Error removing OpenAI API key:', err);
+      setError('Failed to remove API key');
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
+  };
+
+  // Get the masked display of the API key (show only first 4 and last 4 characters)
+  const getMaskedApiKey = (key: string): string => {
+    if (!key || key.length < 10) return '****';
+    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
   };
 
   return (
-    <div className="border border-gray-300 rounded p-4 w-full mt-4">
-      <h3 className="text-lg font-bold mb-3">OpenAI API Key Settings</h3>
-      <div className="mb-4">
-        <p className="text-sm mb-2">
-          {savedApiKey
-            ? 'OpenAI API key is set. You can update or clear it below.'
-            : 'Set your OpenAI API key to generate PR checklists and summaries using AI.'}
-        </p>
-
-        {savedApiKey && (
-          <div className="flex items-center mb-3">
-            <div className="text-xs text-gray-600 bg-gray-100 p-2 rounded flex-grow mr-2 font-mono">
-              {showApiKey ? savedApiKey : '•'.repeat(Math.min(savedApiKey.length, 24))}
-            </div>
+    <div className="openai-settings">
+      <form onSubmit={handleSubmit} className="mb-4">
+        <div className="mb-3">
+          <label htmlFor="openai-key" className="block text-sm font-medium text-gray-700 mb-1">
+            OpenAI API Key
+          </label>
+          <div className="flex">
+            <input
+              type="password"
+              id="openai-key"
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              placeholder={savedKey ? getMaskedApiKey(savedKey) : 'sk-...'}
+              className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
             <button
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="text-xs bg-gray-200 hover:bg-gray-300 p-1 rounded">
-              {showApiKey ? 'Hide' : 'Show'}
+              type="submit"
+              disabled={isLoading || !apiKey.trim()}
+              className={`px-4 py-2 ${
+                isLoading || !apiKey.trim()
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+              } rounded-r-md`}>
+              {isLoading ? 'Saving...' : 'Save'}
             </button>
+          </div>
+          {savedKey && (
+            <div className="mt-1 flex items-center justify-between">
+              <span className="text-xs text-gray-500">API key is set</span>
+              <button type="button" onClick={handleRemoveKey} className="text-xs text-red-500 hover:text-red-700">
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <div className="p-2 bg-red-100 border border-red-300 text-red-800 rounded-md mb-3 text-sm">{error}</div>
+        )}
+        {showSuccess && (
+          <div className="p-2 bg-green-100 border border-green-300 text-green-800 rounded-md mb-3 text-sm">
+            API key saved successfully!
           </div>
         )}
 
-        <div className="flex">
-          <input
-            type="password"
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            placeholder="Enter OpenAI API Key..."
-            className="flex-grow p-2 border rounded-l text-sm"
-          />
-          <button
-            onClick={handleSaveApiKey}
-            disabled={isSaving || !apiKey}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-r text-sm disabled:opacity-50">
-            {isSaving ? 'Saving...' : 'Save'}
-          </button>
-        </div>
-
-        {savedApiKey && (
-          <button
-            onClick={handleClearApiKey}
-            disabled={isSaving}
-            className="text-xs text-red-500 hover:text-red-600 mt-2">
-            Clear API key
-          </button>
-        )}
-
-        {message.text && (
-          <p className={`text-xs mt-2 ${message.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-            {message.text}
+        <div className="text-xs text-gray-500 mt-2">
+          <p>
+            Your OpenAI API key is stored locally and only used to generate PR analysis.
+            <a
+              href="https://platform.openai.com/account/api-keys"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-500 hover:text-blue-700 ml-1">
+              Get your API key from OpenAI
+            </a>
           </p>
-        )}
-      </div>
+        </div>
+      </form>
     </div>
   );
 };

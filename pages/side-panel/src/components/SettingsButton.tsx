@@ -1,11 +1,18 @@
-// Settings button component
-const SettingsButton = ({ onClick }: { onClick: () => void }) => {
+import { useNavigation } from '../context/NavigationContext';
+
+interface SettingsButtonProps {
+  className?: string;
+}
+
+const SettingsButton: React.FC<SettingsButtonProps> = ({ className = '' }) => {
+  const { navigateToSettings } = useNavigation();
+
   return (
     <button
-      onClick={onClick}
-      className="fixed bottom-4 right-4 z-40 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg"
-      title="Settings">
-      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      onClick={navigateToSettings}
+      className={`text-gray-600 hover:text-gray-800 focus:outline-none ${className}`}
+      aria-label="Settings">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"

@@ -1,110 +1,29 @@
-import { useEffect, useState } from 'react';
-import '@src/SidePanel.css';
-import { withErrorBoundary, withSuspense } from '@extension/shared';
+import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigation } from '../context/NavigationContext';
+import { usePRData } from '../hooks/usePRData';
+import TokenSetupPrompt from '../components/TokenSetupPrompt';
+import OpenAIKeySettings from '../components/OpenAIKeySettings';
+import SettingsButton from '../components/SettingsButton';
 import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
-import OpenAIKeySettings from './components/OpenAIKeySettings';
-import TokenSetupPrompt from './components/TokenSetupPrompt';
-import SettingsPanel from './components/SettingsPanel';
-import SettingsButton from './components/SettingsButton';
-import FileChecklist from './components/FileChecklist';
-import PRAnalysis from './components/PRAnalysis';
-// Import the hooks and services
-import { usePRData, currentPageAtom, calculateReviewTime } from './hooks/usePRData';
-import { useAtom } from 'jotai';
+import { calculateReviewTime } from '../utils/prUtils';
+import PRAnalysis from '../components/PRAnalysis';
+import FileChecklist from '../components/FileChecklist';
 
-// Define the CurrentPage type for clarity
-type CurrentPage = {
-  url: string;
-};
-
-const SidePanel = () => {
-  const [currentPage, setCurrentPage] = useState<CurrentPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-
-  // Set up the atom for current page to be used by the hook
-  const [, setCurrentPageAtom] = useAtom(currentPageAtom);
-
-  useEffect(() => {
-    // Function to get current page information from storage
-    const getCurrentPage = async () => {
-      setLoading(true);
-      try {
-        const result = await chrome.storage.local.get('currentPage');
-        const page = result.currentPage || { isPRPage: false, url: '' };
-        setCurrentPage(page);
-        // Update the atom so our hook can use it
-        if (page && page.url) {
-          setCurrentPageAtom({ url: page.url });
-        }
-      } catch (error) {
-        console.error('Error getting current page:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Get initial state
-    getCurrentPage();
-
-    // Listen for storage changes
-    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-      console.log('Storage changes:', changes);
-      if (changes.currentPage) {
-        const newPage = changes.currentPage.newValue;
-        setCurrentPage(newPage);
-        // Update the atom so our hook can use it
-        if (newPage && newPage.url) {
-          setCurrentPageAtom({ url: newPage.url });
-        }
-      }
-    };
-
-    chrome.storage.onChanged.addListener(handleStorageChange);
-
-    // Cleanup listener
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
-  }, [setCurrentPageAtom]);
-
-  const isGitHubPRPage = (url: string) => {
-    const githubPRRegex = /https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+/;
-    return githubPRRegex.test(url);
-  };
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  return (
-    <>
-      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
-      <SettingsButton onClick={() => setShowSettings(true)} />
-
-      {!currentPage || !currentPage.url ? (
-        <DefaultView />
-      ) : isGitHubPRPage(currentPage.url) ? (
-        <GitHubPRView url={currentPage.url} />
-      ) : (
-        <DefaultView />
-      )}
-    </>
-  );
-};
-
-// Component for GitHub PR pages
-const GitHubPRView = ({ url }: { url: string }) => {
-  // Use the custom hook for PR data handling
-  const { prData, isLoading, error, analysisResult, saveAnalysisResult, refreshData } = usePRData();
-
+const GitHubPRView = () => {
+  const { owner, repo, prNumber } = useParams();
+  const { navigateToSettings, currentURL } = useNavigation();
   const [hasToken, setHasToken] = useState<boolean | null>(null);
-  // OpenAI API Key状態の追加
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
-  // 初期表示時にOpenAI APIキーの設定画面を表示するかどうか
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
 
-  // Check for tokens only once on load
+  // PRのURLを構築
+  const url = currentURL || `https://github.com/${owner}/${repo}/pull/${prNumber}`;
+
+  // 統合された状態管理フックを使用
+  const { prData, isLoading, error: prError, analysisResult, refreshData, saveAnalysisResult } = usePRData();
+
+  // トークンの確認
   useEffect(() => {
     const checkToken = async () => {
       const token = await githubTokenStorage.get();
@@ -116,15 +35,12 @@ const GitHubPRView = ({ url }: { url: string }) => {
       setHasOpenAIKey(!!key);
     };
 
-    // GitHub Tokenとともに OpenAI API Keyもチェック
     checkToken();
     checkOpenAIKey();
   }, []);
 
   // useEffect内でプロパティを設定
   useEffect(() => {
-    // GitHubトークンが設定されていて、OpenAIキーが設定されていない場合は
-    // 初回表示時にOpenAI設定プロンプトを表示する
     if (hasToken === true && hasOpenAIKey === false && !prData) {
       setShowOpenAISetup(true);
     }
@@ -132,7 +48,6 @@ const GitHubPRView = ({ url }: { url: string }) => {
 
   // OpenAI APIキー設定完了時のハンドラー
   const handleOpenAIKeySetupComplete = async () => {
-    // OpenAIキーが設定されたのでステートを更新
     setHasOpenAIKey(true);
     setShowOpenAISetup(false);
   };
@@ -151,7 +66,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
     refreshData();
   };
 
-  // チェックリスト変更時の処理
+  // チェックリスト変更時のハンドラー
   const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
     if (!prData || !analysisResult) return;
 
@@ -245,7 +160,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
     return <div className="flex items-center justify-center h-screen">Loading PR data...</div>;
   }
 
-  if (error) {
+  if (prError) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <p className="text-red-500 mb-4">Failed to load PR data</p>
@@ -268,8 +183,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
     );
   }
 
-  // 分析結果からレビュー時間を取得、または計算する
-  const reviewTime = analysisResult?.reviewTime || calculateReviewTime(prData);
+  const { reviewTime } = analysisResult || { reviewTime: calculateReviewTime(prData) };
 
   return (
     <div className="App bg-slate-50">
@@ -280,7 +194,7 @@ const GitHubPRView = ({ url }: { url: string }) => {
             Approved: {getApprovedFiles()} /{prData.files.length} files
           </span>
           <span>
-            Estimated review time: {reviewTime.minutes} minutes ({reviewTime.level})
+            Estimated review time: {reviewTime?.minutes || 0} minutes ({reviewTime?.level || 'quick'})
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -355,19 +269,4 @@ const GitHubPRView = ({ url }: { url: string }) => {
   );
 };
 
-// Component for non-GitHub PR pages
-const DefaultView = () => {
-  return (
-    <div className="App bg-slate-50">
-      <header className="App-header text-gray-900">
-        <h2>PR Checklistify</h2>
-        <p className="mb-4">Navigate to a GitHub PR to see the checklist.</p>
-        <p className="text-sm mb-3">
-          Edit <code>pages/side-panel/src/SidePanel.tsx</code> to customize.
-        </p>
-      </header>
-    </div>
-  );
-};
-
-export default withErrorBoundary(withSuspense(SidePanel, <div> Loading ... </div>), <div> Error Occur </div>);
+export default GitHubPRView;
