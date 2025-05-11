@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, languagePreferenceStorage } from '@extension/storage';
+import { extractPRInfo } from '../utils/prUtils';
 
 const SettingsView: React.FC = () => {
-  const { navigateToHome } = useNavigation();
+  const { navigateToHome, navigateToPR } = useNavigation();
   const [githubToken, setGithubToken] = useState('');
   const [hasToken, setHasToken] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState('en');
+  const [recentPRs, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
 
   // Load settings on mount
   useEffect(() => {
@@ -24,6 +26,13 @@ const SettingsView: React.FC = () => {
         const savedLanguage = await languagePreferenceStorage.get();
         if (savedLanguage) {
           setLanguage(savedLanguage);
+        }
+
+        // Load recent PRs
+        const result = await chrome.storage.local.get('recentPRs');
+        if (result.recentPRs && Array.isArray(result.recentPRs)) {
+          const sortedPRs = [...result.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
+          setRecentPRs(sortedPRs);
         }
       } catch (err) {
         console.error('Error loading settings:', err);
@@ -99,6 +108,15 @@ const SettingsView: React.FC = () => {
     } catch (err) {
       console.error('Error saving language preference:', err);
       setError('Failed to save language preference');
+    }
+  };
+
+  // PR navigation handler
+  const handlePRClick = (url: string) => {
+    const prInfo = extractPRInfo(url);
+    if (prInfo) {
+      const { owner, repo, prNumber } = prInfo;
+      navigateToPR(owner, repo, prNumber);
     }
   };
 
@@ -183,6 +201,33 @@ const SettingsView: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">OpenAI Integration</h2>
           <OpenAIKeySettings />
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Recent Pull Requests</h2>
+          {recentPRs.length > 0 ? (
+            <div>
+              <p className="text-sm text-gray-600 mb-3">
+                Select a PR to view its details and analysis. You can view any PR from this list, even when not on a PR
+                page.
+              </p>
+              <ul className="divide-y divide-gray-200">
+                {recentPRs.map((pr, index) => (
+                  <li key={index} className="py-2">
+                    <button
+                      onClick={() => handlePRClick(pr.url)}
+                      className="w-full text-left hover:bg-gray-50 p-2 rounded">
+                      <div className="text-sm font-medium text-blue-600 truncate">{pr.title}</div>
+                      <div className="text-xs text-gray-500 truncate">{pr.url}</div>
+                      <div className="text-xs text-gray-400 mt-1">{new Date(pr.timestamp).toLocaleString()}</div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No recent PRs found. Visit a GitHub PR to add it to this list.</p>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">

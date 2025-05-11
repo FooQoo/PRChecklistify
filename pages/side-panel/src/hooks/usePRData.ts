@@ -73,13 +73,18 @@ export const usePRData = () => {
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | undefined>(undefined);
 
-  // 現在のページURLからPRデータを取得
+  // 現在のページURLまたはルーターパラメータからPRデータを取得
   useEffect(() => {
     const loadPRData = async () => {
+      // No URL provided, nothing to load
       if (!currentPage?.url) return;
 
       const identifier = extractPRIdentifier(currentPage.url);
-      if (!identifier) return;
+      if (!identifier) {
+        // Not a PR URL, but we don't show an error - just don't load anything
+        console.log('Not a PR URL, skipping data loading:', currentPage.url);
+        return;
+      }
 
       setIsLoading(true);
       setError(null);
@@ -92,8 +97,10 @@ export const usePRData = () => {
           // 保存されたデータがある場合はそれを使用
           setPRData(savedData.data);
           setAnalysisResult(savedData.analysisResult);
+          console.log('Loaded PR data from storage:', currentPage.url);
         } else {
           // なければAPIから取得
+          console.log('Fetching PR data from API:', currentPage.url);
           const newData = await fetchPRData(identifier);
 
           if (newData) {

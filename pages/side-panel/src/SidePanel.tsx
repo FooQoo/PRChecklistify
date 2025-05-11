@@ -23,12 +23,11 @@ const SidePanel = () => {
       setLoading(true);
       try {
         const result = await chrome.storage.local.get('currentPage');
-        const page = result.currentPage || { isPRPage: false, url: '' };
+        const page = result.currentPage || { url: '' };
+
         setCurrentPage(page);
         // Update the atom so our hook can use it
-        if (page && page.url) {
-          setCurrentPageAtom({ url: page.url });
-        }
+        setCurrentPageAtom({ url: page.url });
       } catch (error) {
         console.error('Error getting current page:', error);
       } finally {
@@ -36,39 +35,36 @@ const SidePanel = () => {
       }
     };
 
-    // Get initial state
-    getCurrentPage();
-
-    // Listen for storage changes
+    // Listen for storage changes to update the current page
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-      console.log('Storage changes:', changes);
       if (changes.currentPage) {
         const newPage = changes.currentPage.newValue;
-        setCurrentPage(newPage);
-        // Update the atom so our hook can use it
-        if (newPage && newPage.url) {
+
+        if (newPage) {
+          setCurrentPage(newPage);
+          // Update the atom so our hook can use it
           setCurrentPageAtom({ url: newPage.url });
         }
       }
     };
 
+    // Initial fetch
+    getCurrentPage();
+
+    // Add storage listener
     chrome.storage.onChanged.addListener(handleStorageChange);
 
-    // Cleanup listener
+    // Clean up listener
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange);
     };
   }, [setCurrentPageAtom]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return <div>Loading...</div>;
   }
 
-  return (
-    <div className="main-container">
-      <AppRouter />
-    </div>
-  );
+  return <AppRouter />;
 };
 
-export default withErrorBoundary(withSuspense(SidePanel, <div> Loading ... </div>), <div> Error Occur </div>);
+export default withErrorBoundary(withSuspense(SidePanel, <div>Loading...</div>), <div>Error!</div>);

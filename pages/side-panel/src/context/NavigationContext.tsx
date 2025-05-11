@@ -85,8 +85,25 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   // ナビゲーション関数
   const navigateToPR = (owner: string, repo: string, prNumber: string) => {
     const url = `https://github.com/${owner}/${repo}/pull/${prNumber}`;
+
+    // Update the router first
     router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
+
+    // Then update the storage and state
     setCurrentURL(url);
+
+    // Store in Chrome storage with title for history tracking
+    chrome.storage.local
+      .set({
+        currentPage: {
+          url,
+          title: `${owner}/${repo}#${prNumber}`,
+          isPRPage: true,
+        },
+      })
+      .catch(error => {
+        console.error('Error setting current page:', error);
+      });
   };
 
   const navigateToSettings = () => {

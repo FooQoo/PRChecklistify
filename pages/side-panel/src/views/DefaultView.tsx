@@ -3,10 +3,11 @@ import { useNavigation } from '../context/NavigationContext';
 import { isGitHubPRPage, extractPRInfo } from '../utils/prUtils';
 
 const DefaultView: React.FC = () => {
-  const { navigateToPR } = useNavigation();
+  const { navigateToPR, navigateToSettings } = useNavigation();
   const [prUrl, setPrUrl] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [recentPRs, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
+  const [showAllRecent, setShowAllRecent] = useState(false);
 
   // 最近表示したPRの履歴を読み込む
   useEffect(() => {
@@ -16,7 +17,7 @@ const DefaultView: React.FC = () => {
         if (result.recentPRs && Array.isArray(result.recentPRs)) {
           // タイムスタンプで並べ替え（最新順）
           const sortedPRs = [...result.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
-          setRecentPRs(sortedPRs.slice(0, 5)); // 最大5件まで表示
+          setRecentPRs(sortedPRs);
         }
       } catch (error) {
         console.error('Error loading recent PRs:', error);
@@ -60,6 +61,10 @@ const DefaultView: React.FC = () => {
     }
   };
 
+  // 表示する最近のPR数を制御
+  const displayedPRs = showAllRecent ? recentPRs : recentPRs.slice(0, 5);
+  const hasMorePRs = recentPRs.length > 5;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-xl">
@@ -97,9 +102,17 @@ const DefaultView: React.FC = () => {
 
         {recentPRs.length > 0 && (
           <div>
-            <h2 className="text-md font-semibold mb-2">Recent Pull Requests</h2>
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-md font-semibold">Recent Pull Requests</h2>
+              <button onClick={() => navigateToSettings()} className="text-xs text-blue-500 hover:text-blue-700">
+                View All in Settings
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              You can view any PR from this list, even if you're not currently on that PR's page
+            </p>
             <ul className="divide-y divide-gray-200">
-              {recentPRs.map((pr, index) => (
+              {displayedPRs.map((pr, index) => (
                 <li key={index} className="py-2">
                   <button
                     onClick={() => handleRecentPRClick(pr.url)}
@@ -111,6 +124,20 @@ const DefaultView: React.FC = () => {
                 </li>
               ))}
             </ul>
+            {hasMorePRs && !showAllRecent && (
+              <button
+                onClick={() => setShowAllRecent(true)}
+                className="mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center">
+                Show All ({recentPRs.length})
+              </button>
+            )}
+            {showAllRecent && recentPRs.length > 5 && (
+              <button
+                onClick={() => setShowAllRecent(false)}
+                className="mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center">
+                Show Less
+              </button>
+            )}
           </div>
         )}
       </div>
