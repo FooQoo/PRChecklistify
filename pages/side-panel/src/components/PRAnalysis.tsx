@@ -86,49 +86,22 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
       {analysisResult ? (
         <div>
           <div className="pr-summary mb-4">
-            <h4 className="text-md font-semibold mb-2">Summary</h4>
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-gray-50 p-3 rounded-md text-left text-sm">
               <div className="mb-2">
-                <span className="font-medium">Background:</span> {analysisResult.summary.background}
+                <span className="font-medium">Background:</span>{' '}
+                <span className="font-normal">{analysisResult.summary.background}</span>
               </div>
               <div className="mb-2">
-                <span className="font-medium">Problem:</span> {analysisResult.summary.problem}
+                <span className="font-medium">Problem:</span>{' '}
+                <span className="font-normal">{analysisResult.summary.problem}</span>
               </div>
               <div className="mb-2">
-                <span className="font-medium">Solution:</span> {analysisResult.summary.solution}
+                <span className="font-medium">Solution:</span>{' '}
+                <span className="font-normal">{analysisResult.summary.solution}</span>
               </div>
               <div>
-                <span className="font-medium">Implementation:</span> {analysisResult.summary.implementation}
-              </div>
-            </div>
-          </div>
-
-          <div className="checklist-overview mb-4">
-            <h4 className="text-md font-semibold mb-2">Review Progress</h4>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gray-50 p-3 rounded-md text-center">
-                <div className="text-xl font-bold">{prData.files.length}</div>
-                <div className="text-xs text-gray-500">Total Files</div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-md text-center">
-                <div className="text-xl font-bold">
-                  {
-                    analysisResult.fileChecklists.filter(checklist =>
-                      checklist.checklistItems.some(item => item.status !== 'PENDING'),
-                    ).length
-                  }
-                </div>
-                <div className="text-xs text-gray-500">Files Reviewed</div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-md text-center">
-                <div className="text-xl font-bold">
-                  {
-                    analysisResult.fileChecklists.filter(checklist =>
-                      checklist.checklistItems.every(item => item.status === 'OK'),
-                    ).length
-                  }
-                </div>
-                <div className="text-xs text-gray-500">Files Approved</div>
+                <span className="font-medium">Implementation:</span>{' '}
+                <span className="font-normal">{analysisResult.summary.implementation}</span>
               </div>
             </div>
           </div>
