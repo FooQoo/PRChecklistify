@@ -97,32 +97,31 @@ const DefaultView: React.FC = () => {
               Go
             </button>
           </div>
-          {prUrl && !isValid && <p className="mt-1 text-sm text-red-600">Please enter a valid GitHub PR URL</p>}
+          {prUrl && !isValid && <p className="mt-1 text-sm text-red-500">Please enter a valid GitHub PR URL</p>}
         </div>
 
         {recentPRs.length > 0 && (
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-md font-semibold">Recent Pull Requests</h2>
-              <button onClick={() => navigateToSettings()} className="text-xs text-blue-500 hover:text-blue-700">
-                View All in Settings
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mb-3">
-              You can view any PR from this list, even if you're not currently on that PR's page
-            </p>
+          <div className="recent-prs mb-6">
+            <h2 className="text-lg font-semibold mb-2">Recent Pull Requests</h2>
             <ul className="divide-y divide-gray-200">
-              {displayedPRs.map((pr, index) => (
-                <li key={index} className="py-2">
-                  <button
-                    onClick={() => handleRecentPRClick(pr.url)}
-                    className="w-full text-left hover:bg-gray-50 p-2 rounded">
-                    <div className="text-sm font-medium text-blue-600 truncate">{pr.title}</div>
-                    <div className="text-xs text-gray-500 truncate">{pr.url}</div>
-                    <div className="text-xs text-gray-400 mt-1">{new Date(pr.timestamp).toLocaleString()}</div>
-                  </button>
-                </li>
-              ))}
+              {displayedPRs.map((pr, index) => {
+                // URLからリポジトリ所有者、リポジトリ名、PR番号を抽出
+                const prInfo = extractPRInfo(pr.url);
+                // 表示用のPR識別子を作成（PR番号まで）
+                const prIdentifier = prInfo ? `${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}` : pr.url;
+
+                return (
+                  <li key={index} className="py-2">
+                    <button
+                      onClick={() => handleRecentPRClick(pr.url)}
+                      className="w-full text-left hover:bg-gray-50 p-2 rounded">
+                      <div className="text-sm font-medium text-blue-600 truncate">{pr.title}</div>
+                      <div className="text-xs text-gray-500 truncate">{prIdentifier}</div>
+                      <div className="text-xs text-gray-400 mt-1">{new Date(pr.timestamp).toLocaleString()}</div>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
             {hasMorePRs && !showAllRecent && (
               <button
@@ -140,10 +139,6 @@ const DefaultView: React.FC = () => {
             )}
           </div>
         )}
-      </div>
-
-      <div className="mt-8 text-xs text-gray-500 text-center">
-        <p>PR Checklistify &copy; 2023</p>
       </div>
     </div>
   );

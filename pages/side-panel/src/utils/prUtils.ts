@@ -24,15 +24,28 @@ export const calculateReviewTime = (prData: PRData): number => {
 
 // GitHub PR URLかどうかを判定する関数
 export const isGitHubPRPage = (url: string): boolean => {
+  // PRが含まれているURLかどうかをチェック（パスが追加されていても対応）
   const githubPRRegex = /https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+/;
   return githubPRRegex.test(url);
 };
 
 // PRのURLからオーナー、リポジトリ、PR番号を抽出する関数
 export const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string } | null => {
-  const match = url.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-  if (!match) return null;
+  // PR番号までのURLを抽出（それ以降のパスは無視する）
+  const baseMatch = url.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+  if (!baseMatch) return null;
 
-  const [, owner, repo, prNumber] = match;
+  const [, owner, repo, prNumber] = baseMatch;
   return { owner, repo, prNumber };
+};
+
+/**
+ * 標準化されたPR URLを生成する（PR番号より後のパスを除去）
+ */
+export const normalizePRUrl = (url: string): string | null => {
+  const prInfo = extractPRInfo(url);
+  if (!prInfo) return null;
+
+  const { owner, repo, prNumber } = prInfo;
+  return `https://github.com/${owner}/${repo}/pull/${prNumber}`;
 };

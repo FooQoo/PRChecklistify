@@ -212,17 +212,24 @@ const SettingsView: React.FC = () => {
                 page.
               </p>
               <ul className="divide-y divide-gray-200">
-                {recentPRs.map((pr, index) => (
-                  <li key={index} className="py-2">
-                    <button
-                      onClick={() => handlePRClick(pr.url)}
-                      className="w-full text-left hover:bg-gray-50 p-2 rounded">
-                      <div className="text-sm font-medium text-blue-600 truncate">{pr.title}</div>
-                      <div className="text-xs text-gray-500 truncate">{pr.url}</div>
-                      <div className="text-xs text-gray-400 mt-1">{new Date(pr.timestamp).toLocaleString()}</div>
-                    </button>
-                  </li>
-                ))}
+                {recentPRs.map((pr, index) => {
+                  // URLからリポジトリ所有者、リポジトリ名、PR番号を抽出
+                  const prInfo = extractPRInfo(pr.url);
+                  // 表示用のPR識別子を作成（PR番号まで）
+                  const prIdentifier = prInfo ? `${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}` : pr.url;
+
+                  return (
+                    <li key={index} className="py-2">
+                      <button
+                        onClick={() => handlePRClick(pr.url)}
+                        className="w-full text-left hover:bg-gray-50 p-2 rounded">
+                        <div className="text-sm font-medium text-blue-600 truncate">{pr.title}</div>
+                        <div className="text-xs text-gray-500 truncate">{prIdentifier}</div>
+                        <div className="text-xs text-gray-400 mt-1">{new Date(pr.timestamp).toLocaleString()}</div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ) : (
