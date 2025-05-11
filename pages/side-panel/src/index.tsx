@@ -1,7 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import '@src/index.css';
 import SidePanel from '@src/SidePanel';
-import { NavigationProvider } from './context/NavigationContext';
 
 function init() {
   const appContainer = document.querySelector('#app-container');
@@ -9,11 +8,7 @@ function init() {
     throw new Error('Can not find #app-container');
   }
   const root = createRoot(appContainer);
-  root.render(
-    <NavigationProvider>
-      <SidePanel />
-    </NavigationProvider>,
-  );
+  root.render(<SidePanel />);
 }
 
 init();

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import type { PRData } from '../types';
-import { PRAnalysisResult } from '../types';
 import { usePRData } from '../hooks/usePRData';
 import { languagePreferenceStorage } from '@extension/storage';
 
@@ -9,8 +8,8 @@ interface PRAnalysisProps {
   url: string;
 }
 
-const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
-  const { analysisResult, updateAnalysisResult } = usePRData(url);
+const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData }) => {
+  const { analysisResult, updateAnalysisResult } = usePRData();
   const [generating, setGenerating] = useState(false);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);

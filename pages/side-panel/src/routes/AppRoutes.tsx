@@ -3,20 +3,27 @@ import DefaultView from '../views/DefaultView';
 import GitHubPRView from '../views/GitHubPRView';
 import SettingsView from '../views/SettingsView';
 import { NavigationProvider } from '../context/NavigationContext';
+import Layout from '../layouts/Layout';
 
 // ルート定義
 export const routes = [
   {
     path: '/',
-    element: <DefaultView />,
-  },
-  {
-    path: '/settings',
-    element: <SettingsView />,
-  },
-  {
-    path: '/pr/:owner/:repo/:prNumber',
-    element: <GitHubPRView />,
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: <DefaultView />,
+      },
+      {
+        path: 'settings',
+        element: <SettingsView />,
+      },
+      {
+        path: 'pr/:owner/:repo/:prNumber',
+        element: <GitHubPRView />,
+      },
+    ],
   },
 ];
 

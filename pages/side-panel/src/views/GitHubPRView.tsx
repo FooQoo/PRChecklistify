@@ -4,7 +4,6 @@ import { useNavigation } from '../context/NavigationContext';
 import { usePRData } from '../hooks/usePRData';
 import TokenSetupPrompt from '../components/TokenSetupPrompt';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
-import SettingsButton from '../components/SettingsButton';
 import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
 import { calculateReviewTime } from '../utils/prUtils';
 import PRAnalysis from '../components/PRAnalysis';
@@ -12,7 +11,7 @@ import FileChecklist from '../components/FileChecklist';
 
 const GitHubPRView = () => {
   const { owner, repo, prNumber } = useParams();
-  const { navigateToSettings, currentURL } = useNavigation();
+  const { currentURL } = useNavigation();
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
