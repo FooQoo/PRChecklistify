@@ -118,30 +118,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url }) => {
               </div>
             </div>
           </div>
-
-          {/* ファイルチェックリストのセクションを追加 */}
-          {analysisResult.fileChecklists && analysisResult.fileChecklists.length > 0 && (
-            <div className="file-checklists mt-4 text-left">
-              <h3 className="text-md font-bold mb-2">File Checklists</h3>
-              <div className="space-y-2">
-                {prData.files.map(file => {
-                  // 対応するファイルのチェックリストを検索
-                  const aiGeneratedChecklist = analysisResult.fileChecklists.find(
-                    checklist => checklist.filename === file.filename,
-                  );
-
-                  return (
-                    <FileChecklist
-                      key={file.filename}
-                      file={file}
-                      aiGeneratedChecklist={aiGeneratedChecklist}
-                      onChecklistChange={handleChecklistChange}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div className="bg-gray-50 p-4 rounded-md text-gray-500 text-center">
