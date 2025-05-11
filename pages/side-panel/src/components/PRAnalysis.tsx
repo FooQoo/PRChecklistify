@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
-import { usePRData } from '../hooks/usePRData';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/prDataService';
 import FileChecklist from './FileChecklist';

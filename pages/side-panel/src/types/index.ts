@@ -80,6 +80,7 @@ export interface ChecklistItem {
 export interface FileChecklist {
   id: string;
   filename: string;
+  explanation: string;
   checklistItems: ChecklistItem[];
 }
 

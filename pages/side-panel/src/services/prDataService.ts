@@ -273,20 +273,6 @@ export const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
 
 // Add SWR fetchers for use with useSWR
 export const fetchers = {
-  // Fetcher for PR data from GitHub API
-  fetchPR: async (key: string) => {
-    const url = key.split('pr/')[1];
-
-    // Try to load from storage first
-    const savedData = await prDataStorage.load(url);
-    if (savedData) {
-      return savedData;
-    }
-
-    // If no saved data, fetch from API
-    return fetchPRData(url);
-  },
-
   // Fetcher for generating OpenAI analysis
   generateAnalysis: async (key: string, prData: PRData, language: string) => {
     console.log('Generating OpenAI analysis with SWR:', key);
@@ -307,6 +293,7 @@ export const fetchers = {
             return {
               id: `file-${index}`, // 必須の id プロパティを追加
               filename: file.filename,
+              explanation: `Checklist for ${file.filename.split('/').pop()}`,
               checklistItems: [
                 {
                   id: `${index}-1`,
