@@ -1,5 +1,6 @@
 import OpenAIClient from '@extension/shared/lib/utils/openai';
 import type { PRData } from '@src/types';
+import { createOpenAIClient } from './openai';
 
 // Add SWR fetchers for use with useSWR
 
@@ -61,11 +62,11 @@ export const fetchers = {
       }
 
       // OpenAIクライアントを取得
-      const client = new OpenAIClient({
-        apiKey: await chrome.storage.local.get('openaiApiKey').then(result => result.openaiApiKey),
-        apiEndpoint: 'https://api.example.com/v2/',
-        model: 'gpt-4o',
-      });
+      const client = await createOpenAIClient();
+
+      if (!client) {
+        throw new Error('Failed to create OpenAI client');
+      }
 
       // OpenAIを使用してPRを分析
       const analysisResult = await client.analyzePR(prData, language);

@@ -241,7 +241,7 @@ export const createOpenAIClient = async (): Promise<OpenAIClient | null> => {
 
   return new OpenAIClient({
     apiKey,
-    model: 'gpt-4-turbo',
+    model: 'gpt-4o',
   });
 };
 
