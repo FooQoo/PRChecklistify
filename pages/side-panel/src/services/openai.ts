@@ -62,25 +62,41 @@ ${file.patch ? `Patch:\n${file.patch}` : 'No patch available'}
 
     // Construct the full prompt with language instruction
     return `
-Analyze this pull request and provide your response in ${outputLanguage}. Include:
+Analyze this pull request and provide your response in Japanese. Include:
+Do not omit or summarize any file. Include all changed files in the output.
+
 1. (Must Require) A summary of the PR, including:
-   - Background
-   - Problem being solved
-   - Solution approach
-   - Implementation details
+   * Background
+   * Problem being solved
+   * Solution approach
+   * Implementation details
 
-2. (Must Require) For each changed file, create a explanation of the changes, focusing on:
-   - Why the changes were made
-   - How they relate to the overall PR
-   - Any specific areas of concern or interest
-   - Any additional context that would help in the review
+2. (Must Require) For each changed file, create an explanation of the changes, focusing on:
+   * Why the changes were made
+   * How they relate to the overall PR
+   * Any specific areas of concern or interest
+   * Any additional context that would help in the review
 
-2. (Optional) For each changed file, create a checklist of specific items to review, focusing on:
-   - Code correctness
-   - Best practices
-   - Potential bugs
-   - Performance concerns
-   - Security implications
+3. (Optional) For each changed file, create a checklist of specific items to review, focusing on:
+   * Code correctness
+   * Best practices
+   * Potential bugs
+   * Performance concerns
+   * Security implications
+
+### Additional instructions for file analysis:
+
+* **All changed files must be included** in the fileAnalysis output. Do not omit any file.
+* For **core logic files, UI components, hooks, and tests**, generate detailed checklist items with status: "PENDING".
+* For **mock data files, slice files, and type definition files**, generate only one checklist item with:
+
+  * description: "Ensure consistency with updated specifications."
+  * status: "OK"
+* For **dist and other build artifacts**, generate only one checklist item with:
+
+  * description: "Build artifact - review not required."
+  * status: "OK"
+* Provide a meaningful explanation for every file, even for mocks and dist files, summarizing why they changed and their role in the PR.
 
 PR Title: ${title}
 PR Description: ${body}
