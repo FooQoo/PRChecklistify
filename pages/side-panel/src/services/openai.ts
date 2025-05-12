@@ -32,7 +32,7 @@ class OpenAIClient {
       console.log(`Using language for analysis: ${language}`);
       const prompt = this.buildPRAnalysisPrompt(prData, language);
       const response = await this.callOpenAI(prompt);
-      return this.parseAnalysisResponse(response);
+      return this.parseAnalysisResponse(prompt, response);
     } catch (error) {
       console.error('Error analyzing PR with OpenAI:', error);
       throw new Error('Failed to analyze PR with OpenAI');
@@ -150,7 +150,7 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
   /**
    * Parse the OpenAI response into a structured format
    */
-  private parseAnalysisResponse(responseText: string): PRAnalysisResult {
+  private parseAnalysisResponse(prompt: string, responseText: string): PRAnalysisResult {
     try {
       // Parse the JSON response
       const parsedResponse = JSON.parse(responseText);
@@ -168,6 +168,7 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
       return {
         summary: parsedResponse.summary,
         fileAnalysis: fileAnalysis,
+        prompt: prompt + '\n\nResponse:\n' + responseText,
       };
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);

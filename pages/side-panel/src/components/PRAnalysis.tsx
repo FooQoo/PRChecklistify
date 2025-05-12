@@ -15,6 +15,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
   const [generating, setGenerating] = useState(false);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
   // 言語設定を読み込む
   useEffect(() => {
@@ -80,11 +81,29 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
     // 更新後の分析結果オブジェクトを作成
     const updatedAnalysisResult = {
       ...analysisResult,
-      fileChecklists: updatedFileChecklists,
+      fileAnalysis: updatedFileChecklists,
     };
 
     // 分析結果を更新
     saveAnalysisResult(updatedAnalysisResult);
+  };
+
+  // プロンプトをクリップボードにコピーする関数
+  const copyPromptToClipboard = async () => {
+    if (!analysisResult?.prompt) return;
+
+    try {
+      await navigator.clipboard.writeText(analysisResult.prompt);
+      setCopySuccess(true);
+
+      // 3秒後にコピー成功表示を消す
+      setTimeout(() => {
+        setCopySuccess(false);
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to copy prompt to clipboard:', err);
+      setError('クリップボードへのコピーに失敗しました。');
+    }
   };
 
   return (
@@ -147,6 +166,30 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
             {generating
               ? 'Analyzing your PR. This may take a moment...'
               : "Click 'Generate Analysis' to get AI-powered insights about this PR."}
+          </div>
+        )}
+
+        {/* プロンプトコピーボタン */}
+        {analysisResult?.prompt && (
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={copyPromptToClipboard}
+              className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-sm flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                />
+              </svg>
+              {copySuccess ? 'コピーしました！' : 'プロンプトをコピー'}
+            </button>
           </div>
         )}
       </div>

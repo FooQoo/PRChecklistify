@@ -94,4 +94,5 @@ export interface PRAnalysisSummary {
 export interface PRAnalysisResult {
   summary: PRAnalysisSummary;
   fileAnalysis: FileChecklist[];
+  prompt: string;
 }
