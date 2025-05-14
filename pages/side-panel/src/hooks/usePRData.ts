@@ -72,9 +72,15 @@ export const usePRData = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | undefined>(undefined);
+  const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
+  const [isJustCompleted, setIsJustCompleted] = useState(false);
 
   // 現在のページURLまたはルーターパラメータからPRデータを取得
   useEffect(() => {
+    // URL変更時に状態をリセット
+    setPreviousApprovalPercentage(null);
+    setIsJustCompleted(false);
+
     const loadPRData = async () => {
       // No URL provided, nothing to load
       if (!currentPage?.url) return;
@@ -163,6 +169,21 @@ export const usePRData = () => {
     }
   };
 
+  // 現在の承認状態を計算
+  const approvedFilesCount = prData && analysisResult ? getApprovedFiles(prData, analysisResult) : 0;
+
+  const currentApprovalPercentage = prData && analysisResult ? getApprovalPercentage(prData, analysisResult) : null;
+
+  // 承認率の変化を監視し、完了状態を検出する
+  useEffect(() => {
+    if (currentApprovalPercentage === 100 && previousApprovalPercentage !== null && previousApprovalPercentage < 100) {
+      setIsJustCompleted(true);
+    } else if (currentApprovalPercentage !== previousApprovalPercentage) {
+      setIsJustCompleted(false);
+      setPreviousApprovalPercentage(currentApprovalPercentage);
+    }
+  }, [currentApprovalPercentage, previousApprovalPercentage]);
+
   return {
     prData,
     isLoading,
@@ -171,7 +192,31 @@ export const usePRData = () => {
     saveAnalysisResult,
     refreshData,
     currentPage,
+    // 新しく追加した承認関連の状態と機能
+    approvedFilesCount,
+    currentApprovalPercentage,
+    isJustCompleted,
   };
+};
+
+// ファイルごとの承認状況と承認率を計算するユーティリティ関数群
+const getApprovedFiles = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number => {
+  if (!prData || !analysisResult) return 0;
+
+  return prData.files.filter(file => {
+    const fileChecklist = analysisResult.fileAnalysis.find(checklist => checklist.filename === file.filename);
+
+    if (!fileChecklist) return false;
+
+    // すべてのチェックリストアイテムが'OK'になっているか確認
+    return fileChecklist.checklistItems.every(item => item.status === 'OK');
+  }).length;
+};
+
+// 承認率を計算するユーティリティ関数 (0-100%)
+const getApprovalPercentage = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number | null => {
+  if (!prData || prData.files.length === 0) return null;
+  return (getApprovedFiles(prData, analysisResult) / prData.files.length) * 100;
 };
 
 // レビュー時間を計算するユーティリティ関数

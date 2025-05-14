@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import { usePRData } from '../hooks/usePRData';
 import TokenSetupPrompt from '../components/TokenSetupPrompt';
@@ -15,8 +15,6 @@ const GitHubPRView = () => {
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
-  const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
-  const [showCompleteMessage, setShowCompleteMessage] = useState(false);
   const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
     elementCount: 200,
     elementSize: 10,
@@ -27,7 +25,17 @@ const GitHubPRView = () => {
   const url = currentURL || `https://github.com/${owner}/${repo}/pull/${prNumber}`;
 
   // 統合された状態管理フックを使用
-  const { prData, isLoading, error: prError, analysisResult, saveAnalysisResult, refreshData } = usePRData();
+  const {
+    prData,
+    isLoading,
+    error: prError,
+    analysisResult,
+    saveAnalysisResult,
+    refreshData,
+    currentApprovalPercentage,
+    approvedFilesCount,
+    isJustCompleted,
+  } = usePRData();
 
   // トークンの確認
   useEffect(() => {
@@ -58,39 +66,12 @@ const GitHubPRView = () => {
     setShowOpenAISetup(false);
   };
 
-  // ファイルごとの承認状況を計算する関数
-  const getApprovedFiles = useCallback(() => {
-    if (!prData || !analysisResult) return 0;
-
-    return prData.files.filter(file => {
-      const fileChecklist = analysisResult.fileAnalysis.find(checklist => checklist.filename === file.filename);
-
-      if (!fileChecklist) return false;
-
-      // すべてのチェックリストアイテムが'OK'になっているか確認
-      return fileChecklist.checklistItems.every(item => item.status === 'OK');
-    }).length;
-  }, [prData, analysisResult]);
-
-  // 承認率を計算する関数 (0-100%)
-  const getApprovalPercentage = useCallback(() => {
-    if (!prData || prData.files.length === 0) return null;
-    return (getApprovedFiles() / prData.files.length) * 100;
-  }, [prData, getApprovedFiles]);
-
-  const currentApprovalPercentage = getApprovalPercentage();
-
-  // 承認率が変化したときのエフェクト
+  // 完了時の紙吹雪エフェクトとメッセージ表示
   useEffect(() => {
-    // 承認率が100%に達したときに紙吹雪アニメーションをトリガー
-    if (currentApprovalPercentage === 100 && previousApprovalPercentage !== null && previousApprovalPercentage < 100) {
+    if (isJustCompleted) {
       confettiReward();
-      setShowCompleteMessage(true); // 追加: 完了メッセージを表示
-    } else {
-      setShowCompleteMessage(false); // 追加: 完了メッセージを非表示
-      setPreviousApprovalPercentage(currentApprovalPercentage);
     }
-  }, [currentApprovalPercentage, previousApprovalPercentage, confettiReward]);
+  }, [isJustCompleted, confettiReward]);
 
   if (hasToken === null) {
     return <div className="flex items-center justify-center h-screen">Checking configuration...</div>;
@@ -167,7 +148,7 @@ const GitHubPRView = () => {
       <span id="confettiReward" className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" />
 
       {/* 完了メッセージの大きなアニメーション表示 */}
-      {showCompleteMessage && (
+      {isJustCompleted && (
         <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-40 pointer-events-none">
           <div className="complete-text text-6xl font-bold text-green-600 animate-fade-in-up animate-pulse-effect">
             COMPLETE
@@ -179,7 +160,7 @@ const GitHubPRView = () => {
         <h4 className="font-bold mb-1">Review Progress:</h4>
         <div className="flex justify-between mb-1 text-sm">
           <span>
-            Approved: {getApprovedFiles()} /{prData.files.length} files
+            Approved: {approvedFilesCount} /{prData.files.length} files
           </span>
           <span>Estimated review time: {reviewTime || 0} hours</span>
         </div>
@@ -187,7 +168,7 @@ const GitHubPRView = () => {
           <div
             className="bg-green-600 h-2.5 rounded-full"
             style={{
-              width: `${getApprovalPercentage()}%`,
+              width: `${currentApprovalPercentage || 0}%`,
             }}></div>
         </div>
       </div>
@@ -227,7 +208,7 @@ const GitHubPRView = () => {
           />
 
           {/* 追加: 完了メッセージの表示 */}
-          {showCompleteMessage && (
+          {isJustCompleted && (
             <div className="complete-message p-4 mb-4 rounded bg-green-100 text-green-800">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

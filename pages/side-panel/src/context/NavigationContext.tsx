@@ -45,8 +45,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
           if (prInfo) {
             router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
-          } else {
-            router.navigate('/');
           }
         }
       } catch (error) {
@@ -68,8 +66,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
           const prInfo = extractPRInfoFromURL(newURL);
           if (prInfo) {
             router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
-          } else {
-            router.navigate('/');
           }
         }
       }
