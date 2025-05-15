@@ -17,6 +17,7 @@ interface FileChatModalProps {
     opts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
   ) => Promise<void>;
   onApprove: () => void;
+  onResetChat?: () => void;
   status: null;
 }
 
@@ -27,15 +28,28 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   chatHistory,
   onSendMessage,
   onApprove,
+  onResetChat,
 }) => {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamedMessage, setStreamedMessage] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // ローカルでリセット機能を処理する
+  const handleResetChat = () => {
+    if (onResetChat) {
+      // 親コンポーネントから提供されたリセット関数を使用
+      onResetChat();
+    } else {
+      // 親コンポーネントから関数が提供されていない場合、何もしない
+      // ここに追加のロジックを入れることも可能
+      console.log('チャット履歴のリセットが要求されましたが、onResetChat関数が提供されていません');
+    }
+  };
+
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 relative flex flex-col">
         <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={onClose}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -54,21 +68,44 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
         <div className="space-y-4 flex-1 flex flex-col min-h-0">
           {/* チャット履歴 */}
           <div className="rounded-md border border-gray-200 overflow-hidden flex-1 flex flex-col min-h-0">
-            <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                />
-              </svg>
-              レビューディスカッション
+            <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 flex items-center justify-between">
+              <div className="flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                  />
+                </svg>
+                レビューディスカッション
+              </div>
+              {chatHistory.length > 0 && (
+                <button
+                  onClick={handleResetChat}
+                  className="text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 rounded px-2 py-1 flex items-center"
+                  title="ディスカッションをリセット">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3.5 w-3.5 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  リセット
+                </button>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto p-3 bg-white min-h-0">
               {chatHistory.length === 0 ? (

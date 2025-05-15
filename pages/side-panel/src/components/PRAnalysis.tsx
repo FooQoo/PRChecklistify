@@ -235,6 +235,13 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                       diff={file.patch || ''}
                       aiAnalysis={aiGeneratedChecklist}
                       chatHistory={chatHistories[file.filename] || []}
+                      onResetChat={() => {
+                        // ファイルのチャット履歴をリセット
+                        setChatHistories(prev => ({
+                          ...prev,
+                          [file.filename]: [],
+                        }));
+                      }}
                       onSendMessage={async (
                         msg: string,
                         streamOpts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
