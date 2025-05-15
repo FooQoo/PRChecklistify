@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import type { PRFile } from '../types';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface FileChatModalProps {
   open: boolean;
@@ -135,7 +136,11 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       <div className="font-semibold text-xs mb-1">
                         {chat.sender === 'You' ? 'あなた' : 'AI レビュアー'}
                       </div>
-                      <div className="text-left whitespace-pre-wrap">{chat.message}</div>
+                      {chat.sender === 'You' ? (
+                        <div className="text-left whitespace-pre-wrap">{chat.message}</div>
+                      ) : (
+                        <MarkdownRenderer content={chat.message} />
+                      )}
                     </div>
                   </div>
                 ))
@@ -144,15 +149,17 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 <div className="mb-3">
                   <div className="inline-block max-w-[85%] rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800">
                     <div className="font-semibold text-xs mb-1">AI レビュアー</div>
-                    <div className="whitespace-pre-wrap">
-                      {streamedMessage}
-                      <span className="ml-1 inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                      <span
-                        className="ml-1 inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"
-                        style={{ animationDelay: '0.2s' }}></span>
-                      <span
-                        className="ml-1 inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"
-                        style={{ animationDelay: '0.4s' }}></span>
+                    <div className="relative">
+                      <MarkdownRenderer content={streamedMessage} />
+                      <div className="mt-1">
+                        <span className="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                        <span
+                          className="ml-1 inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                          style={{ animationDelay: '0.2s' }}></span>
+                        <span
+                          className="ml-1 inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                          style={{ animationDelay: '0.4s' }}></span>
+                      </div>
                     </div>
                   </div>
                 </div>
