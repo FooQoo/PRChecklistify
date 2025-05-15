@@ -5,6 +5,8 @@ interface FileChecklistProps {
   file: PRData['files'][0];
   onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
   aiGeneratedChecklist?: FileChecklistType;
+  onOpenChat?: () => void;
+  fileStatus?: 'APPROVED' | 'PENDING' | null;
 }
 
 // チェックリスト項目コンポーネント
@@ -57,7 +59,13 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
   );
 };
 
-const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileChecklistProps) => {
+const FileChecklist = ({
+  file,
+  onChecklistChange,
+  aiGeneratedChecklist,
+  onOpenChat,
+  fileStatus,
+}: FileChecklistProps) => {
   // AI生成されたチェックリストに基づいて動的オブジェクトを準備
   const initializeChecklistItems = useCallback(() => {
     // AIによって生成されたチェックリストが利用可能な場合、そのアイテムを含むオブジェクトを作成
@@ -398,6 +406,39 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist }: FileCh
                 {renderGitHubStyleDiff(file.patch)}
               </div>
             )}
+
+            {/* チャットボタンとステータス表示を追加 */}
+            <div className="flex items-center gap-2 mt-4">
+              {onOpenChat && (
+                <button
+                  className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm flex items-center"
+                  onClick={e => {
+                    e.stopPropagation(); // 親要素へのイベント伝播を防止
+                    onOpenChat();
+                  }}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                  チャット
+                </button>
+              )}
+              {fileStatus && (
+                <span
+                  className={`text-xs font-bold ${fileStatus === 'APPROVED' ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {fileStatus}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}
