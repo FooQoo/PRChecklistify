@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* マークダウンスタイル */
+@layer components {
+  .markdown-body {
+    @apply text-gray-800 leading-normal break-words;
+  }
+
+  .markdown-body img {
+    @apply max-w-full h-auto my-4;
+  }
+
+  .markdown-body code {
+    @apply font-mono text-sm;
+  }
+
+  /* シンタックスハイライトのためのダークモードサポート */
+  .markdown-body .dark code {
+    @apply bg-gray-900 text-gray-100;
+  }
+}
+
 /* カスタムアニメーション */
 @keyframes fadeInUp {
   from {
