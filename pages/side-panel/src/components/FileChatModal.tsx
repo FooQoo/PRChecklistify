@@ -167,20 +167,21 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
             </div>
           </div>
 
-          {/* メッセージ入力 */}
-          <div className="relative border rounded-md overflow-hidden mt-2">
+          {/* メッセージ入力 - ChatGPTライクデザイン (テキストサイズ縮小・一体化デザイン) */}
+          <div className="relative mt-2 border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden flex items-end">
             <textarea
-              className="w-full px-3 py-2 border-0 focus:ring-0 resize-none"
-              rows={2}
+              className="w-full px-3 py-2 border-0 focus:ring-0 resize-none text-gray-800 min-h-[36px] max-h-[150px] outline-none text-sm flex-grow"
+              rows={1}
               value={input}
               onChange={e => setInput(e.target.value)}
               placeholder="メッセージを入力してください..."
               disabled={streaming}
+              style={{ height: 'auto' }} // 高さを自動調整
             />
-            <div className="absolute right-2 bottom-2 flex gap-2">
+            <div className="px-2 py-1 flex justify-end items-center">
               {streaming && (
                 <button
-                  className="inline-flex items-center rounded-md bg-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="inline-flex items-center rounded-full bg-red-100 p-1.5 text-xs font-medium text-red-600 hover:bg-red-200 focus:outline-none transition duration-150 mr-2"
                   onClick={() => {
                     abortControllerRef.current?.abort();
                     setStreaming(false);
@@ -188,17 +189,21 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                   }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1"
+                    className="h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  停止
                 </button>
               )}
               <button
-                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm flex items-center"
+                className={`rounded-full p-1.5 transition duration-150 flex items-center justify-center ${
+                  !input.trim() || streaming
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+                disabled={!input.trim() || streaming}
                 onClick={async () => {
                   if (!input.trim() || streaming) return;
                   setStreaming(true);
@@ -215,18 +220,12 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 }}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
+                  className="h-4 w-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                 </svg>
-                送信
               </button>
             </div>
           </div>
