@@ -17,6 +17,14 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
+  const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('pr_file_chat_histories');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
 
   // 言語設定を読み込む
   useEffect(() => {
@@ -29,6 +37,11 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
 
     loadLanguage();
   }, []);
+
+  // チャット履歴をローカルストレージに保存
+  useEffect(() => {
+    localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
+  }, [chatHistories]);
 
   // AI分析を生成する
   const generateAnalysis = async () => {
@@ -106,20 +119,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
       setError('クリップボードへのコピーに失敗しました。');
     }
   };
-
-  // --- 追加: チャット管理 ---
-  const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
-  const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pr_file_chat_histories');
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
-  useEffect(() => {
-    localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
-  }, [chatHistories]);
-  // --- ここまで追加 ---
 
   return (
     <>
@@ -265,7 +264,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                             ...prev,
                             [file.filename]: [...(prev[file.filename] || []), { sender: 'AI', message: aiMsg }],
                           }));
-                        } catch (_err) {
+                        } catch {
+                          // エラーは無視する
                           setChatHistories(prev => ({
                             ...prev,
                             [file.filename]: [
