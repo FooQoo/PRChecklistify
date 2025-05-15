@@ -5,6 +5,12 @@ interface FileChatModalProps {
   open: boolean;
   onClose: () => void;
   file: PRFile;
+  diff?: string;
+  aiAnalysis?: {
+    filename: string;
+    explanation: string;
+    checklistItems: { id: string; description: string; status: string }[];
+  };
   chatHistory: { sender: string; message: string }[];
   onSendMessage: (
     msg: string,
@@ -132,7 +138,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
             <div className="absolute right-2 bottom-2 flex gap-2">
               {streaming && (
                 <button
-                  className="inline-flex items-center rounded-md bg-gray-200 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="inline-flex items-center rounded-md bg-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                   onClick={() => {
                     abortControllerRef.current?.abort();
                     setStreaming(false);
@@ -150,7 +156,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 </button>
               )}
               <button
-                className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm flex items-center"
                 onClick={async () => {
                   if (!input.trim() || streaming) return;
                   setStreaming(true);
@@ -187,7 +193,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
         {/* APPROVED/PENDING ボタン */}
         <div className="flex justify-end mt-6 gap-2 pt-4 border-t">
           <button
-            className="inline-flex items-center rounded-md bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md text-sm flex items-center"
             onClick={onPending}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -205,7 +211,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
             PENDING
           </button>
           <button
-            className="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm flex items-center"
             onClick={onApprove}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
