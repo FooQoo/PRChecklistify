@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
+import type { ChecklistItemStatus, PRAnalysisResult, PRData, PRFile } from '../types';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
 import FileChecklist from './FileChecklist';
+import FileChatModal from './FileChatModal';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -106,6 +107,30 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
     }
   };
 
+  // --- 追加: チャット・承認/PENDING状態管理 ---
+  const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
+  const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('pr_file_chat_histories');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
+  const [fileStatuses, setFileStatuses] = useState<Record<string, 'APPROVED' | 'PENDING' | null>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('pr_file_statuses');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
+  useEffect(() => {
+    localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
+  }, [chatHistories]);
+  useEffect(() => {
+    localStorage.setItem('pr_file_statuses', JSON.stringify(fileStatuses));
+  }, [fileStatuses]);
+  // --- ここまで追加 ---
+
   return (
     <>
       <div className="pr-analysis p-4 border border-gray-300 rounded-md mb-4 bg-white shadow-sm">
@@ -202,18 +227,83 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
 
             <div className="detailed-checklists">
               {prData.files.map((file, index) => {
-                // Find AI-generated checklist for this file if available
                 const aiGeneratedChecklist = analysisResult?.fileAnalysis.find(
                   checklist => checklist.filename === file.filename,
                 );
-
+                const status = fileStatuses[file.filename] || null;
                 return (
-                  <FileChecklist
-                    key={index}
-                    file={file}
-                    onChecklistChange={handleChecklistChange}
-                    aiGeneratedChecklist={aiGeneratedChecklist}
-                  />
+                  <div key={index} className="mb-2">
+                    <FileChecklist
+                      file={file}
+                      onChecklistChange={handleChecklistChange}
+                      aiGeneratedChecklist={aiGeneratedChecklist}
+                    />
+                    <div className="flex items-center gap-2 mt-1">
+                      <button
+                        className="ml-2 px-2 py-1 bg-indigo-500 text-white rounded text-xs"
+                        onClick={() => setChatModalOpen(file.filename)}>
+                        チャット
+                      </button>
+                      {status && (
+                        <span
+                          className={`text-xs font-bold ${status === 'APPROVED' ? 'text-green-600' : 'text-yellow-600'}`}>
+                          {status}
+                        </span>
+                      )}
+                    </div>
+                    <FileChatModal
+                      open={chatModalOpen === file.filename}
+                      onClose={() => setChatModalOpen(null)}
+                      file={file}
+                      diff={file.patch || ''}
+                      aiAnalysis={aiGeneratedChecklist}
+                      chatHistory={chatHistories[file.filename] || []}
+                      onSendMessage={async (
+                        msg: string,
+                        streamOpts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
+                      ) => {
+                        setChatHistories(prev => ({
+                          ...prev,
+                          [file.filename]: [...(prev[file.filename] || []), { sender: 'You', message: msg }],
+                        }));
+                        let aiMsg = '';
+                        try {
+                          await fetchers.fileChatStream(
+                            file as PRFile,
+                            [...(chatHistories[file.filename] || []), { sender: 'You', message: msg }],
+                            (token: string) => {
+                              aiMsg += token;
+                              if (streamOpts?.onToken) streamOpts.onToken(token);
+                            },
+                            { signal: streamOpts?.signal },
+                          );
+                          setChatHistories(prev => ({
+                            ...prev,
+                            [file.filename]: [...(prev[file.filename] || []), { sender: 'AI', message: aiMsg }],
+                          }));
+                        } catch (_err) {
+                          setChatHistories(prev => ({
+                            ...prev,
+                            [file.filename]: [
+                              ...(prev[file.filename] || []),
+                              { sender: 'AI', message: aiMsg || '（AI応答が中断されました）' },
+                            ],
+                          }));
+                        } finally {
+                          if (streamOpts?.onDone) streamOpts.onDone();
+                        }
+                      }}
+                      onApprove={() => {
+                        setFileStatuses(prev => ({ ...prev, [file.filename]: 'APPROVED' }));
+                        setChatModalOpen(null);
+                      }}
+                      onPending={() => {
+                        setFileStatuses(prev => ({ ...prev, [file.filename]: 'PENDING' }));
+                        setChatModalOpen(null);
+                      }}
+                      status={status}
+                    />
+                  </div>
                 );
               })}
             </div>

@@ -164,6 +164,35 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
   }
 
   /**
+   * Stream chat completion from OpenAI (for real-time chat UI)
+   */
+  async streamChatCompletion(
+    messages: { role: 'user' | 'system' | 'assistant'; content: string }[],
+    onToken: (token: string) => void,
+    options?: { signal?: AbortSignal },
+  ): Promise<void> {
+    try {
+      const response = await this.client.chat.completions.create(
+        {
+          model: this.model,
+          messages,
+          temperature: 0.3,
+          stream: true,
+          response_format: { type: 'text' }, // JSONでなくtextで返す
+        },
+        { signal: options?.signal },
+      );
+      for await (const chunk of response) {
+        const delta = chunk.choices?.[0]?.delta?.content;
+        if (delta) onToken(delta);
+      }
+    } catch (error) {
+      console.error('Error streaming OpenAI chat completion:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Parse the OpenAI response into a structured format
    */
   private parseAnalysisResponse(prompt: string, responseText: string): PRAnalysisResult {
