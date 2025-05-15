@@ -17,8 +17,7 @@ interface FileChatModalProps {
     opts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
   ) => Promise<void>;
   onApprove: () => void;
-  onPending: () => void;
-  status: 'APPROVED' | 'PENDING' | null;
+  status: null;
 }
 
 const FileChatModal: React.FC<FileChatModalProps> = ({
@@ -28,7 +27,6 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   chatHistory,
   onSendMessage,
   onApprove,
-  onPending,
 }) => {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -190,26 +188,8 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
           </div>
         </div>
 
-        {/* APPROVED/PENDING ボタン */}
+        {/* APPROVED ボタン */}
         <div className="flex justify-end mt-6 gap-2 pt-4 border-t">
-          <button
-            className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md text-sm flex items-center"
-            onClick={onPending}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            PENDING
-          </button>
           <button
             className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm flex items-center"
             onClick={onApprove}>
@@ -221,7 +201,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
               stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            APPROVED
+            チェックリストをすべてOKにして承認
           </button>
         </div>
       </div>

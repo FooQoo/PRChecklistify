@@ -107,7 +107,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
     }
   };
 
-  // --- 追加: チャット・承認/PENDING状態管理 ---
+  // --- 追加: チャット管理 ---
   const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
   const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
     if (typeof window !== 'undefined') {
@@ -116,19 +116,9 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
     }
     return {};
   });
-  const [fileStatuses, setFileStatuses] = useState<Record<string, 'APPROVED' | 'PENDING' | null>>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pr_file_statuses');
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
   useEffect(() => {
     localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
   }, [chatHistories]);
-  useEffect(() => {
-    localStorage.setItem('pr_file_statuses', JSON.stringify(fileStatuses));
-  }, [fileStatuses]);
   // --- ここまで追加 ---
 
   return (
@@ -230,7 +220,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                 const aiGeneratedChecklist = analysisResult?.fileAnalysis.find(
                   checklist => checklist.filename === file.filename,
                 );
-                const status = fileStatuses[file.filename] || null;
                 return (
                   <div key={index} className="mb-2">
                     <FileChecklist
@@ -238,7 +227,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                       onChecklistChange={handleChecklistChange}
                       aiGeneratedChecklist={aiGeneratedChecklist}
                       onOpenChat={() => setChatModalOpen(file.filename)}
-                      fileStatus={fileStatuses[file.filename] || null}
                     />
                     <FileChatModal
                       open={chatModalOpen === file.filename}
@@ -283,14 +271,17 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                         }
                       }}
                       onApprove={() => {
-                        setFileStatuses(prev => ({ ...prev, [file.filename]: 'APPROVED' }));
+                        // チェックリストをすべてOKにする
+                        if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
+                          const allOkItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+                          aiGeneratedChecklist.checklistItems.forEach((_, index) => {
+                            allOkItems[`item_${index}`] = 'OK';
+                          });
+                          handleChecklistChange(file.filename, allOkItems);
+                        }
                         setChatModalOpen(null);
                       }}
-                      onPending={() => {
-                        setFileStatuses(prev => ({ ...prev, [file.filename]: 'PENDING' }));
-                        setChatModalOpen(null);
-                      }}
-                      status={status}
+                      status={null}
                     />
                   </div>
                 );

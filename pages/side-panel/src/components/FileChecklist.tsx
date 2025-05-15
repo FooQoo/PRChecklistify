@@ -6,7 +6,6 @@ interface FileChecklistProps {
   onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
   aiGeneratedChecklist?: FileChecklistType;
   onOpenChat?: () => void;
-  fileStatus?: 'APPROVED' | 'PENDING' | null;
 }
 
 // チェックリスト項目コンポーネント
@@ -59,13 +58,7 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
   );
 };
 
-const FileChecklist = ({
-  file,
-  onChecklistChange,
-  aiGeneratedChecklist,
-  onOpenChat,
-  fileStatus,
-}: FileChecklistProps) => {
+const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist, onOpenChat }: FileChecklistProps) => {
   // AI生成されたチェックリストに基づいて動的オブジェクトを準備
   const initializeChecklistItems = useCallback(() => {
     // AIによって生成されたチェックリストが利用可能な場合、そのアイテムを含むオブジェクトを作成
@@ -431,12 +424,6 @@ const FileChecklist = ({
                   </svg>
                   チャット
                 </button>
-              )}
-              {fileStatus && (
-                <span
-                  className={`text-xs font-bold ${fileStatus === 'APPROVED' ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {fileStatus}
-                </span>
               )}
             </div>
           </div>
