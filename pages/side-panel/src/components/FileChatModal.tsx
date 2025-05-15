@@ -52,9 +52,9 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 pb-16 relative flex flex-col">
+      <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 pb-20 relative flex flex-col">
         {' '}
-        {/* pb-16で下部に余白を追加 */}
+        {/* pb-20で下部に余白を追加 */}
         <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={onClose}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
@@ -110,7 +110,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 </button>
               )}
             </div>
-            <div className="flex-1 overflow-y-auto p-3 bg-white min-h-0">
+            <div className="flex-1 overflow-y-auto p-3 pb-20 bg-white min-h-0">
               {chatHistory.length === 0 ? (
                 <div className="text-center text-gray-500 py-6">
                   <svg
@@ -170,9 +170,9 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
           </div>
 
           {/* メッセージ入力 - ChatGPTライクデザイン (より下部に配置) */}
-          <div className="absolute left-6 right-6 bottom-[60px] z-10">
+          <div className="absolute left-6 right-6 bottom-[30px] z-10">
             {' '}
-            {/* bottom-[60px]でより下部に配置 */}
+            {/* bottom-[70px]でより下部に配置 - 承認ボタンと重ならないよう調整 */}
             <div className="border border-gray-300 rounded-lg shadow-md bg-white overflow-hidden flex items-end">
               <textarea
                 ref={textareaRef}
@@ -195,6 +195,10 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     if (input.trim() && !streaming) {
                       const message = input;
                       setInput('');
+                      // テキストエリアの高さをリセット
+                      if (textareaRef.current) {
+                        textareaRef.current.style.height = 'auto';
+                      }
                       setStreaming(true);
                       setStreamedMessage('');
                       abortControllerRef.current = new AbortController();
@@ -243,6 +247,10 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
 
                     const currentInput = input;
                     setInput('');
+                    // テキストエリアの高さをリセット
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                    }
                     setStreaming(true);
                     setStreamedMessage('');
                     abortControllerRef.current = new AbortController();
