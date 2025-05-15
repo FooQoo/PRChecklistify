@@ -35,6 +35,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const [streaming, setStreaming] = useState(false);
   const [streamedMessage, setStreamedMessage] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // ローカルでリセット機能を処理する
   const handleResetChat = () => {
@@ -51,7 +52,9 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 relative flex flex-col">
+      <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 pb-16 relative flex flex-col">
+        {' '}
+        {/* pb-16で下部に余白を追加 */}
         <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={onClose}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path
@@ -61,14 +64,13 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
             />
           </svg>
         </button>
-
         <h2 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2 flex items-center gap-4">
           ファイルレビュー: {file.filename}
         </h2>
-
-        <div className="space-y-4 flex-1 flex flex-col min-h-0">
+        <div className="space-y-4 flex-1 flex flex-col min-h-0 relative">
           {/* チャット履歴 */}
           <div className="rounded-md border border-gray-200 overflow-hidden flex-1 flex flex-col min-h-0">
+            {/* 下部の余白なしでフルサイズに */}
             <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 flex items-center justify-between">
               <div className="flex items-center">
                 <svg
@@ -167,25 +169,88 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
             </div>
           </div>
 
-          {/* メッセージ入力 - ChatGPTライクデザイン (テキストサイズ縮小・一体化デザイン) */}
-          <div className="relative mt-2 border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden flex items-end">
-            <textarea
-              className="w-full px-3 py-2 border-0 focus:ring-0 resize-none text-gray-800 min-h-[36px] max-h-[150px] outline-none text-sm flex-grow"
-              rows={1}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="メッセージを入力してください..."
-              disabled={streaming}
-              style={{ height: 'auto' }} // 高さを自動調整
-            />
-            <div className="px-2 py-1 flex justify-end items-center">
-              {streaming && (
+          {/* メッセージ入力 - ChatGPTライクデザイン (より下部に配置) */}
+          <div className="absolute left-6 right-6 bottom-[60px] z-10">
+            {' '}
+            {/* bottom-[60px]でより下部に配置 */}
+            <div className="border border-gray-300 rounded-lg shadow-md bg-white overflow-hidden flex items-end">
+              <textarea
+                ref={textareaRef}
+                className="w-full px-3 py-2 border-0 focus:ring-0 resize-none text-gray-800 min-h-[36px] max-h-[150px] outline-none text-sm flex-grow overflow-auto"
+                rows={1}
+                value={input}
+                onChange={e => {
+                  setInput(e.target.value);
+                  // テキストエリアの高さを自動調整
+                  const textarea = textareaRef.current;
+                  if (textarea) {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
+                  }
+                }}
+                onKeyDown={e => {
+                  // Ctrl+Enter（Macの場合はCmd+Enter）で送信
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    if (input.trim() && !streaming) {
+                      const message = input;
+                      setInput('');
+                      setStreaming(true);
+                      setStreamedMessage('');
+                      abortControllerRef.current = new AbortController();
+                      onSendMessage(message, {
+                        onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                        signal: abortControllerRef.current.signal,
+                        onDone: () => setStreaming(false),
+                      });
+                    }
+                  } else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+                    // 通常のEnterキーは改行として動作（デフォルト動作）
+                    // 何もしない（デフォルトのテキストエリアの動作を許可）
+                  }
+                }}
+                placeholder="メッセージを入力してください..."
+                disabled={streaming}
+              />
+              <div className="px-2 py-1 flex justify-end items-center">
+                {streaming && (
+                  <button
+                    className="inline-flex items-center rounded-full bg-red-100 p-1.5 text-xs font-medium text-red-600 hover:bg-red-200 focus:outline-none transition duration-150 mr-2"
+                    onClick={() => {
+                      abortControllerRef.current?.abort();
+                      setStreaming(false);
+                      setStreamedMessage('');
+                    }}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
                 <button
-                  className="inline-flex items-center rounded-full bg-red-100 p-1.5 text-xs font-medium text-red-600 hover:bg-red-200 focus:outline-none transition duration-150 mr-2"
-                  onClick={() => {
-                    abortControllerRef.current?.abort();
-                    setStreaming(false);
+                  className={`rounded-full p-1.5 transition duration-150 flex items-center justify-center ${
+                    !input.trim() || streaming
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                  disabled={!input.trim() || streaming}
+                  onClick={async () => {
+                    if (!input.trim() || streaming) return;
+
+                    const currentInput = input;
+                    setInput('');
+                    setStreaming(true);
                     setStreamedMessage('');
+                    abortControllerRef.current = new AbortController();
+                    await onSendMessage(currentInput, {
+                      onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                      signal: abortControllerRef.current.signal,
+                      onDone: () => setStreaming(false),
+                    });
                   }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -193,46 +258,20 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
                   </svg>
                 </button>
-              )}
-              <button
-                className={`rounded-full p-1.5 transition duration-150 flex items-center justify-center ${
-                  !input.trim() || streaming
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                }`}
-                disabled={!input.trim() || streaming}
-                onClick={async () => {
-                  if (!input.trim() || streaming) return;
-                  setStreaming(true);
-                  setStreamedMessage('');
-                  abortControllerRef.current = new AbortController();
-                  await onSendMessage(input, {
-                    onToken: (token: string) => setStreamedMessage(prev => prev + token),
-                    signal: abortControllerRef.current.signal,
-                    onDone: () => setStreaming(false),
-                  });
-                  setInput('');
-                  setStreaming(false);
-                  setStreamedMessage('');
-                }}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                </svg>
-              </button>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* APPROVED ボタン */}
-        <div className="flex justify-end mt-6 gap-2 pt-4 border-t">
+        {/* APPROVED ボタン - 絶対配置で入力エリアの妨げにならないように */}
+        <div className="absolute left-6 right-6 bottom-0 flex justify-end border-t bg-white pt-3 pb-3">
           <button
             className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm flex items-center"
             onClick={onApprove}>
