@@ -1,6 +1,6 @@
 // OpenAI API integration for PR checklist generation
-import type { PRAnalysisResult, PRData } from '@src/types';
-import OpenAI from 'openai';
+import type { PRAnalysisResult, PRData, PRFile, ChecklistItemStatus } from '@src/types';
+import { OpenAI } from 'openai';
 
 export interface OpenAIConfig {
   apiKey: string;
@@ -48,7 +48,7 @@ class OpenAIClient {
 
     // List of changed files with stats and patches
     const fileChanges = files
-      .map((file: any) => {
+      .map((file: PRFile) => {
         return `
 File: ${file.filename} (${file.status})
 Changes: +${file.additions} -${file.deletions}
@@ -198,15 +198,33 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
   private parseAnalysisResponse(prompt: string, responseText: string): PRAnalysisResult {
     try {
       // Parse the JSON response
-      const parsedResponse = JSON.parse(responseText);
+      const parsedResponse = JSON.parse(responseText) as {
+        summary: { background: string; problem: string; solution: string; implementation: string };
+        fileAnalysis: Array<{
+          id?: string;
+          filename: string;
+          explanation: string;
+          checklistItems: Array<{ id?: string; description: string; status?: string }>;
+        }>;
+      };
+
+      // マッピング関数を作成して文字列からChecklistItemStatusに変換
+      const mapStatus = (status?: string): ChecklistItemStatus => {
+        if (status === 'OK' || status === 'WARNING' || status === 'ERROR' || status === 'PENDING') {
+          return status as ChecklistItemStatus;
+        }
+        return 'PENDING';
+      };
 
       // Ensure all file checklist items have IDs
-      const fileAnalysis = parsedResponse.fileAnalysis.map((fileChecklist: any) => ({
-        ...fileChecklist,
-        checklistItems: fileChecklist.checklistItems.map((item: any, index: number) => ({
+      const fileAnalysis = parsedResponse.fileAnalysis.map((fileChecklist, fileIndex) => ({
+        id: fileChecklist.id || `file-${fileIndex}`,
+        filename: fileChecklist.filename,
+        explanation: fileChecklist.explanation,
+        checklistItems: fileChecklist.checklistItems.map((item, index) => ({
           id: item.id || `${fileChecklist.filename}-item-${index}`,
           description: item.description,
-          status: item.status || 'PENDING',
+          status: mapStatus(item.status),
         })),
       }));
 
