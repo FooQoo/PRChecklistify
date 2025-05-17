@@ -42,32 +42,6 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // チェックリスト状態をローカルで管理
-  const [checklistStates, setChecklistStates] = useState<{ [key: string]: 'PENDING' | 'OK' | 'NG' }>(() => {
-    if (aiAnalysis && aiAnalysis.checklistItems) {
-      const obj: { [key: string]: 'PENDING' | 'OK' | 'NG' } = {};
-      aiAnalysis.checklistItems.forEach((item: { id: string; status: string }, idx: number) => {
-        obj[item.id || `item_${idx}`] = ['PENDING', 'OK', 'NG'].includes(item.status)
-          ? (item.status as 'PENDING' | 'OK' | 'NG')
-          : 'PENDING';
-      });
-      return obj;
-    }
-    return {};
-  });
-
-  // チェックリストのトグル関数
-  const handleToggleChecklist = (id: string) => {
-    setChecklistStates(prev => {
-      const current = prev[id];
-      let next: 'PENDING' | 'OK' | 'NG';
-      if (current === 'PENDING') next = 'NG';
-      else if (current === 'NG') next = 'OK';
-      else next = 'PENDING';
-      return { ...prev, [id]: next };
-    });
-  };
-
   // ローカルでリセット機能を処理する
   const handleResetChat = () => {
     if (onResetChat) {
@@ -209,23 +183,21 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                   </h4>
                   <div className="space-y-2">
                     {aiAnalysis.checklistItems.map(
-                      (item: { id: string; description: string; status: string }, idx: number) => (
-                        <div key={item.id || `item_${idx}`} className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className={`px-2 py-1 rounded text-xs font-bold border transition-colors min-w-[60px] ${
-                              checklistStates[item.id || `item_${idx}`] === 'OK'
-                                ? 'bg-green-500 text-white border-green-500'
-                                : checklistStates[item.id || `item_${idx}`] === 'NG'
-                                  ? 'bg-red-500 text-white border-red-500'
-                                  : 'bg-gray-200 text-gray-700 border-gray-300'
-                            }`}
-                            onClick={() => handleToggleChecklist(item.id || `item_${idx}`)}>
-                            {checklistStates[item.id || `item_${idx}`]}
-                          </button>
-                          <span className="text-sm">{item.description}</span>
-                        </div>
-                      ),
+                      (item: { id: string; description: string; status: string }, idx: number) => {
+                        let statusClass = '';
+                        if (item.status === 'OK') statusClass = 'bg-green-500 text-white border-green-500';
+                        else if (item.status === 'NG') statusClass = 'bg-red-500 text-white border-red-500';
+                        else statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                        return (
+                          <div key={item.id || `item_${idx}`} className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-bold border min-w-[60px] text-center ${statusClass}`}>
+                              {item.status}
+                            </span>
+                            <span className="text-sm">{item.description}</span>
+                          </div>
+                        );
+                      },
                     )}
                   </div>
                 </div>
