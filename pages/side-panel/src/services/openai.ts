@@ -78,23 +78,27 @@ Do not omit or summarize any file. Include all changed files in the output.
    * Any additional context that would help in the review
 
 3. (Optional) For each changed file, create a checklist of specific items to review, focusing on:
+   * Background and problem being solved
    * Code correctness
    * Best practices
    * Potential bugs
    * Performance concerns
    * Security implications
+   * Code is well-formatted and consistent with project style
 
 ### Additional instructions for file analysis:
 
 * **All changed files must be included** in the fileAnalysis output. Do not omit any file.
-* For **core logic files, UI components, hooks, and tests**, generate detailed checklist items with status: "PENDING".
+* For **core logic files, UI components, specifications, and tests**, generate detailed checklist items with:
+  * description: e.g. "Check that..." 
+  * status: "PENDING".
 * For **mock data files, slice files, and type definition files**, generate only one checklist item with:
 
-  * description: "Ensure consistency with updated specifications."
+  * description: e.g. "Low risk - review not required."
   * status: "OK"
 * For **dist and other build artifacts**, generate only one checklist item with:
 
-  * description: "Build artifact - review not required."
+  * description: e.g. "Build artifact - review not required."
   * status: "OK"
 * Provide a meaningful explanation for every file, even for mocks and dist files, summarizing why they changed and their role in the PR.
 
@@ -124,13 +128,14 @@ Format your response as a JSON object with the following structure:
           "status": "PENDING"
         },
         ...more items
-      ]
+      ],
+      "order": 1 // review order
     },
     ...more files
   ]
 }
 
-Important: All text content inside the JSON must be in ${outputLanguage}. Keep the JSON structure and field names in English.
+Important: All text content and checklist inside the JSON must be in ${outputLanguage}. Keep the JSON structure and field names in English.
 `;
   }
 
@@ -205,6 +210,7 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
           filename: string;
           explanation: string;
           checklistItems: Array<{ id?: string; description: string; status?: string }>;
+          order: number;
         }>;
       };
 
@@ -226,6 +232,7 @@ Important: All text content inside the JSON must be in ${outputLanguage}. Keep t
           description: item.description,
           status: mapStatus(item.status),
         })),
+        order: fileChecklist.order,
       }));
 
       return {
