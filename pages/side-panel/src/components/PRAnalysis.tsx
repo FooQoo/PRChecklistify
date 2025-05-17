@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
@@ -11,6 +11,10 @@ interface PRAnalysisProps {
   analysisResult: PRAnalysisResult | undefined;
   saveAnalysisResult: (result: PRAnalysisResult | undefined) => void;
 }
+
+const BLOCK_COLS = 10;
+const BLOCK_ROWS = 3;
+const BLOCK_TOTAL = BLOCK_COLS * BLOCK_ROWS;
 
 const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, saveAnalysisResult }) => {
   const [generating, setGenerating] = useState(false);
@@ -25,6 +29,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
     }
     return {};
   });
+  const [blockActive, setBlockActive] = useState(0);
+  const blockTimer = useRef<NodeJS.Timeout | null>(null);
 
   // 言語設定を読み込む
   useEffect(() => {
@@ -42,6 +48,22 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
   useEffect(() => {
     localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
   }, [chatHistories]);
+
+  // ローディングアニメーション制御
+  useEffect(() => {
+    if (generating) {
+      setBlockActive(0);
+      blockTimer.current = setInterval(() => {
+        setBlockActive(prev => (prev + 1) % (BLOCK_TOTAL + 1));
+      }, 2000); // 2秒ごとに進める
+    } else {
+      setBlockActive(0);
+      if (blockTimer.current) clearInterval(blockTimer.current);
+    }
+    return () => {
+      if (blockTimer.current) clearInterval(blockTimer.current);
+    };
+  }, [generating]);
 
   // AI分析を生成する
   const generateAnalysis = async () => {
@@ -132,22 +154,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
               {!analysisResult ? 'Generate Analysis' : 'Regenerate Analysis'}
             </button>
           )}
-          {generating && (
-            <div className="flex items-center">
-              <svg
-                className="animate-spin h-5 w-5 mr-2 text-blue-500"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Generating...</span>
-            </div>
-          )}
         </div>
 
         {error && <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-md mb-3">{error}</div>}
@@ -177,9 +183,29 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
           </div>
         ) : (
           <div className="bg-gray-50 p-4 rounded-md text-gray-500 text-center">
-            {generating
-              ? 'Analyzing your PR. This may take a moment...'
-              : "Click 'Generate Analysis' to get AI-powered insights about this PR."}
+            {generating ? (
+              <>
+                <div>Analyzing your PR. This may take a moment...</div>
+                <div className="w-full flex justify-center mt-4">
+                  <div
+                    className="grid gap-1 w-full"
+                    style={{
+                      gridTemplateColumns: `repeat(${BLOCK_COLS}, 1fr)`,
+                      gridTemplateRows: `repeat(${BLOCK_ROWS}, 16px)`,
+                    }}>
+                    {Array.from({ length: blockActive }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="rounded-sm bg-blue-500 transition-all duration-300"
+                        style={{ width: '100%', height: 16 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              "Click 'Generate Analysis' to get AI-powered insights about this PR. This may take about 30sec ~ 60sec"
+            )}
           </div>
         )}
 
