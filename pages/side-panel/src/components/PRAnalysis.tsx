@@ -270,6 +270,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                       onSendMessage={async (
                         msg: string,
                         streamOpts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
+                        context?: { allDiffs?: Record<string, string> },
                       ) => {
                         setChatHistories(prev => ({
                           ...prev,
@@ -286,6 +287,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                               if (streamOpts?.onToken) streamOpts.onToken(token);
                             },
                             { signal: streamOpts?.signal },
+                            context?.allDiffs,
                           );
                           setChatHistories(prev => ({
                             ...prev,
@@ -316,6 +318,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                         setChatModalOpen(null);
                       }}
                       status={null}
+                      // ここで全ファイルのdiffを渡す
+                      allDiffs={Object.fromEntries(prData.files.map(f => [f.filename, f.patch || '']))}
                     />
                   </div>
                 );

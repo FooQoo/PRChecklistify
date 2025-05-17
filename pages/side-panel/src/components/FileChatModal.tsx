@@ -16,10 +16,13 @@ interface FileChatModalProps {
   onSendMessage: (
     msg: string,
     opts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
+    context?: { allDiffs?: Record<string, string> },
   ) => Promise<void>;
   onApprove: () => void;
   onResetChat?: () => void;
   status: null;
+  // 他ファイルのdiff情報を渡す
+  allDiffs?: Record<string, string>;
 }
 
 const FileChatModal: React.FC<FileChatModalProps> = ({
@@ -30,6 +33,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   onSendMessage,
   onApprove,
   onResetChat,
+  allDiffs,
 }) => {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -202,11 +206,15 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       setStreaming(true);
                       setStreamedMessage('');
                       abortControllerRef.current = new AbortController();
-                      onSendMessage(message, {
-                        onToken: (token: string) => setStreamedMessage(prev => prev + token),
-                        signal: abortControllerRef.current.signal,
-                        onDone: () => setStreaming(false),
-                      });
+                      onSendMessage(
+                        message,
+                        {
+                          onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                          signal: abortControllerRef.current.signal,
+                          onDone: () => setStreaming(false),
+                        },
+                        { allDiffs },
+                      );
                     }
                   } else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
                     // 通常のEnterキーは改行として動作（デフォルト動作）
@@ -254,11 +262,15 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     setStreaming(true);
                     setStreamedMessage('');
                     abortControllerRef.current = new AbortController();
-                    await onSendMessage(currentInput, {
-                      onToken: (token: string) => setStreamedMessage(prev => prev + token),
-                      signal: abortControllerRef.current.signal,
-                      onDone: () => setStreaming(false),
-                    });
+                    await onSendMessage(
+                      currentInput,
+                      {
+                        onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                        signal: abortControllerRef.current.signal,
+                        onDone: () => setStreaming(false),
+                      },
+                      { allDiffs },
+                    );
                   }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

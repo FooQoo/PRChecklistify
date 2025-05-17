@@ -84,14 +84,23 @@ export const fetchers = {
     chatHistory: { sender: string; message: string }[],
     onToken: (token: string) => void,
     options?: { signal?: AbortSignal },
+    allDiffs?: Record<string, string>,
   ) => {
     // PR情報をシステムプロンプトに含める
     const prInfo = `PRタイトル: ${prData.title || ''}\nPR説明: ${prData.body || ''}\n作成者: ${prData.user?.login || ''}`;
     const fileInfo = `\n対象ファイル: ${file.filename}\n差分:\n${file.patch || ''}\n修正後のコード:\n${file.decodedContent || ''}`;
+    let allDiffsInfo = '';
+    if (allDiffs) {
+      allDiffsInfo =
+        '\n--- 全ファイルのdiff一覧 ---\n' +
+        Object.entries(allDiffs)
+          .map(([fname, diff]) => `【${fname}】\n${diff}`)
+          .join('\n\n');
+    }
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       {
         role: 'system',
-        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}`,
+        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}`,
       },
       ...chatHistory.map((msg): { role: 'user' | 'assistant'; content: string } => ({
         role: msg.sender === 'You' ? 'user' : 'assistant',
