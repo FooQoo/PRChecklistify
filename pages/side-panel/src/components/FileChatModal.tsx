@@ -18,11 +18,13 @@ interface FileChatModalProps {
     opts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
     context?: { allDiffs?: Record<string, string> },
   ) => Promise<void>;
-  onApprove: () => void;
   onResetChat?: () => void;
   status: null;
   // 他ファイルのdiff情報を渡す
   allDiffs?: Record<string, string>;
+  // チェックリスト状態と変更用コールバックを追加
+  checklistItems?: Record<string, 'PENDING' | 'OK' | 'NG'>;
+  onChecklistChange: (checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
 }
 
 const FileChatModal: React.FC<FileChatModalProps> = ({
@@ -31,10 +33,11 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   file,
   chatHistory,
   onSendMessage,
-  onApprove,
   onResetChat,
   allDiffs,
   aiAnalysis,
+  checklistItems,
+  onChecklistChange,
 }) => {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -57,7 +60,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 pb-20 relative flex flex-col">
+      <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 relative flex flex-col">
         {' '}
         {/* pb-20で下部に余白を追加 */}
         <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={onClose}>
@@ -182,23 +185,36 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     チェックリスト
                   </h4>
                   <div className="space-y-2">
-                    {aiAnalysis.checklistItems.map(
-                      (item: { id: string; description: string; status: string }, idx: number) => {
-                        let statusClass = '';
-                        if (item.status === 'OK') statusClass = 'bg-green-500 text-white border-green-500';
-                        else if (item.status === 'NG') statusClass = 'bg-red-500 text-white border-red-500';
-                        else statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
-                        return (
-                          <div key={item.id || `item_${idx}`} className="flex items-center gap-2">
-                            <span
-                              className={`px-2 py-1 rounded text-xs font-bold border min-w-[60px] text-center ${statusClass}`}>
-                              {item.status}
-                            </span>
-                            <span className="text-sm">{item.description}</span>
-                          </div>
-                        );
-                      },
-                    )}
+                    {aiAnalysis.checklistItems.map((item, idx) => {
+                      // checklistItems propがあればそちらを使う
+                      const key = `item_${idx}`;
+                      const status = (checklistItems && checklistItems[key]) || item.status;
+                      let statusClass = '';
+                      if (status === 'OK') statusClass = 'bg-green-500 text-white border-green-500';
+                      else if (status === 'NG') statusClass = 'bg-red-500 text-white border-red-500';
+                      else statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                      // checklistItemsとonChecklistChangeがあればトグル可能
+                      return (
+                        <div key={key} className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className={`px-2 py-1 rounded text-xs font-bold border transition-colors min-w-[90px] ${statusClass}`}
+                            onClick={() => {
+                              // 状態をトグル
+                              let next: 'OK' | 'NG';
+                              if (status === 'NG') {
+                                next = 'OK';
+                              } else {
+                                next = 'NG';
+                              }
+                              onChecklistChange({ ...checklistItems, [key]: next });
+                            }}>
+                            {status}
+                          </button>
+                          <span className="text-sm">{item.description}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -321,22 +337,6 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
               </div>
             </div>
           </div>
-        </div>
-        {/* APPROVED ボタン - 絶対配置で入力エリアの妨げにならないように */}
-        <div className="absolute left-6 right-6 bottom-0 flex justify-end border-t bg-white pt-3 pb-3">
-          <button
-            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm flex items-center"
-            onClick={onApprove}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            チェックリストをすべてOKにして承認
-          </button>
         </div>
       </div>
     </div>

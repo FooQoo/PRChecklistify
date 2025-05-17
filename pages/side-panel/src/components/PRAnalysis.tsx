@@ -306,20 +306,19 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                           if (streamOpts?.onDone) streamOpts.onDone();
                         }
                       }}
-                      onApprove={() => {
-                        // チェックリストをすべてOKにする
-                        if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
-                          const allOkItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
-                          aiGeneratedChecklist.checklistItems.forEach((_, index) => {
-                            allOkItems[`item_${index}`] = 'OK';
-                          });
-                          handleChecklistChange(file.filename, allOkItems);
-                        }
-                        setChatModalOpen(null);
-                      }}
                       status={null}
                       // ここで全ファイルのdiffを渡す
                       allDiffs={Object.fromEntries(prData.files.map(f => [f.filename, f.patch || '']))}
+                      // チェックリスト状態と変更用コールバックを渡す
+                      checklistItems={(() => {
+                        if (!aiGeneratedChecklist) return undefined;
+                        const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+                        aiGeneratedChecklist.checklistItems.forEach((item, idx) => {
+                          items[item.id || `item_${idx}`] = item.status as 'PENDING' | 'OK' | 'NG';
+                        });
+                        return items;
+                      })()}
+                      onChecklistChange={checklistItems => handleChecklistChange(file.filename, checklistItems)}
                     />
                   </div>
                 );
