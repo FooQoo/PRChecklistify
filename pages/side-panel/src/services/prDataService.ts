@@ -1,4 +1,4 @@
-import type { PRData, SavedPRData, PRAnalysisResult, PRFile } from '../types';
+import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier } from '../types';
 import { normalizePRUrl } from '../utils/prUtils';
 import { githubTokenStorage } from '@extension/storage';
 
@@ -161,13 +161,9 @@ class PRDataStorage {
 export const prDataStorage = new PRDataStorage();
 
 // Service to fetch PR data from GitHub
-export const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
+export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
-    // Extract owner, repo, and PR number from URL
-    const match = prUrl.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-    if (!match) return null;
-
-    const [, owner, repo, prNumber] = match;
+    const { owner, repo, prNumber } = identifier;
 
     console.log(`Fetching PR data for ${owner}/${repo}#${prNumber}`);
 
@@ -208,6 +204,41 @@ export const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
     }
 
     const filesData = await filesResponse.json();
+
+    // --- ここから追加 ---
+    // 各ファイルのcontents_urlからbase64デコードした内容を取得
+    const filesWithDecodedContent = await Promise.all(
+      filesData.map(async (file: PRFile) => {
+        let decodedContent;
+        if (file.contents_url) {
+          try {
+            const contentRes = await fetch(file.contents_url, { headers });
+            if (contentRes.ok) {
+              const contentJson = await contentRes.json();
+              if (contentJson.content) {
+                // 改行を除去してbase64デコード
+                const base64 = contentJson.content.replace(/\n/g, '');
+                decodedContent = atob(base64);
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to fetch or decode file content:', file.filename, e);
+          }
+        }
+
+        return {
+          filename: file.filename,
+          status: file.status,
+          additions: file.additions,
+          deletions: file.deletions,
+          patch: file.patch,
+          contents_url: file.contents_url,
+          decodedContent, // 追加: base64デコードした内容
+        } as PRFile;
+      }),
+    );
+
+    console.info('file:', JSON.stringify(filesWithDecodedContent, null, 2));
 
     // レビューデータを取得（レビューがアサインされた時間を特定するため）
     const reviewsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/reviews`, {
@@ -262,14 +293,7 @@ export const fetchPRData = async (prUrl: string): Promise<PRData | null> => {
       additions: prData.additions,
       deletions: prData.deletions,
       changed_files: prData.changed_files,
-      files: filesData.map((file: PRFile) => ({
-        filename: file.filename,
-        status: file.status,
-        additions: file.additions,
-        deletions: file.deletions,
-        patch: file.patch,
-        comments: '',
-      })),
+      files: filesWithDecodedContent,
       // draft: prData.draft,
       commits: prData.commits,
       comments: prData.comments,

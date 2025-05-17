@@ -79,28 +79,25 @@ export const fetchers = {
 
   // ストリーミングでAIチャット応答を取得するfetcher
   fileChatStream: async (
+    prData: PRData, // PR情報を追加
     file: PRFile,
     chatHistory: { sender: string; message: string }[],
     onToken: (token: string) => void,
     options?: { signal?: AbortSignal },
   ) => {
-    // chatHistoryをOpenAIのmessages形式に変換
+    // PR情報をシステムプロンプトに含める
+    const prInfo = `PRタイトル: ${prData.title || ''}\nPR説明: ${prData.body || ''}\n作成者: ${prData.user?.login || ''}`;
+    const fileInfo = `\n対象ファイル: ${file.filename}\n差分:\n${file.patch || ''}\n修正後のコード:\n${file.decodedContent || ''}`;
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       {
         role: 'system',
-        content:
-          'You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.',
+        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}`,
       },
       ...chatHistory.map((msg): { role: 'user' | 'assistant'; content: string } => ({
         role: msg.sender === 'You' ? 'user' : 'assistant',
         content: msg.message,
       })),
     ];
-    // 最新のdiffやファイル情報をuserメッセージとして追加
-    messages.push({
-      role: 'user',
-      content: `ファイル: ${file.filename}\n差分:\n${file.patch || ''}`,
-    });
     const client = await createOpenAIClient();
     if (!client) throw new Error('Failed to create OpenAI client');
     await client.streamChatCompletion(messages, onToken, options);

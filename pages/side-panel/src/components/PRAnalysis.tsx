@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { ChecklistItemStatus, PRAnalysisResult, PRData, PRFile } from '../types';
+import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
 import FileChecklist from './FileChecklist';
@@ -252,7 +252,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
                         let aiMsg = '';
                         try {
                           await fetchers.fileChatStream(
-                            file as PRFile,
+                            prData,
+                            file,
                             [...(chatHistories[file.filename] || []), { sender: 'You', message: msg }],
                             (token: string) => {
                               aiMsg += token;

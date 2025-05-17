@@ -4,10 +4,9 @@ export interface PRFile {
   status: string;
   additions: number;
   deletions: number;
-  changes: number;
   patch?: string;
   contents_url: string;
-  raw_url: string;
+  decodedContent?: string; // 追加: base64デコードした内容
 }
 
 export interface PRData {

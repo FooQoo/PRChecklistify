@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
-import { prDataStorage } from '../services/prDataService';
-import { githubTokenStorage } from '@extension/storage';
+import { fetchPRData, prDataStorage } from '../services/prDataService';
 
 export const currentPageAtom = atom<{ url: string | null }>({ url: null });
 
@@ -16,54 +15,54 @@ export const extractPRIdentifier = (url: string): PRIdentifier | null => {
 };
 
 // PRデータを取得するための関数
-const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
-  const { owner, repo, prNumber } = identifier;
+// const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
+//   const { owner, repo, prNumber } = identifier;
 
-  try {
-    // GitHub APIトークンを取得
-    const token = await githubTokenStorage.get();
-    const headers: HeadersInit = {
-      Accept: 'application/vnd.github.v3+json',
-    };
+//   try {
+//     // GitHub APIトークンを取得
+//     const token = await githubTokenStorage.get();
+//     const headers: HeadersInit = {
+//       Accept: 'application/vnd.github.v3+json',
+//     };
 
-    if (token) {
-      headers['Authorization'] = `token ${token}`;
-    }
+//     if (token) {
+//       headers['Authorization'] = `token ${token}`;
+//     }
 
-    // PRの基本情報を取得
-    const prResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`, {
-      headers,
-    });
+//     // PRの基本情報を取得
+//     const prResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`, {
+//       headers,
+//     });
 
-    if (!prResponse.ok) {
-      console.error(`Failed to fetch PR data: ${prResponse.status} ${prResponse.statusText}`);
-      return null;
-    }
+//     if (!prResponse.ok) {
+//       console.error(`Failed to fetch PR data: ${prResponse.status} ${prResponse.statusText}`);
+//       return null;
+//     }
 
-    const prData = await prResponse.json();
+//     const prData = await prResponse.json();
 
-    // PRのファイル情報を取得
-    const filesResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`, {
-      headers,
-    });
+//     // PRのファイル情報を取得
+//     const filesResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`, {
+//       headers,
+//     });
 
-    if (!filesResponse.ok) {
-      console.error(`Failed to fetch PR files: ${filesResponse.status} ${filesResponse.statusText}`);
-      return null;
-    }
+//     if (!filesResponse.ok) {
+//       console.error(`Failed to fetch PR files: ${filesResponse.status} ${filesResponse.statusText}`);
+//       return null;
+//     }
 
-    const filesData = await filesResponse.json();
+//     const filesData = await filesResponse.json();
 
-    // データを整形して返す
-    return {
-      ...prData,
-      files: filesData,
-    };
-  } catch (error) {
-    console.error('Error fetching PR data:', error);
-    return null;
-  }
-};
+//     // データを整形して返す
+//     return {
+//       ...prData,
+//       files: filesData,
+//     };
+//   } catch (error) {
+//     console.error('Error fetching PR data:', error);
+//     return null;
+//   }
+// };
 
 // PRデータを管理するためのカスタムフック
 export const usePRData = () => {
