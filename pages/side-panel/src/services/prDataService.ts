@@ -2,6 +2,8 @@ import type { PRData, SavedPRData, PRAnalysisResult, PRFile } from '../types';
 import { normalizePRUrl } from '../utils/prUtils';
 import { githubTokenStorage } from '@extension/storage';
 
+type RecentPR = { url: string; title: string; timestamp: number };
+
 // PRデータをローカルストレージに保存・取得するためのユーティリティ
 class PRDataStorage {
   private readonly STORAGE_KEY = 'pr_data_cache';
@@ -104,7 +106,7 @@ class PRDataStorage {
       let recentPRs = result.recentPRs || [];
 
       // 念のため重複を削除（同じURLのエントリが複数ある場合に対応）
-      recentPRs = recentPRs.filter((pr: { url: string }, index: number, self: any[]) => {
+      recentPRs = recentPRs.filter((pr: { url: string }, index: number, self: RecentPR[]) => {
         // 各URLを標準化して比較
         const normalizedCurrentUrl = normalizePRUrl(pr.url) || pr.url;
         return (
