@@ -34,12 +34,39 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   onApprove,
   onResetChat,
   allDiffs,
+  aiAnalysis,
 }) => {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamedMessage, setStreamedMessage] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // チェックリスト状態をローカルで管理
+  const [checklistStates, setChecklistStates] = useState<{ [key: string]: 'PENDING' | 'OK' | 'NG' }>(() => {
+    if (aiAnalysis && aiAnalysis.checklistItems) {
+      const obj: { [key: string]: 'PENDING' | 'OK' | 'NG' } = {};
+      aiAnalysis.checklistItems.forEach((item: { id: string; status: string }, idx: number) => {
+        obj[item.id || `item_${idx}`] = ['PENDING', 'OK', 'NG'].includes(item.status)
+          ? (item.status as 'PENDING' | 'OK' | 'NG')
+          : 'PENDING';
+      });
+      return obj;
+    }
+    return {};
+  });
+
+  // チェックリストのトグル関数
+  const handleToggleChecklist = (id: string) => {
+    setChecklistStates(prev => {
+      const current = prev[id];
+      let next: 'PENDING' | 'OK' | 'NG';
+      if (current === 'PENDING') next = 'NG';
+      else if (current === 'NG') next = 'OK';
+      else next = 'PENDING';
+      return { ...prev, [id]: next };
+    });
+  };
 
   // ローカルでリセット機能を処理する
   const handleResetChat = () => {
@@ -115,6 +142,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
               )}
             </div>
             <div className="flex-1 overflow-y-auto p-3 pb-20 bg-white min-h-0">
+              {/* チャット履歴 */}
               {chatHistory.length === 0 ? (
                 <div className="text-center text-gray-500 py-6">
                   <svg
@@ -167,6 +195,38 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                           style={{ animationDelay: '0.4s' }}></span>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+              {/* チェックリスト表示 */}
+              {aiAnalysis && aiAnalysis.checklistItems && aiAnalysis.checklistItems.length > 0 && (
+                <div className="mt-6 border-t pt-4">
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    チェックリスト
+                  </h4>
+                  <div className="space-y-2">
+                    {aiAnalysis.checklistItems.map(
+                      (item: { id: string; description: string; status: string }, idx: number) => (
+                        <div key={item.id || `item_${idx}`} className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className={`px-2 py-1 rounded text-xs font-bold border transition-colors min-w-[60px] ${
+                              checklistStates[item.id || `item_${idx}`] === 'OK'
+                                ? 'bg-green-500 text-white border-green-500'
+                                : checklistStates[item.id || `item_${idx}`] === 'NG'
+                                  ? 'bg-red-500 text-white border-red-500'
+                                  : 'bg-gray-200 text-gray-700 border-gray-300'
+                            }`}
+                            onClick={() => handleToggleChecklist(item.id || `item_${idx}`)}>
+                            {checklistStates[item.id || `item_${idx}`]}
+                          </button>
+                          <span className="text-sm">{item.description}</span>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
