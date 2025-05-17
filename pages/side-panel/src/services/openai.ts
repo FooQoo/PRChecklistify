@@ -238,7 +238,7 @@ Important: All text content and checklist inside the JSON must be in ${outputLan
       return {
         summary: parsedResponse.summary,
         fileAnalysis: fileAnalysis,
-        prompt: prompt + '\n\nResponse:\n' + responseText,
+        prompt: prompt,
       };
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
