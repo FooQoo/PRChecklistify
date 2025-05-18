@@ -183,6 +183,17 @@ export const usePRData = () => {
     }
   }, [currentApprovalPercentage, previousApprovalPercentage]);
 
+  // isJustCompletedがtrueになったら5秒後にfalseに戻す
+  useEffect(() => {
+    if (isJustCompleted) {
+      const timer = setTimeout(() => {
+        setIsJustCompleted(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [isJustCompleted]);
+
   return {
     prData,
     isLoading,

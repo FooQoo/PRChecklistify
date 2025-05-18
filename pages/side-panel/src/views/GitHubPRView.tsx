@@ -148,13 +148,12 @@ const GitHubPRView = () => {
       <span id="confettiReward" className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" />
 
       {/* 完了メッセージの大きなアニメーション表示 */}
-      {isJustCompleted && (
-        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-40 pointer-events-none">
-          <div className="complete-text text-6xl font-bold text-green-600 animate-fade-in-up animate-pulse-effect">
-            COMPLETE
-          </div>
+      <div
+        className={`fixed top-0 left-0 w-full h-full flex items-center justify-center z-40 pointer-events-none transition-opacity duration-500 ${isJustCompleted ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="complete-text text-6xl font-bold text-green-600 animate-fade-in-up animate-pulse-effect">
+          COMPLETE
         </div>
-      )}
+      </div>
 
       <div className="review-progress fixed top-0 left-0 right-0 z-10 bg-white shadow-md p-2 border-b border-gray-300 mb-2">
         <h4 className="font-bold mb-1">Review Progress:</h4>
@@ -208,7 +207,7 @@ const GitHubPRView = () => {
           />
 
           {/* 追加: 完了メッセージの表示 */}
-          {isJustCompleted && (
+          {currentApprovalPercentage === 100 && (
             <div className="complete-message p-4 mb-4 rounded bg-green-100 text-green-800">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
