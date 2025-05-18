@@ -74,7 +74,7 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist, onOpenCh
     }
 
     // AI生成チェックリストがない場合はプレースホルダーとして1つの'OK'ステータスのアイテムを作成
-    return { item_0: 'OK' } as Record<string, 'PENDING' | 'OK' | 'NG'>;
+    return {} as Record<string, 'PENDING' | 'OK' | 'NG'>;
   }, [aiGeneratedChecklist]);
 
   // State to track checklist items - Initialize from saved data if available
@@ -381,16 +381,7 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist, onOpenCh
                     />
                   ))}
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <ChecklistItem
-                    key={'ai-checklist-placeholder'}
-                    label={'指摘事項なし'}
-                    status={checklistItems[`item_0`] || 'OK'}
-                    onToggle={() => {}}
-                  />
-                </div>
-              )}
+              ) : null}
             </div>
 
             {file.patch && (

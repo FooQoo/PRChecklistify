@@ -42,6 +42,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamedMessage, setStreamedMessage] = useState('');
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -56,6 +57,21 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
       console.log('チャット履歴のリセットが要求されましたが、onResetChat関数が提供されていません');
     }
   };
+
+  // チェックリストが全てOKになったら自動で完了モーダルを表示
+  // useEffect(() => {
+  //   if (aiAnalysis && aiAnalysis.checklistItems && aiAnalysis.checklistItems.length > 0 && checklistItems) {
+  //     const checklistLength = aiAnalysis.checklistItems.length;
+  //     const items = aiAnalysis.checklistItems.map((_, idx) => {
+  //       const key = `item_${idx}`;
+  //       return checklistItems[key] || aiAnalysis.checklistItems[idx].status;
+  //     });
+  //     const allChecked = items.length === checklistLength && items.every(s => s === 'OK');
+  //     if (allChecked && !showCompleteModal) {
+  //       setShowCompleteModal(true);
+  //     }
+  //   }
+  // }, [aiAnalysis, checklistItems, showCompleteModal]);
 
   if (!open) return null;
   return (
@@ -207,7 +223,18 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                               } else {
                                 next = 'NG';
                               }
-                              onChecklistChange({ ...checklistItems, [key]: next });
+
+                              const newChecklistItems = { ...checklistItems, [key]: next };
+
+                              console.info('Updated checklist items:', JSON.stringify(newChecklistItems));
+
+                              // すべてのチェックリストがOKの場合、完了モーダルを表示
+                              const allChecked = Object.values(newChecklistItems).every(s => s === 'OK');
+                              if (allChecked) {
+                                setShowCompleteModal(true);
+                              }
+
+                              onChecklistChange(newChecklistItems);
                             }}>
                             {status}
                           </button>
@@ -216,30 +243,32 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       );
                     })}
                   </div>
-                  {(() => {
-                    if (!aiAnalysis.checklistItems) return null;
-                    const checklistLength = aiAnalysis.checklistItems.length;
-                    // checklistItems propがあればそちらを使う
-                    const items = aiAnalysis.checklistItems.map((_, idx) => {
-                      const key = `item_${idx}`;
-                      return (checklistItems && checklistItems[key]) || aiAnalysis.checklistItems[idx].status;
-                    });
-                    const allChecked = items.length === checklistLength && items.every(s => s === 'OK');
-                    if (!allChecked) return null;
-                    return (
-                      <div className="flex items-center justify-center w-full my-4">
-                        <button
-                          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition"
-                          onClick={onClose}>
-                          このファイルのレビューを完了する
-                        </button>
-                      </div>
-                    );
-                  })()}
                 </div>
               )}
             </div>
           </div>
+
+          {/* 完了モーダル */}
+          {showCompleteModal && (
+            <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full flex flex-col items-center animate-fade-in-up">
+                <h3 className="text-lg font-bold mb-4 text-gray-800">ファイルレビューが完了しました！</h3>
+                <p className="mb-6 text-gray-600 text-sm text-center">
+                  チェックリストが全てOKになりました。
+                  <br />
+                  チャット画面を閉じて次のファイルに進みましょう。
+                </p>
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition w-40"
+                  onClick={() => {
+                    setShowCompleteModal(false);
+                    onClose();
+                  }}>
+                  チャット画面を閉じる
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* メッセージ入力 - ChatGPTライクデザイン (より下部に配置) */}
           <div className="absolute left-6 right-6 bottom-[30px] z-10">
