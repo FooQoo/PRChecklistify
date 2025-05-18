@@ -14,56 +14,6 @@ export const extractPRIdentifier = (url: string): PRIdentifier | null => {
   return { owner, repo, prNumber };
 };
 
-// PRデータを取得するための関数
-// const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
-//   const { owner, repo, prNumber } = identifier;
-
-//   try {
-//     // GitHub APIトークンを取得
-//     const token = await githubTokenStorage.get();
-//     const headers: HeadersInit = {
-//       Accept: 'application/vnd.github.v3+json',
-//     };
-
-//     if (token) {
-//       headers['Authorization'] = `token ${token}`;
-//     }
-
-//     // PRの基本情報を取得
-//     const prResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`, {
-//       headers,
-//     });
-
-//     if (!prResponse.ok) {
-//       console.error(`Failed to fetch PR data: ${prResponse.status} ${prResponse.statusText}`);
-//       return null;
-//     }
-
-//     const prData = await prResponse.json();
-
-//     // PRのファイル情報を取得
-//     const filesResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`, {
-//       headers,
-//     });
-
-//     if (!filesResponse.ok) {
-//       console.error(`Failed to fetch PR files: ${filesResponse.status} ${filesResponse.statusText}`);
-//       return null;
-//     }
-
-//     const filesData = await filesResponse.json();
-
-//     // データを整形して返す
-//     return {
-//       ...prData,
-//       files: filesData,
-//     };
-//   } catch (error) {
-//     console.error('Error fetching PR data:', error);
-//     return null;
-//   }
-// };
-
 // PRデータを管理するためのカスタムフック
 export function usePRData() {
   const [prData, setPRData] = useState<PRData | null>(null);
@@ -71,10 +21,15 @@ export function usePRData() {
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | undefined>(undefined);
   const [currentPage] = useAtom(currentPageAtom);
+  const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
+  const [isJustCompleted, setIsJustCompleted] = useState(false);
 
   // PR情報を取得する関数
   useEffect(() => {
     const loadPRData = async () => {
+      // URL変更時に状態をリセット
+      setPreviousApprovalPercentage(null);
+      setIsJustCompleted(false);
       // URLが設定されていない場合は何もしない
       if (!currentPage?.url) return;
 
@@ -168,6 +123,32 @@ export function usePRData() {
     }
   };
 
+  // 現在の承認状態を計算
+  const approvedFilesCount = prData && analysisResult ? getApprovedFiles(prData, analysisResult) : 0;
+
+  const currentApprovalPercentage = prData && analysisResult ? getApprovalPercentage(prData, analysisResult) : null;
+
+  // 承認率の変化を監視し、完了状態を検出する
+  useEffect(() => {
+    if (currentApprovalPercentage === 100 && previousApprovalPercentage !== null && previousApprovalPercentage < 100) {
+      setIsJustCompleted(true);
+    } else if (currentApprovalPercentage !== previousApprovalPercentage) {
+      setIsJustCompleted(false);
+      setPreviousApprovalPercentage(currentApprovalPercentage);
+    }
+  }, [currentApprovalPercentage, previousApprovalPercentage]);
+
+  // isJustCompletedがtrueになったら5秒後にfalseに戻す
+  useEffect(() => {
+    if (isJustCompleted) {
+      const timer = setTimeout(() => {
+        setIsJustCompleted(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [isJustCompleted]);
+
   return {
     prData,
     isLoading,
@@ -176,28 +157,31 @@ export function usePRData() {
     saveAnalysisResult,
     refreshData,
     currentPage,
+    approvedFilesCount,
+    currentApprovalPercentage,
+    isJustCompleted,
   };
 }
 
 // ファイルごとの承認状況と承認率を計算するユーティリティ関数群
-// const getApprovedFiles = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number => {
-//   if (!prData || !analysisResult) return 0;
+const getApprovedFiles = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number => {
+  if (!prData || !analysisResult) return 0;
 
-//   return prData.files.filter(file => {
-//     const fileChecklist = analysisResult.fileAnalysis.find(checklist => checklist.filename === file.filename);
+  return prData.files.filter(file => {
+    const fileChecklist = analysisResult.fileAnalysis.find(checklist => checklist.filename === file.filename);
 
-//     if (!fileChecklist) return false;
+    if (!fileChecklist) return false;
 
-//     // すべてのチェックリストアイテムが'OK'になっているか確認
-//     return fileChecklist.checklistItems.every(item => item.status === 'OK');
-//   }).length;
-// };
+    // すべてのチェックリストアイテムが'OK'になっているか確認
+    return fileChecklist.checklistItems.every(item => item.status === 'OK');
+  }).length;
+};
 
-// // 承認率を計算するユーティリティ関数 (0-100%)
-// const getApprovalPercentage = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number | null => {
-//   if (!prData || prData.files.length === 0) return null;
-//   return (getApprovedFiles(prData, analysisResult) / prData.files.length) * 100;
-// };
+// 承認率を計算するユーティリティ関数 (0-100%)
+const getApprovalPercentage = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number | null => {
+  if (!prData || prData.files.length === 0) return null;
+  return (getApprovedFiles(prData, analysisResult) / prData.files.length) * 100;
+};
 
 // レビュー時間を計算するユーティリティ関数
 export const calculateReviewTime = (prData: PRData): { minutes: number } => {
