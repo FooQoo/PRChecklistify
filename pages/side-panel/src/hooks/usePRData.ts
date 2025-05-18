@@ -30,6 +30,7 @@ export function usePRData() {
       // URL変更時に状態をリセット
       setPreviousApprovalPercentage(null);
       setIsJustCompleted(false);
+      setAnalysisResult(undefined);
       // URLが設定されていない場合は何もしない
       if (!currentPage?.url) return;
 
