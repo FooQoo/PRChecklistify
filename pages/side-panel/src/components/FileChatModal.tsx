@@ -76,25 +76,43 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg w-full h-full max-w-2xl max-h-none p-6 relative flex flex-col">
-        {' '}
-        {/* pb-20で下部に余白を追加 */}
-        <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={onClose}>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-        <h2 className="text-xs font-bold mb-4 text-gray-800 border-b pb-2 flex items-center gap-4">
-          ファイルレビュー: {file.filename}
-        </h2>
-        <div className="space-y-4 flex-1 flex flex-col min-h-0 relative">
+      <div className="bg-white rounded-lg shadow-xl w-full h-full max-w-2xl max-h-none flex flex-col border border-gray-200 overflow-hidden">
+        {/* ヘッダー部分 - 他のコンポーネントと統一感を持たせる */}
+        <div className="flex justify-between items-center p-3 bg-gray-100 border-b border-gray-200">
+          <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            ファイルレビュー: {file.filename}
+          </h2>
+          <button
+            className="text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
+            onClick={onClose}
+            aria-label="閉じる">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 flex flex-col min-h-0 p-4 relative">
           {/* チャット履歴 */}
           <div className="rounded-md border border-gray-200 overflow-hidden flex-1 flex flex-col min-h-0">
-            {/* 下部の余白なしでフルサイズに */}
+            {/* チャットヘッダー */}
             <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 flex items-center justify-between">
               <div className="flex items-center">
                 <svg
@@ -115,7 +133,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
               {chatHistory.length > 0 && (
                 <button
                   onClick={handleResetChat}
-                  className="text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 rounded px-2 py-1 flex items-center"
+                  className="text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 rounded px-2 py-1 flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500"
                   title="ディスカッションをリセット">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -251,15 +269,18 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
           {/* 完了モーダル */}
           {showCompleteModal && (
             <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full flex flex-col items-center animate-fade-in-up">
-                <h3 className="text-lg font-bold mb-4 text-gray-800">ファイルレビューが完了しました！</h3>
+              <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full flex flex-col items-center border border-gray-200">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-gray-800">ファイルレビューが完了しました！</h3>
                 <p className="mb-6 text-gray-600 text-sm text-center">
-                  チェックリストが全てOKになりました。
-                  <br />
-                  チャット画面を閉じて次のファイルに進みましょう。
+                  チェックリストが全てOKになりました。チャット画面を閉じて次のファイルに進みましょう。
                 </p>
                 <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition w-40"
+                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   onClick={() => {
                     setShowCompleteModal(false);
                     onClose();
@@ -324,7 +345,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
               <div className="px-2 py-1 flex justify-end items-center">
                 {streaming && (
                   <button
-                    className="inline-flex items-center rounded-full bg-red-100 p-1.5 text-xs font-medium text-red-600 hover:bg-red-200 focus:outline-none transition duration-150 mr-2"
+                    className="inline-flex items-center rounded-full bg-red-100 p-1.5 text-xs font-medium text-red-600 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-colors mr-2"
                     onClick={() => {
                       abortControllerRef.current?.abort();
                       setStreaming(false);
@@ -341,10 +362,10 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                   </button>
                 )}
                 <button
-                  className={`rounded-full p-1.5 transition duration-150 flex items-center justify-center ${
+                  className={`rounded-md p-2 transition-colors flex items-center justify-center ${
                     !input.trim() || streaming
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'
                   }`}
                   disabled={!input.trim() || streaming}
                   onClick={async () => {
