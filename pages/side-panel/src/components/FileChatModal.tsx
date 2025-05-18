@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { PRFile } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -45,6 +45,35 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // チャットコンテナへの参照を追加
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  // チャットメッセージ終端への参照を追加
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // チャットを一番下までスクロールする関数
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  // モーダルが開かれた時に自動スクロール
+  useEffect(() => {
+    if (open) {
+      // setTimeout を使って、DOMが完全に更新された後にスクロールを実行
+      setTimeout(scrollToBottom, 0);
+    }
+  }, [open]);
+
+  // チャット履歴が更新された時に自動スクロール
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory]);
+
+  // ストリーミングメッセージが更新された時に自動スクロール
+  useEffect(() => {
+    scrollToBottom();
+  }, [streamedMessage]);
 
   // ローカルでリセット機能を処理する
   const handleResetChat = () => {
@@ -152,7 +181,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 </button>
               )}
             </div>
-            <div className="flex-1 overflow-y-auto p-3 pb-20 bg-white min-h-0">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 pb-20 bg-white min-h-0">
               {/* チャット履歴 */}
               {chatHistory.length === 0 ? (
                 <div className="text-center text-gray-500 py-6">
@@ -263,6 +292,8 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                   </div>
                 </div>
               )}
+              {/* チャットメッセージの終端 */}
+              <div ref={messagesEndRef} />
             </div>
           </div>
 
@@ -329,7 +360,11 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                         {
                           onToken: (token: string) => setStreamedMessage(prev => prev + token),
                           signal: abortControllerRef.current.signal,
-                          onDone: () => setStreaming(false),
+                          onDone: () => {
+                            setStreaming(false);
+                            // メッセージ送信完了時にも一番下までスクロール
+                            setTimeout(scrollToBottom, 0);
+                          },
                         },
                         { allDiffs },
                       );
@@ -385,7 +420,11 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       {
                         onToken: (token: string) => setStreamedMessage(prev => prev + token),
                         signal: abortControllerRef.current.signal,
-                        onDone: () => setStreaming(false),
+                        onDone: () => {
+                          setStreaming(false);
+                          // メッセージ送信完了時にも一番下までスクロール
+                          setTimeout(scrollToBottom, 0);
+                        },
                       },
                       { allDiffs },
                     );
