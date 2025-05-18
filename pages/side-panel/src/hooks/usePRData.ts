@@ -30,7 +30,6 @@ export function usePRData() {
       // URL変更時に状態をリセット
       setPreviousApprovalPercentage(null);
       setIsJustCompleted(false);
-      setAnalysisResult(undefined);
       // URLが設定されていない場合は何もしない
       if (!currentPage?.url) return;
 
@@ -57,6 +56,8 @@ export function usePRData() {
           setPRData(savedData.data);
           if (savedData.analysisResult) {
             setAnalysisResult(savedData.analysisResult);
+          } else {
+            setAnalysisResult(undefined);
           }
           console.log('Loaded PR data from storage:', currentPage.url);
         } else {
