@@ -72,7 +72,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
             />
           </svg>
         </button>
-        <h2 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2 flex items-center gap-4">
+        <h2 className="text-xs font-bold mb-4 text-gray-800 border-b pb-2 flex items-center gap-4">
           ファイルレビュー: {file.filename}
         </h2>
         <div className="space-y-4 flex-1 flex flex-col min-h-0 relative">
@@ -216,6 +216,26 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       );
                     })}
                   </div>
+                  {(() => {
+                    if (!aiAnalysis.checklistItems) return null;
+                    const checklistLength = aiAnalysis.checklistItems.length;
+                    // checklistItems propがあればそちらを使う
+                    const items = aiAnalysis.checklistItems.map((_, idx) => {
+                      const key = `item_${idx}`;
+                      return (checklistItems && checklistItems[key]) || aiAnalysis.checklistItems[idx].status;
+                    });
+                    const allChecked = items.length === checklistLength && items.every(s => s === 'OK');
+                    if (!allChecked) return null;
+                    return (
+                      <div className="flex items-center justify-center w-full my-4">
+                        <button
+                          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition"
+                          onClick={onClose}>
+                          このファイルのレビューを完了する
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
