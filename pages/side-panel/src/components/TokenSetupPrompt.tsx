@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { githubTokenStorage } from '@extension/storage';
+import { useState, useEffect } from 'react';
+import { githubTokenStorage, githubApiDomainStorage } from '@extension/storage';
 
 interface TokenSetupPromptProps {
   onComplete: () => void;
@@ -9,6 +9,23 @@ const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiDomain, setApiDomain] = useState('');
+
+  // Load API domain from storage on mount
+  useEffect(() => {
+    const loadApiDomain = async () => {
+      try {
+        const domain = await githubApiDomainStorage.get();
+        if (domain) {
+          setApiDomain(domain);
+        }
+      } catch (err) {
+        console.error('Error loading API domain:', err);
+      }
+    };
+
+    loadApiDomain();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +40,7 @@ const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
       setIsLoading(true);
 
       // Verify the token works by making a test API call
-      const response = await fetch('https://api.github.com/user', {
+      const response = await fetch(`${apiDomain}/user`, {
         headers: {
           Authorization: `token ${token}`,
         },

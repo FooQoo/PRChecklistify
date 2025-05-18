@@ -1,6 +1,6 @@
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier } from '../types';
 import { normalizePRUrl, extractPRInfo } from '../utils/prUtils';
-import { githubTokenStorage } from '@extension/storage';
+import { githubTokenStorage, githubApiDomainStorage } from '@extension/storage';
 
 type RecentPR = { url: string; title: string; key?: string; timestamp: number };
 
@@ -221,6 +221,9 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
 
     // Get GitHub token if available
     const token = await githubTokenStorage.get();
+    // Get GitHub API domain
+    const apiDomain = (await githubApiDomainStorage.get()) || '';
+
     const headers: HeadersInit = {
       Accept: 'application/vnd.github.v3+json',
     };
@@ -233,8 +236,10 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       console.log('No GitHub PAT found, API requests may be rate limited');
     }
 
+    console.log(`Using GitHub API domain: ${apiDomain}`);
+
     // Fetch PR data from GitHub API
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`, {
+    const response = await fetch(`${apiDomain}/repos/${owner}/${repo}/pulls/${prNumber}`, {
       headers,
     });
 
@@ -246,7 +251,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
     const prData = await response.json();
 
     // Get files changed in PR
-    const filesResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`, {
+    const filesResponse = await fetch(`${apiDomain}/repos/${owner}/${repo}/pulls/${prNumber}/files`, {
       headers,
     });
 
@@ -293,7 +298,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
     console.info('file:', JSON.stringify(filesWithDecodedContent, null, 2));
 
     // レビューデータを取得（レビューがアサインされた時間を特定するため）
-    const reviewsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/reviews`, {
+    const reviewsResponse = await fetch(`${apiDomain}/repos/${owner}/${repo}/pulls/${prNumber}/reviews`, {
       headers,
     });
 
