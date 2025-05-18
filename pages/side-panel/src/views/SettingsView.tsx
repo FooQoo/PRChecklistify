@@ -12,7 +12,9 @@ const SettingsView: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState('en');
-  const [githubApiDomain, setGithubApiDomain] = useState('https://api.github.com');
+  const [githubApiDomain, setGithubApiDomain] = useState('');
+  const [openaiApiEndpoint, setOpenaiApiEndpoint] = useState('');
+  const [, setHasCustomOpenaiEndpoint] = useState(false);
   const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
 
   // Load settings on mount
@@ -35,10 +37,17 @@ const SettingsView: React.FC = () => {
           setLanguage(savedLanguage);
         }
 
+        // Load OpenAI API endpoint
+        const result = await chrome.storage.local.get('openaiApiEndpoint');
+        if (result.openaiApiEndpoint) {
+          setOpenaiApiEndpoint(result.openaiApiEndpoint);
+          setHasCustomOpenaiEndpoint(true);
+        }
+
         // Load recent PRs
-        const result = await chrome.storage.local.get('recentPRs');
-        if (result.recentPRs && Array.isArray(result.recentPRs)) {
-          const sortedPRs = [...result.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
+        const prResult = await chrome.storage.local.get('recentPRs');
+        if (prResult.recentPRs && Array.isArray(prResult.recentPRs)) {
+          const sortedPRs = [...prResult.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
           setRecentPRs(sortedPRs);
         }
       } catch (err) {
@@ -111,7 +120,7 @@ const SettingsView: React.FC = () => {
     setLanguage(newLanguage);
 
     try {
-      await languagePreferenceStorage.set(newLanguage);
+      await chrome.storage.local.set({ languagePreference: newLanguage });
     } catch (err) {
       console.error('Error saving language preference:', err);
       setError('Failed to save language preference');
@@ -162,6 +171,8 @@ const SettingsView: React.FC = () => {
       setIsLoading(true);
       await githubApiDomainStorage.clear();
       setGithubApiDomain('https://api.github.com');
+      await chrome.storage.local.set({ openaiApiEndpoint });
+      setHasCustomOpenaiEndpoint(true);
       setShowSuccess(true);
 
       setTimeout(() => {

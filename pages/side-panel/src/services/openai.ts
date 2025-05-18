@@ -309,6 +309,37 @@ export const languagePreferenceStorage = {
   },
 };
 
+// Storage for OpenAI API endpoint
+export const openaiApiEndpointStorage = {
+  get: async (): Promise<string | null> => {
+    try {
+      const result = await chrome.storage.local.get('openaiApiEndpoint');
+      return result.openaiApiEndpoint || null;
+    } catch (error) {
+      console.error('Error getting OpenAI API endpoint:', error);
+      return null;
+    }
+  },
+
+  set: async (endpoint: string): Promise<void> => {
+    try {
+      await chrome.storage.local.set({ openaiApiEndpoint: endpoint });
+    } catch (error) {
+      console.error('Error setting OpenAI API endpoint:', error);
+      throw error;
+    }
+  },
+
+  clear: async (): Promise<void> => {
+    try {
+      await chrome.storage.local.remove('openaiApiEndpoint');
+    } catch (error) {
+      console.error('Error clearing OpenAI API endpoint:', error);
+      throw error;
+    }
+  },
+};
+
 // Create and export OpenAI client instance
 export const createOpenAIClient = async (): Promise<OpenAIClient | null> => {
   const apiKey = await openaiApiKeyStorage.get();
@@ -316,9 +347,13 @@ export const createOpenAIClient = async (): Promise<OpenAIClient | null> => {
     return null;
   }
 
+  // APIエンドポイントを取得
+  const apiEndpoint = await openaiApiEndpointStorage.get();
+
   return new OpenAIClient({
     apiKey,
     model: 'gpt-4o',
+    apiEndpoint: apiEndpoint || '',
   });
 };
 
