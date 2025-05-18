@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
-import { fetchPRData, prDataStorage } from '../services/prDataService';
+import { fetchPRData, prDataStorage, generatePRKey } from '../services/prDataService';
 
-export const currentPageAtom = atom<{ url: string | null }>({ url: null });
+export const currentPageAtom = atom<{ url: string | null; key?: string | null }>({ url: null });
 
 // GitHub URLからPRの識別子（owner, repo, PR番号）を抽出する関数
 export const extractPRIdentifier = (url: string): PRIdentifier | null => {
@@ -65,28 +65,22 @@ export const extractPRIdentifier = (url: string): PRIdentifier | null => {
 // };
 
 // PRデータを管理するためのカスタムフック
-export const usePRData = () => {
-  const [currentPage] = useAtom(currentPageAtom);
+export function usePRData() {
   const [prData, setPRData] = useState<PRData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | undefined>(undefined);
-  const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
-  const [isJustCompleted, setIsJustCompleted] = useState(false);
+  const [currentPage] = useAtom(currentPageAtom);
 
-  // 現在のページURLまたはルーターパラメータからPRデータを取得
+  // PR情報を取得する関数
   useEffect(() => {
-    // URL変更時に状態をリセット
-    setPreviousApprovalPercentage(null);
-    setIsJustCompleted(false);
-
     const loadPRData = async () => {
-      // No URL provided, nothing to load
+      // URLが設定されていない場合は何もしない
       if (!currentPage?.url) return;
 
+      // URLからPR識別子を抽出
       const identifier = extractPRIdentifier(currentPage.url);
       if (!identifier) {
-        // Not a PR URL, but we don't show an error - just don't load anything
         console.log('Not a PR URL, skipping data loading:', currentPage.url);
         return;
       }
@@ -95,13 +89,19 @@ export const usePRData = () => {
       setError(null);
 
       try {
+        // PRキーの作成（関数の使用例として）
+        const prKey = generatePRKey(currentPage.url);
+        console.log('Using PR key:', prKey);
+
         // まずストレージからデータを取得してみる
         const savedData = await prDataStorage.getFromStorage(currentPage.url);
 
         if (savedData) {
           // 保存されたデータがある場合はそれを使用
           setPRData(savedData.data);
-          setAnalysisResult(savedData.analysisResult);
+          if (savedData.analysisResult) {
+            setAnalysisResult(savedData.analysisResult);
+          }
           console.log('Loaded PR data from storage:', currentPage.url);
         } else {
           // なければAPIから取得
@@ -156,7 +156,7 @@ export const usePRData = () => {
       if (newData) {
         setPRData(newData);
         // 既存の分析結果を保持したまま、新しいデータを保存
-        await prDataStorage.saveToStorage(currentPage.url, newData, analysisResult);
+        await prDataStorage.saveToStorage(currentPage.url, newData, analysisResult || undefined);
       } else {
         setError('Failed to refresh PR data');
       }
@@ -168,32 +168,6 @@ export const usePRData = () => {
     }
   };
 
-  // 現在の承認状態を計算
-  const approvedFilesCount = prData && analysisResult ? getApprovedFiles(prData, analysisResult) : 0;
-
-  const currentApprovalPercentage = prData && analysisResult ? getApprovalPercentage(prData, analysisResult) : null;
-
-  // 承認率の変化を監視し、完了状態を検出する
-  useEffect(() => {
-    if (currentApprovalPercentage === 100 && previousApprovalPercentage !== null && previousApprovalPercentage < 100) {
-      setIsJustCompleted(true);
-    } else if (currentApprovalPercentage !== previousApprovalPercentage) {
-      setIsJustCompleted(false);
-      setPreviousApprovalPercentage(currentApprovalPercentage);
-    }
-  }, [currentApprovalPercentage, previousApprovalPercentage]);
-
-  // isJustCompletedがtrueになったら5秒後にfalseに戻す
-  useEffect(() => {
-    if (isJustCompleted) {
-      const timer = setTimeout(() => {
-        setIsJustCompleted(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [isJustCompleted]);
-
   return {
     prData,
     isLoading,
@@ -202,32 +176,28 @@ export const usePRData = () => {
     saveAnalysisResult,
     refreshData,
     currentPage,
-    // 新しく追加した承認関連の状態と機能
-    approvedFilesCount,
-    currentApprovalPercentage,
-    isJustCompleted,
   };
-};
+}
 
 // ファイルごとの承認状況と承認率を計算するユーティリティ関数群
-const getApprovedFiles = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number => {
-  if (!prData || !analysisResult) return 0;
+// const getApprovedFiles = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number => {
+//   if (!prData || !analysisResult) return 0;
 
-  return prData.files.filter(file => {
-    const fileChecklist = analysisResult.fileAnalysis.find(checklist => checklist.filename === file.filename);
+//   return prData.files.filter(file => {
+//     const fileChecklist = analysisResult.fileAnalysis.find(checklist => checklist.filename === file.filename);
 
-    if (!fileChecklist) return false;
+//     if (!fileChecklist) return false;
 
-    // すべてのチェックリストアイテムが'OK'になっているか確認
-    return fileChecklist.checklistItems.every(item => item.status === 'OK');
-  }).length;
-};
+//     // すべてのチェックリストアイテムが'OK'になっているか確認
+//     return fileChecklist.checklistItems.every(item => item.status === 'OK');
+//   }).length;
+// };
 
-// 承認率を計算するユーティリティ関数 (0-100%)
-const getApprovalPercentage = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number | null => {
-  if (!prData || prData.files.length === 0) return null;
-  return (getApprovedFiles(prData, analysisResult) / prData.files.length) * 100;
-};
+// // 承認率を計算するユーティリティ関数 (0-100%)
+// const getApprovalPercentage = (prData: PRData | null, analysisResult: PRAnalysisResult | undefined): number | null => {
+//   if (!prData || prData.files.length === 0) return null;
+//   return (getApprovedFiles(prData, analysisResult) / prData.files.length) * 100;
+// };
 
 // レビュー時間を計算するユーティリティ関数
 export const calculateReviewTime = (prData: PRData): { minutes: number } => {

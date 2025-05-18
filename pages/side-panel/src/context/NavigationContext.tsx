@@ -44,6 +44,16 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
           const prInfo = extractPRInfoFromURL(url);
 
           if (prInfo) {
+            // もしresult.currentPage.keyがなければ、初期データにkeyを追加する
+            if (!result.currentPage.key) {
+              const prKey = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
+              chrome.storage.local.set({
+                currentPage: {
+                  ...result.currentPage,
+                  key: prKey,
+                },
+              });
+            }
             router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
           }
         }
@@ -65,6 +75,16 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
         if (newURL) {
           const prInfo = extractPRInfoFromURL(newURL);
           if (prInfo) {
+            // newValueにkeyがなければ追加する
+            if (!changes.currentPage.newValue?.key) {
+              const prKey = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
+              const updatedPage = {
+                ...changes.currentPage.newValue,
+                key: prKey,
+              };
+
+              chrome.storage.local.set({ currentPage: updatedPage });
+            }
             router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
           }
         }
@@ -81,6 +101,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   // ナビゲーション関数
   const navigateToPR = (owner: string, repo: string, prNumber: string) => {
     const url = `https://github.com/${owner}/${repo}/pull/${prNumber}`;
+    const prKey = `${owner}/${repo}/${prNumber}`;
 
     // Update the router first
     router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
@@ -94,6 +115,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
         currentPage: {
           url,
           title: `${owner}/${repo}#${prNumber}`,
+          key: prKey, // "owner/repo/prNumber" 形式のキー
           isPRPage: true,
         },
       })

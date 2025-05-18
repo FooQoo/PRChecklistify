@@ -1,8 +1,17 @@
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier } from '../types';
-import { normalizePRUrl } from '../utils/prUtils';
+import { normalizePRUrl, extractPRInfo } from '../utils/prUtils';
 import { githubTokenStorage } from '@extension/storage';
 
-type RecentPR = { url: string; title: string; timestamp: number };
+type RecentPR = { url: string; title: string; key?: string; timestamp: number };
+
+// URLからPRのキー（org/repo/prNumber形式）を生成する
+export const generatePRKey = (url: string): string | null => {
+  const prInfo = extractPRInfo(url);
+  if (!prInfo) return null;
+
+  const { owner, repo, prNumber } = prInfo;
+  return `${owner}/${repo}/${prNumber}`;
+};
 
 // PRデータをローカルストレージに保存・取得するためのユーティリティ
 class PRDataStorage {
@@ -12,19 +21,27 @@ class PRDataStorage {
   // PRデータを保存
   async saveToStorage(prUrl: string, prData: PRData, analysisResult?: PRAnalysisResult): Promise<void> {
     try {
+      // PRキーを生成
+      const prKey = generatePRKey(prUrl);
+      if (!prKey) {
+        console.error('Failed to generate PR key from URL:', prUrl);
+        throw new Error('Invalid PR URL');
+      }
+
       // 現在のキャッシュを取得
       const savedData = await this.getAllFromStorage();
 
       // 新しいPRデータを作成
       const newPRData: SavedPRData = {
         url: prUrl,
+        key: prKey, // キーを追加
         data: prData,
         timestamp: Date.now(),
         analysisResult,
       };
 
-      // 既存のデータがあれば更新、なければ追加
-      const existingIndex = savedData.findIndex(item => item.url === prUrl);
+      // 既存のデータがあれば更新、なければ追加 (キーで検索)
+      const existingIndex = savedData.findIndex(item => item.key === prKey);
 
       if (existingIndex >= 0) {
         savedData[existingIndex] = newPRData;
@@ -43,7 +60,7 @@ class PRDataStorage {
       await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
 
       // 最近表示したPRの履歴も更新
-      await this.updateRecentPRs(prUrl, prData.title);
+      await this.updateRecentPRs(prUrl, prData.title, prKey);
     } catch (error) {
       console.error('Error saving PR data to storage:', error);
       throw error;
@@ -53,9 +70,18 @@ class PRDataStorage {
   // 特定のPRデータを取得
   async getFromStorage(prUrl: string): Promise<SavedPRData | null> {
     try {
+      // PRキーを生成
+      const prKey = generatePRKey(prUrl);
+      if (!prKey) {
+        console.error('Failed to generate PR key from URL:', prUrl);
+        return null;
+      }
+
       const result = await chrome.storage.local.get(this.STORAGE_KEY);
       const savedData: SavedPRData[] = result[this.STORAGE_KEY] || [];
-      const prData = savedData.find(item => item.url === prUrl) || null;
+
+      // キーでデータを検索
+      const prData = savedData.find(item => item.key === prKey) || null;
       return prData;
     } catch (error) {
       console.error('Error getting PR data from storage:', error);
@@ -77,8 +103,16 @@ class PRDataStorage {
   // 特定のPRデータを削除
   async removeFromStorage(prUrl: string): Promise<void> {
     try {
+      // PRキーを生成
+      const prKey = generatePRKey(prUrl);
+      if (!prKey) {
+        console.error('Failed to generate PR key from URL:', prUrl);
+        return;
+      }
+
       const savedData = await this.getAllFromStorage();
-      const filteredData = savedData.filter(item => item.url !== prUrl);
+      // キーでフィルタリング
+      const filteredData = savedData.filter(item => item.key !== prKey);
       await chrome.storage.local.set({ [this.STORAGE_KEY]: filteredData });
     } catch (error) {
       console.error('Error removing PR data from storage:', error);
@@ -97,46 +131,64 @@ class PRDataStorage {
   }
 
   // 最近表示したPRの履歴を更新
-  private async updateRecentPRs(url: string, title: string): Promise<void> {
+  private async updateRecentPRs(url: string, title: string, prKey?: string | null): Promise<void> {
     try {
       // PR番号より後ろのパスを削除して標準化
       const normalizedUrl = normalizePRUrl(url) || url;
 
+      // PRキーがない場合は生成
+      const key = prKey || generatePRKey(url);
+      if (!key) {
+        console.error('Failed to generate PR key from URL:', url);
+        return;
+      }
+
       const result = await chrome.storage.local.get('recentPRs');
       let recentPRs = result.recentPRs || [];
 
-      // 念のため重複を削除（同じURLのエントリが複数ある場合に対応）
-      recentPRs = recentPRs.filter((pr: { url: string }, index: number, self: RecentPR[]) => {
-        // 各URLを標準化して比較
-        const normalizedCurrentUrl = normalizePRUrl(pr.url) || pr.url;
-        return (
-          index ===
-          self.findIndex((p: { url: string }) => {
-            const normalizedItemUrl = normalizePRUrl(p.url) || p.url;
-            return normalizedItemUrl === normalizedCurrentUrl;
-          })
-        );
+      // 念のため重複を削除（同じキーのエントリが複数ある場合に対応）
+      recentPRs = recentPRs.filter((pr: RecentPR, index: number, self: RecentPR[]) => {
+        if (pr.key) {
+          // キーがある場合はキーで比較
+          return index === self.findIndex((p: { key?: string }) => p.key === pr.key);
+        } else {
+          // 古いデータ形式の場合はURLで比較
+          const normalizedCurrentUrl = normalizePRUrl(pr.url) || pr.url;
+          return (
+            index ===
+            self.findIndex((p: { url: string }) => {
+              const normalizedItemUrl = normalizePRUrl(p.url) || p.url;
+              return normalizedItemUrl === normalizedCurrentUrl;
+            })
+          );
+        }
       });
 
       // 新しいPR情報
       const newPRInfo = {
-        url: normalizedUrl, // 標準化したURLを保存
+        url: normalizedUrl,
         title,
-        timestamp: Date.now(), // 現在の時刻で常に更新
+        key, // キーを追加
+        timestamp: Date.now(),
       };
 
-      // 既存のエントリーを確認（標準化したURLで検索）
-      const existingIndex = recentPRs.findIndex((pr: { url: string }) => {
-        const normalizedItemUrl = normalizePRUrl(pr.url) || pr.url;
-        return normalizedItemUrl === normalizedUrl;
+      // 既存のエントリーを確認（キーで検索）
+      const existingIndex = recentPRs.findIndex((pr: { key?: string; url: string }) => {
+        if (pr.key) {
+          return pr.key === key;
+        } else {
+          // 古いデータ形式の場合はURLで比較
+          const normalizedItemUrl = normalizePRUrl(pr.url) || pr.url;
+          return normalizedItemUrl === normalizedUrl;
+        }
       });
 
       if (existingIndex >= 0) {
         // 既存のものを更新
-        console.log(`Updating existing PR in history: ${normalizedUrl}`);
+        console.log(`Updating existing PR in history: ${key}`);
         recentPRs[existingIndex] = newPRInfo;
       } else {
-        console.log(`Adding new PR to history: ${normalizedUrl}`);
+        console.log(`Adding new PR to history: ${key}`);
         // 新しいものを追加（最大10件まで）
         if (recentPRs.length >= 10) {
           // タイムスタンプで並べ替えて古いものを削除
@@ -150,7 +202,7 @@ class PRDataStorage {
       // 最後にタイムスタンプでソートして保存
       recentPRs.sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp);
       await chrome.storage.local.set({ recentPRs });
-      console.log(`Saved ${recentPRs.length} PRs to history`);
+      console.log(`Saved ${recentPRs.length} PRs to history with key format`);
     } catch (error) {
       console.error('Error updating recent PRs:', error);
     }

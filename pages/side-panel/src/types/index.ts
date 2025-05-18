@@ -52,6 +52,7 @@ export interface PRIdentifier {
 // 保存されたPRデータの型
 export interface SavedPRData {
   url: string;
+  key?: string; // "owner/repo/prNumber" 形式のキー
   data: PRData;
   timestamp: number;
   analysisResult?: PRAnalysisResult;
@@ -61,6 +62,8 @@ export interface SavedPRData {
 export interface CurrentPage {
   url: string;
   title: string;
+  key?: string; // "owner/repo/prNumber" 形式のキー
+  isPRPage?: boolean;
 }
 
 // チェックリストアイテムのステータス

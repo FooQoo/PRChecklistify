@@ -2,18 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, languagePreferenceStorage } from '@extension/storage';
-import { extractPRInfo } from '../utils/prUtils';
 import StorageManagement from '@src/components/StorageManagement';
 
 const SettingsView: React.FC = () => {
-  const { navigateToHome, navigateToPR } = useNavigation();
+  const { navigateToHome } = useNavigation();
   const [githubToken, setGithubToken] = useState('');
   const [hasToken, setHasToken] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState('en');
-  const [recentPRs, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
+  const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
 
   // Load settings on mount
   useEffect(() => {
@@ -109,15 +108,6 @@ const SettingsView: React.FC = () => {
     } catch (err) {
       console.error('Error saving language preference:', err);
       setError('Failed to save language preference');
-    }
-  };
-
-  // PR navigation handler
-  const handlePRClick = (url: string) => {
-    const prInfo = extractPRInfo(url);
-    if (prInfo) {
-      const { owner, repo, prNumber } = prInfo;
-      navigateToPR(owner, repo, prNumber);
     }
   };
 
