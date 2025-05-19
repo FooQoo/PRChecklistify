@@ -46,29 +46,8 @@ export default async function recoverModules(manifestObject: chrome.runtime.Mani
   if (answers.includes('background')) {
     recoverBackgroundScript(manifestObject);
   }
-  if (answers.includes('content')) {
-    recoverContentScript(manifestObject);
-  }
-  if (answers.includes('content-ui')) {
-    recoverContentScriptUI(manifestObject);
-  }
-  if (answers.includes('content-runtime')) {
-    recoverContentScriptRuntime(manifestObject);
-  }
-  if (answers.includes('new-tab')) {
-    recoverNewTabOverride(manifestObject);
-  }
-  if (answers.includes('popup')) {
-    recoverPopup(manifestObject);
-  }
-  if (answers.includes('devtools')) {
-    recoverDevTools(manifestObject);
-  }
   if (answers.includes('side-panel')) {
     recoverSidePanel(manifestObject);
-  }
-  if (answers.includes('options')) {
-    recoverOptionsPage(manifestObject);
   }
   console.log(`Recovered selected features: ${answers.join(', ')}`);
 }
@@ -78,67 +57,6 @@ function recoverBackgroundScript(manifestObject: chrome.runtime.ManifestV3) {
     service_worker: 'background.js',
     type: 'module',
   };
-}
-
-function recoverContentScript(manifestObject: chrome.runtime.ManifestV3) {
-  if (!manifestObject.content_scripts) {
-    manifestObject.content_scripts = [];
-  }
-  manifestObject.content_scripts.push({
-    matches: ['http://*/*', 'https://*/*', '<all_urls>'],
-    js: ['content/index.iife.js'],
-  });
-  const zipFilePath = path.resolve(archivePath, 'content.zip');
-  upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'content'));
-}
-
-function recoverContentScriptUI(manifestObject: chrome.runtime.ManifestV3) {
-  if (!manifestObject.content_scripts) {
-    manifestObject.content_scripts = [];
-  }
-  manifestObject.content_scripts.push({
-    matches: ['http://*/*', 'https://*/*', '<all_urls>'],
-    js: ['content-ui/index.iife.js'],
-  });
-  const zipFilePath = path.resolve(archivePath, 'content-ui.zip');
-  upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'content-ui'));
-}
-
-function recoverContentScriptRuntime(manifestObject: chrome.runtime.ManifestV3) {
-  if (!manifestObject.content_scripts) {
-    manifestObject.content_scripts = [];
-  }
-  manifestObject.content_scripts.push({
-    matches: ['http://*/*', 'https://*/*', '<all_urls>'],
-    js: ['content-runtime/index.iife.js'],
-  });
-  const zipFilePath = path.resolve(archivePath, 'content-runtime.zip');
-  upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'content-runtime'));
-}
-
-function recoverNewTabOverride(manifestObject: chrome.runtime.ManifestV3) {
-  manifestObject.chrome_url_overrides = {
-    newtab: 'new-tab/index.html',
-  };
-  const zipFilePath = path.resolve(archivePath, 'new-tab.zip');
-  upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'new-tab'));
-}
-
-function recoverPopup(manifestObject: chrome.runtime.ManifestV3) {
-  manifestObject.action = {
-    default_popup: 'popup/index.html',
-    default_icon: 'icon-34.png',
-  };
-  const zipFilePath = path.resolve(archivePath, 'popup.zip');
-  upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'popup'));
-}
-
-function recoverDevTools(manifestObject: chrome.runtime.ManifestV3) {
-  manifestObject.devtools_page = 'devtools/index.html';
-  const zipFilePath = path.resolve(archivePath, 'devtools.zip');
-  upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'devtools'));
-  const zipFilePathPanel = path.resolve(archivePath, 'devtools-panel.zip');
-  upZipAndDelete(zipFilePathPanel, path.resolve(pagesPath, 'devtools-panel'));
 }
 
 function recoverSidePanel(manifestObject: chrome.runtime.ManifestV3) {
@@ -151,12 +69,6 @@ function recoverSidePanel(manifestObject: chrome.runtime.ManifestV3) {
   manifestObject.permissions.push('sidePanel');
   const zipFilePath = path.resolve(archivePath, 'side-panel.zip');
   upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'side-panel'));
-}
-
-function recoverOptionsPage(manifestObject: chrome.runtime.ManifestV3) {
-  manifestObject.options_page = 'options/index.html';
-  const zipFilePath = path.resolve(archivePath, 'options.zip');
-  upZipAndDelete(zipFilePath, path.resolve(pagesPath, 'options'));
 }
 
 function upZipAndDelete(zipFilePath: string, destPath: string) {
