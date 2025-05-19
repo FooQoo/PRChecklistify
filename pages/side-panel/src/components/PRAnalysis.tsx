@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { useAtom } from 'jotai';
 import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
 import FileChecklist from './FileChecklist';
 import FileChatModal from './FileChatModal';
+import { generatingAtom } from '@src/atoms/generatingAtom';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -16,7 +18,7 @@ const BLOCK_ROWS = 3;
 const BLOCK_TOTAL = BLOCK_COLS * BLOCK_ROWS;
 
 const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAnalysisResult }) => {
-  const [generating, setGenerating] = useState(false);
+  const [generating, setGenerating] = useAtom(generatingAtom);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
@@ -88,10 +90,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
       setGenerating(false);
     }
   };
-
-  if (!prData) {
-    return null;
-  }
 
   // チェックリスト変更時のハンドラー
   const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {

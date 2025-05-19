@@ -3,6 +3,7 @@ import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult } from '../types';
 import { fetchPRData, prDataStorage, generatePRKey } from '../services/prDataService';
 import { extractPRInfo } from '@src/utils/prUtils';
+import { generatingAtom } from '@src/atoms/generatingAtom';
 
 export const currentPageAtom = atom<{ url: string | null; key?: string | null }>({ url: null });
 
@@ -15,9 +16,11 @@ export function usePRData() {
   const [currentPage] = useAtom(currentPageAtom);
   const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
   const [isJustCompleted, setIsJustCompleted] = useState(false);
-
+  const [isGenerating] = useAtom(generatingAtom);
   // PR情報を取得する関数
   useEffect(() => {
+    if (isGenerating) return; // 生成中はデータを取得しない
+
     const loadPRData = async () => {
       // URL変更時に状態をリセット
       setPreviousApprovalPercentage(null);
@@ -75,7 +78,7 @@ export function usePRData() {
     };
 
     loadPRData();
-  }, [currentPage?.url]);
+  }, [currentPage.url, isGenerating]);
 
   // 分析結果を保存する関数
   const saveAnalysisResult = async (result: PRAnalysisResult | undefined) => {

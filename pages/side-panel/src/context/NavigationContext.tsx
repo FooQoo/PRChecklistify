@@ -3,6 +3,8 @@ import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { router } from '../routes/AppRoutes';
 import { extractPRInfo } from '@src/utils/prUtils';
+import { useAtom } from 'jotai';
+import { generatingAtom } from '@src/atoms/generatingAtom';
 
 // ナビゲーション状態の型
 interface NavigationContextType {
@@ -22,9 +24,12 @@ interface NavigationProviderProps {
 
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
   const [prKey, setPrKey] = useState<string | null>(null);
+  const [generating] = useAtom(generatingAtom);
 
   // Chrome のストレージ変更を監視
   useEffect(() => {
+    if (generating) return; // 生成中はnavigateしない
+
     const getCurrentPage = async () => {
       try {
         const result = await chrome.storage.local.get('currentPage');
@@ -64,6 +69,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
     // ストレージの変更を監視
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (generating) return; // 生成中はnavigateしない
       if (changes.currentPage) {
         const newValue = changes.currentPage.newValue;
         let key = newValue?.key;
@@ -94,11 +100,10 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     return () => {
       chrome.storage.onChanged.removeListener(handleStorageChange);
     };
-  }, []);
+  }, [generating]);
 
   // ナビゲーション関数
   const navigateToPR = (owner: string, repo: string, prNumber: string) => {
-    const url = `https://github.com/${owner}/${repo}/pull/${prNumber}`;
     const key = `${owner}/${repo}/${prNumber}`;
 
     // Update the router first
@@ -111,7 +116,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     chrome.storage.local
       .set({
         currentPage: {
-          url,
           title: `${owner}/${repo}#${prNumber}`,
           key, // "owner/repo/prNumber" 形式のキー
           isPRPage: true,
