@@ -1,5 +1,5 @@
 {
-  "name": "PRChecklistfy",
+  "name": "pr-checklistfy",
   "version": "0.0.01",
   "description": "Support for your PR review",
   "type": "module",
