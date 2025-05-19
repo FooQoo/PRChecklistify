@@ -3,7 +3,7 @@ import { useNavigation } from '../context/NavigationContext';
 import { isGitHubPRPage, extractPRInfo } from '../utils/prUtils';
 
 const DefaultView: React.FC = () => {
-  const { navigateToPR, navigateToSettings } = useNavigation();
+  const { navigateToPR } = useNavigation();
   const [prUrl, setPrUrl] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [recentPRs, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);

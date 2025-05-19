@@ -69,6 +69,7 @@ export function usePRData() {
             setPRData(newData);
             // データをストレージに保存
             await prDataStorage.saveToStorage(currentPage.url, newData);
+            setAnalysisResult(undefined);
           } else {
             setError('Failed to load PR data');
           }
