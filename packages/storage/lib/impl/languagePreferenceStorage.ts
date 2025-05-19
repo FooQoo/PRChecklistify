@@ -2,7 +2,7 @@ import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
 
 // Define the supported languages
-type Language = 'en' | 'ja' | 'ko';
+type Language = 'en' | 'ja' | 'ko' | 'zh';
 
 type LanguagePreferenceStorage = BaseStorage<Language> & {
   /**
@@ -19,6 +19,11 @@ type LanguagePreferenceStorage = BaseStorage<Language> & {
    * Set language to Korean
    */
   setKo: () => Promise<void>;
+
+  /**
+   * Set language to Chinese
+   */
+  setZh: () => Promise<void>;
 };
 
 // Create the base storage with 'en' as the default value
@@ -38,5 +43,8 @@ export const languagePreferenceStorage: LanguagePreferenceStorage = {
   },
   setKo: async () => {
     await storage.set('ko');
+  },
+  setZh: async () => {
+    await storage.set('zh');
   },
 };

@@ -33,7 +33,13 @@ const SettingsView: React.FC = () => {
 
         // Load language preference
         const savedLanguage = await languagePreferenceStorage.get();
-        if (savedLanguage) {
+
+        // Chrome Storage Local から直接読み込み (zh のサポートのため)
+        const langResult = await chrome.storage.local.get('languagePreference');
+
+        if (langResult.languagePreference === 'zh') {
+          setLanguage('zh');
+        } else if (savedLanguage) {
           setLanguage(savedLanguage);
         }
 
@@ -120,7 +126,11 @@ const SettingsView: React.FC = () => {
     setLanguage(newLanguage);
 
     try {
-      await chrome.storage.local.set({ languagePreference: newLanguage });
+      await languagePreferenceStorage.set(newLanguage as 'en' | 'ja' | 'ko' | 'zh');
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
     } catch (err) {
       console.error('Error saving language preference:', err);
       setError('Failed to save language preference');
