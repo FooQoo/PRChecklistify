@@ -10,7 +10,6 @@ import PRAnalysis from '../components/PRAnalysis';
 import { useReward } from 'react-rewards';
 
 const GitHubPRView = () => {
-  const { owner, repo, prNumber } = useParams();
   const { currentURL } = useNavigation();
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
@@ -22,7 +21,7 @@ const GitHubPRView = () => {
   });
 
   // PRのURLを構築
-  const url = currentURL || `https://github.com/${owner}/${repo}/pull/${prNumber}`;
+  const url = currentURL;
 
   // 統合された状態管理フックを使用
   const {
