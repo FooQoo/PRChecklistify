@@ -234,7 +234,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
         )}
       </div>
       {analysisResult && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+        <div className="grid grid-cols-1 gap-2 mt-4">
           <div className="changed-files p-4 border border-gray-300 rounded-md mb-4 bg-white shadow-sm w-full text-left">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-bold">Changed Files</h3>
