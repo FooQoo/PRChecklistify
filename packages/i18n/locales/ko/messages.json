@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "React, Typescript, Vite를 사용한 크롬 익스텐션 보일러플레이트입니다."
+    "message": "PR 리뷰를 지원하는 AI 에이전트 기능을 제공합니다"
   },
   "extensionName": {
     "description": "Extension name",
-    "message": "크롬 익스텐션 보일러플레이트"
+    "message": "PRChecklistfy"
   },
   "toggleTheme": {
     "message": "테마 변경"
@@ -26,5 +26,128 @@
   "hello": {
     "description": "Placeholder 예시",
     "message": "안녕 $1"
+  },
+  "settings": {
+    "message": "설정"
+  },
+  "backToHome": {
+    "message": "홈으로 돌아가기"
+  },
+  "githubIntegration": {
+    "message": "GitHub 연동"
+  },
+  "settingsSavedSuccess": {
+    "message": "설정이 성공적으로 저장되었습니다!"
+  },
+  "githubToken": {
+    "message": "GitHub 개인 액세스 토큰"
+  },
+  "save": {
+    "message": "저장"
+  },
+  "verifying": {
+    "message": "확인 중..."
+  },
+  "tokenIsSet": {
+    "message": "토큰이 설정되었습니다"
+  },
+  "remove": {
+    "message": "제거"
+  },
+  "githubTokenStorageNotice": {
+    "message": "GitHub 토큰은 로컬에 저장되며 PR 데이터에 액세스하는 데만 사용됩니다."
+  },
+  "createGithubToken": {
+    "message": "GitHub에서 새 토큰 만들기 →"
+  },
+  "githubApiDomain": {
+    "message": "GitHub API 도메인"
+  },
+  "saving": {
+    "message": "저장 중..."
+  },
+  "githubEnterpriseNotice": {
+    "message": "GitHub Enterprise 인스턴스에 사용하세요"
+  },
+  "resetToDefault": {
+    "message": "기본값으로 재설정"
+  },
+  "openaiIntegration": {
+    "message": "OpenAI 연동"
+  },
+  "preferences": {
+    "message": "환경설정"
+  },
+  "analysisLanguage": {
+    "message": "분석 언어"
+  },
+  "analysisLanguageDescription": {
+    "message": "AI 생성 PR 분석 및 체크리스트 항목에 대한 언어를 선택하세요."
+  },
+  "prChecklist": {
+    "message": "PR 체크리스트"
+  },
+  "addChecklistItem": {
+    "message": "체크리스트 항목 추가"
+  },
+  "saveChecklist": {
+    "message": "체크리스트 저장"
+  },
+  "deleteChecklist": {
+    "message": "체크리스트 삭제"
+  },
+  "noChecklistItems": {
+    "message": "체크리스트 항목이 없습니다"
+  },
+  "openaiApiKey": {
+    "message": "OpenAI API 키"
+  },
+  "openaiApiEndpoint": {
+    "message": "OpenAI API 엔드포인트"
+  },
+  "pleaseEnterValidOpenAIKey": {
+    "message": "유효한 OpenAI API 키를 입력하세요"
+  },
+  "invalidApiKeyFormat": {
+    "message": "API 키 형식이 잘못되었습니다. OpenAI API 키는 일반적으로 \"sk-\"로 시작합니다"
+  },
+  "apiKeySavedSuccess": {
+    "message": "API 키가 성공적으로 저장되었습니다!"
+  },
+  "apiKeyIsSet": {
+    "message": "API 키가 설정되었습니다"
+  },
+  "failedToSaveApiKey": {
+    "message": "API 키 저장에 실패했습니다"
+  },
+  "failedToRemoveApiKey": {
+    "message": "API 키 제거에 실패했습니다"
+  },
+  "openaiKeyStorageNotice": {
+    "message": "OpenAI API 키는 로컬에 저장되며 PR 분석 생성에만 사용됩니다."
+  },
+  "getOpenAIKey": {
+    "message": "OpenAI에서 API 키 얻기"
+  },
+  "pleaseEnterValidOpenAIEndpoint": {
+    "message": "유효한 OpenAI API 엔드포인트를 입력하세요"
+  },
+  "invalidUrlFormat": {
+    "message": "유효한 URL을 입력하세요 (예: https://api.openai.com/v1)"
+  },
+  "currentEndpoint": {
+    "message": "현재 엔드포인트: $1"
+  },
+  "usingDefaultEndpoint": {
+    "message": "기본 OpenAI API 엔드포인트 사용 중"
+  },
+  "failedToResetApiEndpoint": {
+    "message": "API 엔드포인트 재설정에 실패했습니다"
+  },
+  "setCustomEndpointNotice": {
+    "message": "OpenAI의 셀프호스팅 인스턴스를 사용하는 경우 커스텀 API 엔드포인트를 설정하세요."
+  },
+  "failedToLoadSettings": {
+    "message": "저장된 설정 로드에 실패했습니다"
   }
 }

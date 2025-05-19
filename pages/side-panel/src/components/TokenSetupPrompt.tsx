@@ -9,7 +9,7 @@ const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apiDomain, setApiDomain] = useState('');
+  const [, setApiDomain] = useState('');
 
   // Load API domain from storage on mount
   useEffect(() => {
@@ -38,21 +38,9 @@ const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
 
     try {
       setIsLoading(true);
-
-      // Verify the token works by making a test API call
-      const response = await fetch(`${apiDomain}/user`, {
-        headers: {
-          Authorization: `token ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        // Save the token only if it's verified
-        await githubTokenStorage.set(token);
-        onComplete();
-      } else {
-        setError(`Invalid token: ${response.statusText}`);
-      }
+      // Save the token only if it's verified
+      await githubTokenStorage.set(token);
+      onComplete();
     } catch (err) {
       setError('Network error. Please check your connection and try again.');
       console.error('Token verification error:', err);

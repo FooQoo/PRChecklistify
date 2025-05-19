@@ -42,5 +42,113 @@
   },
   "noChecklistItems": {
     "message": "No checklist items"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "backToHome": {
+    "message": "Back to Home"
+  },
+  "githubIntegration": {
+    "message": "GitHub Integration"
+  },
+  "settingsSavedSuccess": {
+    "message": "Settings saved successfully!"
+  },
+  "githubToken": {
+    "message": "GitHub Personal Access Token"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "verifying": {
+    "message": "Verifying..."
+  },
+  "tokenIsSet": {
+    "message": "Token is set"
+  },
+  "remove": {
+    "message": "Remove"
+  },
+  "githubTokenStorageNotice": {
+    "message": "Your GitHub token is stored locally and only used to access PR data."
+  },
+  "createGithubToken": {
+    "message": "Create a new token on GitHub →"
+  },
+  "githubApiDomain": {
+    "message": "GitHub API Domain"
+  },
+  "saving": {
+    "message": "Saving..."
+  },
+  "githubEnterpriseNotice": {
+    "message": "Use this for GitHub Enterprise instances"
+  },
+  "resetToDefault": {
+    "message": "Reset to default"
+  },
+  "openaiIntegration": {
+    "message": "OpenAI Integration"
+  },
+  "preferences": {
+    "message": "Preferences"
+  },
+  "analysisLanguage": {
+    "message": "Analysis Language"
+  },
+  "analysisLanguageDescription": {
+    "message": "Select the language for AI-generated PR analysis and checklist items."
+  },
+  "openaiApiKey": {
+    "message": "OpenAI API Key"
+  },
+  "openaiApiEndpoint": {
+    "message": "OpenAI API Endpoint"
+  },
+  "pleaseEnterValidOpenAIKey": {
+    "message": "Please enter a valid OpenAI API key"
+  },
+  "invalidApiKeyFormat": {
+    "message": "Invalid API key format. OpenAI API keys typically start with \"sk-\""
+  },
+  "apiKeySavedSuccess": {
+    "message": "API key saved successfully!"
+  },
+  "apiKeyIsSet": {
+    "message": "API key is set"
+  },
+  "failedToSaveApiKey": {
+    "message": "Failed to save API key"
+  },
+  "failedToRemoveApiKey": {
+    "message": "Failed to remove API key"
+  },
+  "openaiKeyStorageNotice": {
+    "message": "Your OpenAI API key is stored locally and only used to generate PR analysis."
+  },
+  "getOpenAIKey": {
+    "message": "Get your API key from OpenAI"
+  },
+  "pleaseEnterValidOpenAIEndpoint": {
+    "message": "Please enter a valid OpenAI API endpoint"
+  },
+  "invalidUrlFormat": {
+    "message": "Please enter a valid URL (e.g. https://api.openai.com/v1)"
+  },
+  "currentEndpoint": {
+    "message": "Current endpoint: $1"
+  },
+  "usingDefaultEndpoint": {
+    "message": "Using default OpenAI API endpoint"
+  },
+  "failedToResetApiEndpoint": {
+    "message": "Failed to reset API endpoint"
+  },
+  "setCustomEndpointNotice": {
+    "message": "Set a custom API endpoint if you are using a self-hosted instance of OpenAI."
+  },
+  "failedToLoadSettings": {
+    "message": "Failed to load saved settings"
   }
 }

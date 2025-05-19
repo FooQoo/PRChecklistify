@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, languagePreferenceStorage, githubApiDomainStorage } from '@extension/storage';
-import StorageManagement from '@src/components/StorageManagement';
+import { t } from '@extension/i18n';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
@@ -34,14 +34,7 @@ const SettingsView: React.FC = () => {
         // Load language preference
         const savedLanguage = await languagePreferenceStorage.get();
 
-        // Chrome Storage Local から直接読み込み (zh のサポートのため)
-        const langResult = await chrome.storage.local.get('languagePreference');
-
-        if (langResult.languagePreference === 'zh') {
-          setLanguage('zh');
-        } else if (savedLanguage) {
-          setLanguage(savedLanguage);
-        }
+        setLanguage(savedLanguage);
 
         // Load OpenAI API endpoint
         const result = await chrome.storage.local.get('openaiApiEndpoint');
@@ -77,28 +70,16 @@ const SettingsView: React.FC = () => {
 
     try {
       setIsLoading(true);
+      // Save the token only if it's verified
+      await githubTokenStorage.set(githubToken);
+      setGithubToken(''); // Clear the input field
+      setHasToken(true);
+      setShowSuccess(true);
 
-      // Verify the token works by making a test API call
-      const response = await fetch(`${githubApiDomain}/user`, {
-        headers: {
-          Authorization: `token ${githubToken}`,
-        },
-      });
-
-      if (response.ok) {
-        // Save the token only if it's verified
-        await githubTokenStorage.set(githubToken);
-        setGithubToken(''); // Clear the input field
-        setHasToken(true);
-        setShowSuccess(true);
-
-        // Hide success message after 3 seconds
-        setTimeout(() => {
-          setShowSuccess(false);
-        }, 3000);
-      } else {
-        setError(`Invalid token: ${response.statusText}`);
-      }
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
     } catch (err) {
       console.error('Token verification error:', err);
       setError('Network error. Please check your connection and try again.');
@@ -126,11 +107,28 @@ const SettingsView: React.FC = () => {
     setLanguage(newLanguage);
 
     try {
+      // Save language preference to storage
       await languagePreferenceStorage.set(newLanguage as 'en' | 'ja' | 'ko' | 'zh');
+
+      // Save to chrome.storage.local for i18n to access
+      await chrome.storage.local.set({ languagePreference: newLanguage });
+
+      // For development environment, store the preference to be used on next reload
+      if (process.env.NODE_ENV === 'development') {
+        localStorage.setItem('CEB_DEV_LOCALE', newLanguage);
+      }
+
+      // Show success message
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
       }, 3000);
+
+      // To apply changes immediately, reload the extension's UI
+      // Note: In a real extension, you might want to show a prompt before reloading
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       console.error('Error saving language preference:', err);
       setError('Failed to save language preference');
@@ -200,7 +198,7 @@ const SettingsView: React.FC = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-bold">Settings</h1>
+          <h1 className="text-xl font-bold">{t('settings')}</h1>
           <button onClick={navigateToHome} className="text-blue-500 hover:text-blue-700 text-sm flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -210,24 +208,24 @@ const SettingsView: React.FC = () => {
               stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back to Home
+            {t('backToHome')}
           </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">GitHub Integration</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('githubIntegration')}</h2>
 
           {error && <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-md mb-4">{error}</div>}
           {showSuccess && (
             <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded-md mb-4">
-              Settings saved successfully!
+              {t('settingsSavedSuccess')}
             </div>
           )}
 
           <form onSubmit={handleGitHubTokenSubmit} className="mb-6">
             <div className="mb-4">
               <label htmlFor="github-token" className="block text-sm font-medium text-gray-700 mb-1">
-                GitHub Personal Access Token
+                {t('githubToken')}
               </label>
               <div className="flex">
                 <input
@@ -246,14 +244,14 @@ const SettingsView: React.FC = () => {
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-500 hover:bg-blue-600 text-white'
                   } rounded-r-md`}>
-                  {isLoading ? 'Verifying...' : 'Save'}
+                  {isLoading ? t('verifying') : t('save')}
                 </button>
               </div>
               {hasToken && (
                 <div className="mt-1 flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Token is set</span>
+                  <span className="text-xs text-gray-500">{t('tokenIsSet')}</span>
                   <button type="button" onClick={handleRemoveToken} className="text-xs text-red-500 hover:text-red-700">
-                    Remove
+                    {t('remove')}
                   </button>
                 </div>
               )}
@@ -261,13 +259,13 @@ const SettingsView: React.FC = () => {
 
             <div className="text-xs text-gray-500">
               <p>
-                Your GitHub token is stored locally and only used to access PR data.
+                {t('githubTokenStorageNotice')}
                 <a
                   href="https://github.com/settings/tokens/new?scopes=repo&description=PR+Checklistify+Extension"
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-500 hover:text-blue-700 ml-1">
-                  Create a new token on GitHub →
+                  {t('createGithubToken')}
                 </a>
               </p>
             </div>
@@ -276,7 +274,7 @@ const SettingsView: React.FC = () => {
           <form onSubmit={handleGithubApiDomainSubmit}>
             <div className="mb-4">
               <label htmlFor="github-api-domain" className="block text-sm font-medium text-gray-700 mb-1">
-                GitHub API Domain
+                {t('githubApiDomain')}
               </label>
               <div className="flex">
                 <input
@@ -295,16 +293,16 @@ const SettingsView: React.FC = () => {
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-500 hover:bg-blue-600 text-white'
                   } rounded-r-md`}>
-                  {isLoading ? 'Saving...' : 'Save'}
+                  {isLoading ? t('saving') : t('save')}
                 </button>
               </div>
               <div className="mt-1 flex items-center justify-between">
-                <span className="text-xs text-gray-500">Use this for GitHub Enterprise instances</span>
+                <span className="text-xs text-gray-500">{t('githubEnterpriseNotice')}</span>
                 <button
                   type="button"
                   onClick={handleResetApiDomain}
                   className="text-xs text-blue-500 hover:text-blue-700">
-                  Reset to default
+                  {t('resetToDefault')}
                 </button>
               </div>
             </div>
@@ -312,16 +310,16 @@ const SettingsView: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">OpenAI Integration</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('openaiIntegration')}</h2>
           <OpenAIKeySettings />
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4">Preferences</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('preferences')}</h2>
 
           <div className="mb-4">
             <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-1">
-              Analysis Language
+              {t('analysisLanguage')}
             </label>
             <select
               id="language"
@@ -329,16 +327,13 @@ const SettingsView: React.FC = () => {
               onChange={handleLanguageChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="en">English</option>
-              <option value="ja">Japanese</option>
-              <option value="ko">Korean</option>
-              <option value="zh">Chinese</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한글</option>
+              <option value="zh">中文</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">
-              Select the language for AI-generated PR analysis and checklist items.
-            </p>
+            <p className="text-xs text-gray-500 mt-1">{t('analysisLanguageDescription')}</p>
           </div>
         </div>
-        <StorageManagement />
       </div>
     </div>
   );

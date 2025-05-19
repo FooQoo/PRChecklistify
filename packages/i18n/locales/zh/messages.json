@@ -1,0 +1,154 @@
+{
+  "extensionDescription": {
+    "description": "扩展描述",
+    "message": "提供AI代理功能以支持PR审核"
+  },
+  "extensionName": {
+    "description": "PRChecklistfy",
+    "message": "PRChecklistfy"
+  },
+  "toggleTheme": {
+    "message": "切换主题"
+  },
+  "loading": {
+    "message": "加载中..."
+  },
+  "greeting": {
+    "description": "问候消息",
+    "message": "你好，我叫$NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "张三"
+      }
+    }
+  },
+  "hello": {
+    "description": "占位符示例",
+    "message": "你好 $1"
+  },
+  "prChecklist": {
+    "description": "PR检查清单标题",
+    "message": "PR检查清单"
+  },
+  "addChecklistItem": {
+    "message": "添加检查项"
+  },
+  "saveChecklist": {
+    "message": "保存检查清单"
+  },
+  "deleteChecklist": {
+    "message": "删除检查清单"
+  },
+  "noChecklistItems": {
+    "message": "没有检查项"
+  },
+  "settings": {
+    "message": "设置"
+  },
+  "backToHome": {
+    "message": "返回首页"
+  },
+  "githubIntegration": {
+    "message": "GitHub集成"
+  },
+  "settingsSavedSuccess": {
+    "message": "设置已成功保存！"
+  },
+  "githubToken": {
+    "message": "GitHub个人访问令牌"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "verifying": {
+    "message": "验证中..."
+  },
+  "tokenIsSet": {
+    "message": "令牌已设置"
+  },
+  "remove": {
+    "message": "删除"
+  },
+  "githubTokenStorageNotice": {
+    "message": "您的GitHub令牌存储在本地，仅用于访问PR数据。"
+  },
+  "createGithubToken": {
+    "message": "在GitHub上创建新令牌 →"
+  },
+  "githubApiDomain": {
+    "message": "GitHub API域名"
+  },
+  "saving": {
+    "message": "保存中..."
+  },
+  "githubEnterpriseNotice": {
+    "message": "用于GitHub Enterprise实例"
+  },
+  "resetToDefault": {
+    "message": "重置为默认值"
+  },
+  "openaiIntegration": {
+    "message": "OpenAI集成"
+  },
+  "preferences": {
+    "message": "首选项"
+  },
+  "analysisLanguage": {
+    "message": "分析语言"
+  },
+  "analysisLanguageDescription": {
+    "message": "为AI生成的PR分析和检查项选择语言。"
+  },
+  "openaiApiKey": {
+    "message": "OpenAI API密钥"
+  },
+  "openaiApiEndpoint": {
+    "message": "OpenAI API端点"
+  },
+  "pleaseEnterValidOpenAIKey": {
+    "message": "请输入有效的OpenAI API密钥"
+  },
+  "invalidApiKeyFormat": {
+    "message": "API密钥格式无效。OpenAI API密钥通常以\"sk-\"开头"
+  },
+  "apiKeySavedSuccess": {
+    "message": "API密钥已成功保存！"
+  },
+  "apiKeyIsSet": {
+    "message": "API密钥已设置"
+  },
+  "failedToSaveApiKey": {
+    "message": "保存API密钥失败"
+  },
+  "failedToRemoveApiKey": {
+    "message": "删除API密钥失败"
+  },
+  "openaiKeyStorageNotice": {
+    "message": "您的OpenAI API密钥存储在本地，仅用于生成PR分析。"
+  },
+  "getOpenAIKey": {
+    "message": "从OpenAI获取您的API密钥"
+  },
+  "pleaseEnterValidOpenAIEndpoint": {
+    "message": "请输入有效的OpenAI API端点"
+  },
+  "invalidUrlFormat": {
+    "message": "请输入有效的URL（例如：https://api.openai.com/v1）"
+  },
+  "currentEndpoint": {
+    "message": "当前端点: $1"
+  },
+  "usingDefaultEndpoint": {
+    "message": "使用默认OpenAI API端点"
+  },
+  "failedToResetApiEndpoint": {
+    "message": "重置API端点失败"
+  },
+  "setCustomEndpointNotice": {
+    "message": "如果您使用的是自托管的OpenAI实例，请设置自定义API端点。"
+  },
+  "failedToLoadSettings": {
+    "message": "加载已保存的设置失败"
+  }
+}

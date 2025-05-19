@@ -42,5 +42,113 @@
   },
   "noChecklistItems": {
     "message": "チェックリスト項目がありません"
+  },
+  "settings": {
+    "message": "設定"
+  },
+  "backToHome": {
+    "message": "ホームに戻る"
+  },
+  "githubIntegration": {
+    "message": "GitHub連携"
+  },
+  "settingsSavedSuccess": {
+    "message": "設定が正常に保存されました！"
+  },
+  "githubToken": {
+    "message": "GitHub個人アクセストークン"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "verifying": {
+    "message": "検証中..."
+  },
+  "tokenIsSet": {
+    "message": "トークンが設定されています"
+  },
+  "remove": {
+    "message": "削除"
+  },
+  "githubTokenStorageNotice": {
+    "message": "GitHubトークンはローカルに保存され、PRデータへのアクセスにのみ使用されます。"
+  },
+  "createGithubToken": {
+    "message": "GitHubで新しいトークンを作成 →"
+  },
+  "githubApiDomain": {
+    "message": "GitHub APIドメイン"
+  },
+  "saving": {
+    "message": "保存中..."
+  },
+  "githubEnterpriseNotice": {
+    "message": "GitHub Enterprise用に使用します"
+  },
+  "resetToDefault": {
+    "message": "デフォルトにリセット"
+  },
+  "openaiIntegration": {
+    "message": "OpenAI連携"
+  },
+  "preferences": {
+    "message": "設定"
+  },
+  "analysisLanguage": {
+    "message": "分析言語"
+  },
+  "analysisLanguageDescription": {
+    "message": "AI生成PRチェックリストの言語を選択してください。"
+  },
+  "openaiApiKey": {
+    "message": "OpenAI APIキー"
+  },
+  "openaiApiEndpoint": {
+    "message": "OpenAI APIエンドポイント"
+  },
+  "pleaseEnterValidOpenAIKey": {
+    "message": "有効なOpenAI APIキーを入力してください"
+  },
+  "invalidApiKeyFormat": {
+    "message": "APIキーのフォーマットが無効です。OpenAI APIキーは通常「sk-」で始まります"
+  },
+  "apiKeySavedSuccess": {
+    "message": "APIキーが正常に保存されました！"
+  },
+  "apiKeyIsSet": {
+    "message": "APIキーが設定されています"
+  },
+  "failedToSaveApiKey": {
+    "message": "APIキーの保存に失敗しました"
+  },
+  "failedToRemoveApiKey": {
+    "message": "APIキーの削除に失敗しました"
+  },
+  "openaiKeyStorageNotice": {
+    "message": "OpenAI APIキーはローカルに保存され、PR分析の生成にのみ使用されます。"
+  },
+  "getOpenAIKey": {
+    "message": "OpenAIからAPIキーを取得する"
+  },
+  "pleaseEnterValidOpenAIEndpoint": {
+    "message": "有効なOpenAI APIエンドポイントを入力してください"
+  },
+  "invalidUrlFormat": {
+    "message": "有効なURLを入力してください（例：https://api.openai.com/v1）"
+  },
+  "currentEndpoint": {
+    "message": "現在のエンドポイント: $1"
+  },
+  "usingDefaultEndpoint": {
+    "message": "デフォルトのOpenAI APIエンドポイントを使用しています"
+  },
+  "failedToResetApiEndpoint": {
+    "message": "APIエンドポイントのリセットに失敗しました"
+  },
+  "setCustomEndpointNotice": {
+    "message": "セルフホスト型のOpenAIインスタンスを使用している場合は、カスタムAPIエンドポイントを設定してください。"
+  },
+  "failedToLoadSettings": {
+    "message": "設定の読み込みに失敗しました"
   }
 }
