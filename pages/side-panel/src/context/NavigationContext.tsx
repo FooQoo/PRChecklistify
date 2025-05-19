@@ -6,7 +6,7 @@ import { extractPRInfo } from '@src/utils/prUtils';
 
 // ナビゲーション状態の型
 interface NavigationContextType {
-  currentURL: string | null;
+  prKey: string | null;
   navigateToPR: (owner: string, repo: string, prNumber: string) => void;
   navigateToSettings: () => void;
   navigateToHome: () => void;
@@ -21,7 +21,7 @@ interface NavigationProviderProps {
 }
 
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
-  const [currentURL, setCurrentURL] = useState<string | null>(null);
+  const [prKey, setPrKey] = useState<string | null>(null);
 
   // Chrome のストレージ変更を監視
   useEffect(() => {
@@ -29,28 +29,33 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
       try {
         const result = await chrome.storage.local.get('currentPage');
         if (result.currentPage?.url) {
-          setCurrentURL(result.currentPage.url);
-
           // URLに基づいて適切なルートに初期ナビゲーション
           const url = result.currentPage.url;
           const prInfo = extractPRInfo(url);
 
           if (prInfo) {
             // もしresult.currentPage.keyがなければ、初期データにkeyを追加する
-            if (!result.currentPage.key) {
-              const prKey = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
+            let key = result.currentPage.key;
+            if (!key) {
+              key = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
               chrome.storage.local.set({
                 currentPage: {
                   ...result.currentPage,
-                  key: prKey,
+                  key,
                 },
               });
             }
+            setPrKey(key);
             router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
+          } else {
+            setPrKey(null);
           }
+        } else {
+          setPrKey(null);
         }
       } catch (error) {
         console.error('Error getting current page:', error);
+        setPrKey(null);
       }
     };
 
@@ -60,25 +65,26 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     // ストレージの変更を監視
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
       if (changes.currentPage) {
-        const newURL = changes.currentPage.newValue?.url;
-        setCurrentURL(newURL);
-
-        // URL変更時にルーターのナビゲーションも更新
-        if (newURL) {
-          const prInfo = extractPRInfo(newURL);
+        const newValue = changes.currentPage.newValue;
+        let key = newValue?.key;
+        if (newValue?.url) {
+          const prInfo = extractPRInfo(newValue.url);
           if (prInfo) {
-            // newValueにkeyがなければ追加する
-            if (!changes.currentPage.newValue?.key) {
-              const prKey = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
+            if (!key) {
+              key = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
               const updatedPage = {
-                ...changes.currentPage.newValue,
-                key: prKey,
+                ...newValue,
+                key,
               };
-
               chrome.storage.local.set({ currentPage: updatedPage });
             }
+            setPrKey(key);
             router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
+          } else {
+            setPrKey(null);
           }
+        } else {
+          setPrKey(null);
         }
       }
     };
@@ -93,13 +99,13 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   // ナビゲーション関数
   const navigateToPR = (owner: string, repo: string, prNumber: string) => {
     const url = `https://github.com/${owner}/${repo}/pull/${prNumber}`;
-    const prKey = `${owner}/${repo}/${prNumber}`;
+    const key = `${owner}/${repo}/${prNumber}`;
 
     // Update the router first
     router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
 
     // Then update the storage and state
-    setCurrentURL(url);
+    setPrKey(key);
 
     // Store in Chrome storage with title for history tracking
     chrome.storage.local
@@ -107,7 +113,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
         currentPage: {
           url,
           title: `${owner}/${repo}#${prNumber}`,
-          key: prKey, // "owner/repo/prNumber" 形式のキー
+          key, // "owner/repo/prNumber" 形式のキー
           isPRPage: true,
         },
       })
@@ -126,7 +132,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   // コンテキスト値の提供
   const contextValue: NavigationContextType = {
-    currentURL,
+    prKey,
     navigateToPR,
     navigateToSettings,
     navigateToHome,

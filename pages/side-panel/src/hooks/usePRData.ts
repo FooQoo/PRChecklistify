@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
-import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
+import type { PRData, PRAnalysisResult } from '../types';
 import { fetchPRData, prDataStorage, generatePRKey } from '../services/prDataService';
+import { extractPRInfo } from '@src/utils/prUtils';
 
 export const currentPageAtom = atom<{ url: string | null; key?: string | null }>({ url: null });
-
-// GitHub URLからPRの識別子（owner, repo, PR番号）を抽出する関数
-export const extractPRIdentifier = (url: string): PRIdentifier | null => {
-  const match = url.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-  if (!match) return null;
-
-  const [, owner, repo, prNumber] = match;
-  return { owner, repo, prNumber };
-};
 
 // PRデータを管理するためのカスタムフック
 export function usePRData() {
@@ -34,7 +26,7 @@ export function usePRData() {
       if (!currentPage?.url) return;
 
       // URLからPR識別子を抽出
-      const identifier = extractPRIdentifier(currentPage.url);
+      const identifier = extractPRInfo(currentPage.url);
       if (!identifier) {
         console.log('Not a PR URL, skipping data loading:', currentPage.url);
         return;
@@ -102,7 +94,7 @@ export function usePRData() {
   const refreshData = async () => {
     if (!currentPage?.url) return;
 
-    const identifier = extractPRIdentifier(currentPage.url);
+    const identifier = extractPRInfo(currentPage.url);
     if (!identifier) return;
 
     setIsLoading(true);

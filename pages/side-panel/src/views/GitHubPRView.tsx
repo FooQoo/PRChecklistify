@@ -1,6 +1,4 @@
-import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useNavigation } from '../context/NavigationContext';
 import { usePRData } from '../hooks/usePRData';
 import TokenSetupPrompt from '../components/TokenSetupPrompt';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
@@ -10,7 +8,6 @@ import PRAnalysis from '../components/PRAnalysis';
 import { useReward } from 'react-rewards';
 
 const GitHubPRView = () => {
-  const { currentURL } = useNavigation();
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
@@ -19,9 +16,6 @@ const GitHubPRView = () => {
     elementSize: 10,
     spread: 160,
   });
-
-  // PRのURLを構築
-  const url = currentURL;
 
   // 統合された状態管理フックを使用
   const {
@@ -120,7 +114,6 @@ const GitHubPRView = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <p className="text-red-500 mb-4">Failed to load PR data</p>
-        <p className="text-sm">Current PR URL: {url}</p>
       </div>
     );
   }
@@ -129,7 +122,6 @@ const GitHubPRView = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <p className="text-red-500 mb-4">No PR data available</p>
-        <p className="text-sm">Current PR URL: {url}</p>
         <button
           onClick={() => refreshData()}
           className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
@@ -198,12 +190,7 @@ const GitHubPRView = () => {
           </div>
 
           {/* PRAnalysisコンポーネントを追加 - ファイル一覧の前に表示 */}
-          <PRAnalysis
-            prData={prData}
-            url={url}
-            analysisResult={analysisResult}
-            saveAnalysisResult={saveAnalysisResult}
-          />
+          <PRAnalysis prData={prData} analysisResult={analysisResult} saveAnalysisResult={saveAnalysisResult} />
 
           {/* 追加: 完了メッセージの表示 */}
           {currentApprovalPercentage === 100 && (

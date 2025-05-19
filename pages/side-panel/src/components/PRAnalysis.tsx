@@ -7,7 +7,6 @@ import FileChatModal from './FileChatModal';
 
 interface PRAnalysisProps {
   prData: PRData;
-  url: string;
   analysisResult: PRAnalysisResult | undefined;
   saveAnalysisResult: (result: PRAnalysisResult | undefined) => void;
 }
@@ -16,7 +15,7 @@ const BLOCK_COLS = 10;
 const BLOCK_ROWS = 3;
 const BLOCK_TOTAL = BLOCK_COLS * BLOCK_ROWS;
 
-const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, saveAnalysisResult }) => {
+const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAnalysisResult }) => {
   const [generating, setGenerating] = useState(false);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +74,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, url, analysisResult, sa
       saveAnalysisResult(undefined); // Reset analysis result
 
       // Generate analysis using the fetcher
-      const generatedAnalysis = await fetchers.generateAnalysis(url, prData, language);
+      const generatedAnalysis = await fetchers.generateAnalysis(prData, language);
 
       // デバッグ用
       console.log('Generated analysis result:', generatedAnalysis);
