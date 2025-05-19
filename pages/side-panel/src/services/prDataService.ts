@@ -1,6 +1,7 @@
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier } from '../types';
 import { normalizePRUrl, extractPRInfo } from '../utils/prUtils';
 import { githubTokenStorage, githubApiDomainStorage } from '@extension/storage';
+import { Octokit } from '@octokit/rest';
 
 type RecentPR = { url: string; title: string; key?: string; timestamp: number };
 
@@ -224,13 +225,13 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
     // Get GitHub API domain
     const apiDomain = (await githubApiDomainStorage.get()) || '';
 
-    const headers: HeadersInit = {
-      Accept: 'application/vnd.github.v3+json',
-    };
+    // Octokitインスタンスを初期化
+    const octokit = new Octokit({
+      auth: token || undefined,
+      baseUrl: apiDomain || undefined,
+    });
 
-    // Add authorization header if token is available
     if (token) {
-      headers['Authorization'] = `token ${token}`;
       console.log('Using GitHub PAT for API requests');
     } else {
       console.log('No GitHub PAT found, API requests may be rate limited');
@@ -238,44 +239,47 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
 
     console.log(`Using GitHub API domain: ${apiDomain}`);
 
-    // Fetch PR data from GitHub API
-    const response = await fetch(`${apiDomain}/repos/${owner}/${repo}/pulls/${prNumber}`, {
-      headers,
+    // Octokitを使用してPRデータを取得
+    const { data: prData } = await octokit.pulls.get({
+      owner,
+      repo,
+      pull_number: Number(prNumber),
     });
 
-    if (!response.ok) {
-      console.error('Failed to fetch PR data:', response.statusText);
-      return null;
-    }
-
-    const prData = await response.json();
-
-    // Get files changed in PR
-    const filesResponse = await fetch(`${apiDomain}/repos/${owner}/${repo}/pulls/${prNumber}/files`, {
-      headers,
+    // 変更されたファイル一覧を取得
+    const { data: filesData } = await octokit.pulls.listFiles({
+      owner,
+      repo,
+      pull_number: Number(prNumber),
     });
-
-    if (!filesResponse.ok) {
-      console.error('Failed to fetch PR files:', filesResponse.statusText);
-      return null;
-    }
-
-    const filesData = await filesResponse.json();
 
     // --- ここから追加 ---
     // 各ファイルのcontents_urlからbase64デコードした内容を取得
     const filesWithDecodedContent = await Promise.all(
-      filesData.map(async (file: PRFile) => {
+      filesData.map(async file => {
         let decodedContent;
         if (file.contents_url) {
           try {
-            const contentRes = await fetch(file.contents_url, { headers });
-            if (contentRes.ok) {
-              const contentJson = await contentRes.json();
-              if (contentJson.content) {
-                // 改行を除去してbase64デコード
-                const base64 = contentJson.content.replace(/\n/g, '');
-                decodedContent = atob(base64);
+            // URLからパスを抽出
+            const contentUrlParts = file.contents_url.split('/contents/');
+            if (contentUrlParts.length > 1) {
+              const path = decodeURIComponent(contentUrlParts[1]);
+
+              try {
+                const { data: contentData } = await octokit.repos.getContent({
+                  owner,
+                  repo,
+                  path,
+                  ref: prData.head.sha,
+                });
+
+                if ('content' in contentData && !Array.isArray(contentData)) {
+                  // 改行を除去してbase64デコード
+                  const base64 = contentData.content.replace(/\n/g, '');
+                  decodedContent = atob(base64);
+                }
+              } catch (e) {
+                console.warn('Failed to get content for file:', file.filename, e);
               }
             }
           } catch (e) {
@@ -298,14 +302,14 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
     console.info('file:', JSON.stringify(filesWithDecodedContent, null, 2));
 
     // レビューデータを取得（レビューがアサインされた時間を特定するため）
-    const reviewsResponse = await fetch(`${apiDomain}/repos/${owner}/${repo}/pulls/${prNumber}/reviews`, {
-      headers,
-    });
-
     let reviewAssignedAt = null;
 
-    if (reviewsResponse.ok) {
-      const reviewsData = await reviewsResponse.json();
+    try {
+      const { data: reviewsData } = await octokit.pulls.listReviews({
+        owner,
+        repo,
+        pull_number: Number(prNumber),
+      });
 
       // レビューが存在する場合、最初のレビューの時間をレビューアサイン時間として使用
       if (reviewsData && reviewsData.length > 0) {
@@ -317,8 +321,8 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
         reviewAssignedAt = prData.created_at;
         console.log(`No reviews found, using PR creation time: ${reviewAssignedAt}`);
       }
-    } else {
-      console.warn('Failed to fetch PR reviews:', reviewsResponse.statusText);
+    } catch (error) {
+      console.warn('Failed to fetch PR reviews:', error);
       // レビューデータを取得できない場合は、PRの作成時間を使用
       reviewAssignedAt = prData.created_at;
     }

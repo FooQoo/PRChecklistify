@@ -22,17 +22,19 @@ export const calculateReviewTime = (prData: PRData): number => {
   return Math.round(diffInHours * 10) / 10; // 小数第1位まで表示
 };
 
-// GitHub PR URLかどうかを判定する関数
+// GitHub PR URLかどうかを判定する関数（ドメインに依存しない実装）
 export const isGitHubPRPage = (url: string): boolean => {
   // PRが含まれているURLかどうかをチェック（パスが追加されていても対応）
-  const githubPRRegex = /https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+/;
-  return githubPRRegex.test(url);
+  // ドメイン名に依存しないパターンマッチング
+  const prRegex = /https?:\/\/[^/]+\/[^/]+\/[^/]+\/pull\/\d+/;
+  return prRegex.test(url);
 };
 
 // PRのURLからオーナー、リポジトリ、PR番号を抽出する関数
 export const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string } | null => {
   // PR番号までのURLを抽出（それ以降のパスは無視する）
-  const baseMatch = url.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+  // ドメイン名に依存しないパターンマッチング
+  const baseMatch = url.match(/https?:\/\/[^/]+\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
   if (!baseMatch) return null;
 
   const [, owner, repo, prNumber] = baseMatch;
@@ -46,6 +48,12 @@ export const normalizePRUrl = (url: string): string | null => {
   const prInfo = extractPRInfo(url);
   if (!prInfo) return null;
 
+  // ドメイン部分を保持するために元のURLからドメイン部分を抽出
+  const domainMatch = url.match(/^(https?:\/\/[^/]+)/);
+  if (!domainMatch) return null;
+
+  const domainPart = domainMatch[1];
   const { owner, repo, prNumber } = prInfo;
-  return `https://github.com/${owner}/${repo}/pull/${prNumber}`;
+
+  return `${domainPart}/${owner}/${repo}/pull/${prNumber}`;
 };

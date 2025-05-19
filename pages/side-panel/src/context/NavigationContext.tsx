@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { router } from '../routes/AppRoutes';
+import { extractPRInfo } from '@src/utils/prUtils';
 
 // ナビゲーション状態の型
 interface NavigationContextType {
@@ -13,15 +14,6 @@ interface NavigationContextType {
 
 // ナビゲーションコンテキストの作成
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
-
-// URL からプルリクエスト情報を抽出する関数
-const extractPRInfoFromURL = (url: string) => {
-  const match = url.match(/https:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-  if (!match) return null;
-
-  const [, owner, repo, prNumber] = match;
-  return { owner, repo, prNumber };
-};
 
 // コンテキストプロバイダーコンポーネント
 interface NavigationProviderProps {
@@ -41,7 +33,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
           // URLに基づいて適切なルートに初期ナビゲーション
           const url = result.currentPage.url;
-          const prInfo = extractPRInfoFromURL(url);
+          const prInfo = extractPRInfo(url);
 
           if (prInfo) {
             // もしresult.currentPage.keyがなければ、初期データにkeyを追加する
@@ -73,7 +65,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
         // URL変更時にルーターのナビゲーションも更新
         if (newURL) {
-          const prInfo = extractPRInfoFromURL(newURL);
+          const prInfo = extractPRInfo(newURL);
           if (prInfo) {
             // newValueにkeyがなければ追加する
             if (!changes.currentPage.newValue?.key) {
