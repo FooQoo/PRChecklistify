@@ -2,15 +2,24 @@ import { useState, useEffect } from 'react';
 import { openaiApiKeyStorage } from '@extension/storage';
 import { openaiApiEndpointStorage } from '../services/openai';
 import { t } from '@extension/i18n';
+import Toast from './Toast';
 
 const OpenAIKeySettings = () => {
   const [apiKey, setApiKey] = useState('');
   const [savedKey, setSavedKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiEndpoint, setApiEndpoint] = useState('');
   const [savedEndpoint, setSavedEndpoint] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
 
   // Load the saved API key on mount
   useEffect(() => {
@@ -42,7 +51,6 @@ const OpenAIKeySettings = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setShowSuccess(false);
 
     if (!apiKey.trim()) {
       setError(t('pleaseEnterValidOpenAIKey'));
@@ -62,12 +70,13 @@ const OpenAIKeySettings = () => {
       await openaiApiKeyStorage.set(apiKey);
       setSavedKey(apiKey);
       setApiKey(''); // Clear the input field
-      setShowSuccess(true);
 
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('apiKeySavedSuccess'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error saving OpenAI API key:', err);
       setError(t('failedToSaveApiKey'));
@@ -82,6 +91,13 @@ const OpenAIKeySettings = () => {
       await openaiApiKeyStorage.clear();
       setSavedKey(null);
       setApiKey('');
+
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('remove'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error removing OpenAI API key:', err);
       setError(t('failedToRemoveApiKey'));
@@ -93,7 +109,6 @@ const OpenAIKeySettings = () => {
   const handleEndpointSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setShowSuccess(false);
 
     if (!apiEndpoint.trim()) {
       setError(t('pleaseEnterValidOpenAIEndpoint'));
@@ -112,12 +127,13 @@ const OpenAIKeySettings = () => {
       // Save the API endpoint to storage
       await openaiApiEndpointStorage.set(apiEndpoint);
       setSavedEndpoint(apiEndpoint);
-      setShowSuccess(true);
 
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('apiKeySavedSuccess'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error saving OpenAI API endpoint:', err);
       setError(t('invalidUrlFormat'));
@@ -132,12 +148,13 @@ const OpenAIKeySettings = () => {
       await openaiApiEndpointStorage.clear();
       setSavedEndpoint(null);
       setApiEndpoint('');
-      setShowSuccess(true);
 
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('resetToDefault'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error resetting OpenAI API endpoint:', err);
       setError(t('failedToResetApiEndpoint'));
@@ -152,8 +169,22 @@ const OpenAIKeySettings = () => {
     return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
   };
 
+  // Close toast handler
+  const handleCloseToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
+  };
+
   return (
     <div className="openai-settings">
+      {/* Toast notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onClose={handleCloseToast}
+        duration={3000}
+      />
+
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="mb-3">
           <label htmlFor="openai-key" className="block text-sm font-medium text-gray-700 mb-1">
@@ -191,11 +222,6 @@ const OpenAIKeySettings = () => {
 
         {error && (
           <div className="p-2 bg-red-100 border border-red-300 text-red-800 rounded-md mb-3 text-sm">{error}</div>
-        )}
-        {showSuccess && (
-          <div className="p-2 bg-green-100 border border-green-300 text-green-800 rounded-md mb-3 text-sm">
-            {t('apiKeySavedSuccess')}
-          </div>
         )}
 
         <div className="text-xs text-gray-500 mt-2">

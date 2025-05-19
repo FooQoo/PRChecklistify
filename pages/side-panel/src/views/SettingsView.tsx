@@ -3,19 +3,28 @@ import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, languagePreferenceStorage, githubApiDomainStorage } from '@extension/storage';
 import { t } from '@extension/i18n';
+import Toast from '../components/Toast';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
   const [githubToken, setGithubToken] = useState('');
   const [hasToken, setHasToken] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState('en');
-  const [githubApiDomain, setGithubApiDomain] = useState('');
-  const [openaiApiEndpoint, setOpenaiApiEndpoint] = useState('');
+  const [githubApiDomain, setGithubApiDomain] = useState('https://api.github.com');
+  const [, setOpenaiApiEndpoint] = useState('');
   const [, setHasCustomOpenaiEndpoint] = useState(false);
   const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
 
   // Load settings on mount
   useEffect(() => {
@@ -27,9 +36,7 @@ const SettingsView: React.FC = () => {
 
         // Load GitHub API domain
         const apiDomain = await githubApiDomainStorage.get();
-        if (apiDomain) {
-          setGithubApiDomain(apiDomain);
-        }
+        setGithubApiDomain(apiDomain || 'https://api.github.com');
 
         // Load language preference
         const savedLanguage = await languagePreferenceStorage.get();
@@ -58,10 +65,14 @@ const SettingsView: React.FC = () => {
     loadSettings();
   }, []);
 
+  // Close toast handler
+  const handleCloseToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
+  };
+
   const handleGitHubTokenSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setShowSuccess(false);
 
     if (!githubToken.trim()) {
       setError('Please enter a valid GitHub token');
@@ -74,12 +85,13 @@ const SettingsView: React.FC = () => {
       await githubTokenStorage.set(githubToken);
       setGithubToken(''); // Clear the input field
       setHasToken(true);
-      setShowSuccess(true);
 
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('settingsSavedSuccess'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Token verification error:', err);
       setError('Network error. Please check your connection and try again.');
@@ -94,6 +106,13 @@ const SettingsView: React.FC = () => {
       await githubTokenStorage.clear();
       setHasToken(false);
       setGithubToken('');
+
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('remove'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error removing GitHub token:', err);
       setError('Failed to remove token');
@@ -118,17 +137,12 @@ const SettingsView: React.FC = () => {
         localStorage.setItem('CEB_DEV_LOCALE', newLanguage);
       }
 
-      // Show success message
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
-
-      // To apply changes immediately, reload the extension's UI
-      // Note: In a real extension, you might want to show a prompt before reloading
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('settingsSavedSuccess'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error saving language preference:', err);
       setError('Failed to save language preference');
@@ -143,12 +157,6 @@ const SettingsView: React.FC = () => {
   const handleGithubApiDomainSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setShowSuccess(false);
-
-    if (!githubApiDomain.trim()) {
-      setError('Please enter a valid GitHub API domain');
-      return;
-    }
 
     try {
       setIsLoading(true);
@@ -160,12 +168,13 @@ const SettingsView: React.FC = () => {
       }
 
       await githubApiDomainStorage.set(githubApiDomain);
-      setShowSuccess(true);
 
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('settingsSavedSuccess'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error saving GitHub API domain:', err);
       setError('Please enter a valid URL (e.g. https://api.github.com)');
@@ -179,13 +188,13 @@ const SettingsView: React.FC = () => {
       setIsLoading(true);
       await githubApiDomainStorage.clear();
       setGithubApiDomain('https://api.github.com');
-      await chrome.storage.local.set({ openaiApiEndpoint });
-      setHasCustomOpenaiEndpoint(true);
-      setShowSuccess(true);
 
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+      // Show success toast
+      setToast({
+        visible: true,
+        message: t('resetToDefault'),
+        type: 'success',
+      });
     } catch (err) {
       console.error('Error resetting GitHub API domain:', err);
       setError('Failed to reset API domain');
@@ -196,6 +205,15 @@ const SettingsView: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Toast notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onClose={handleCloseToast}
+        duration={3000}
+      />
+
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold">{t('settings')}</h1>
@@ -216,11 +234,6 @@ const SettingsView: React.FC = () => {
           <h2 className="text-lg font-semibold mb-4">{t('githubIntegration')}</h2>
 
           {error && <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-md mb-4">{error}</div>}
-          {showSuccess && (
-            <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded-md mb-4">
-              {t('settingsSavedSuccess')}
-            </div>
-          )}
 
           <form onSubmit={handleGitHubTokenSubmit} className="mb-6">
             <div className="mb-4">
@@ -287,9 +300,9 @@ const SettingsView: React.FC = () => {
                 />
                 <button
                   type="submit"
-                  disabled={isLoading || !githubApiDomain.trim()}
+                  disabled={isLoading}
                   className={`px-4 py-2 ${
-                    isLoading || !githubApiDomain.trim()
+                    isLoading
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-500 hover:bg-blue-600 text-white'
                   } rounded-r-md`}>
