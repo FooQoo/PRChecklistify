@@ -1,7 +1,7 @@
 {
-  "name": "chrome-extension",
-  "version": "0.4.3",
-  "description": "chrome extension - core settings",
+  "name": "PRChecklistfy",
+  "version": "0.0.01",
+  "description": "Support for your PR review",
   "type": "module",
   "private": true,
   "sideEffects": false,

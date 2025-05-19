@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "拡張機能の説明",
-    "message": "Vite、React、TypeScriptで開発されたChrome拡張機能のボイラープレート"
+    "message": "PRレビューをサポートするAIエージェント機能を提供します"
   },
   "extensionName": {
-    "description": "拡張機能名",
-    "message": "Chrome拡張機能ボイラープレート"
+    "description": "PRChecklistfy",
+    "message": "PRChecklistfy"
   },
   "toggleTheme": {
     "message": "テーマ切り替え"
