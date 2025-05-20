@@ -89,36 +89,21 @@ class PRDataStorage {
     }
   }
 
-  // すべてのPRデータを削除
-  async clearStorage(): Promise<void> {
-    try {
-      await chrome.storage.local.remove(this.STORAGE_KEY);
-    } catch (error) {
-      console.error('Error clearing PR data storage:', error);
-      throw error;
-    }
-  }
-
   // 最近表示したPRの履歴を更新
   private async updateRecentPRs(title: string, prKey: string): Promise<void> {
     try {
       const result = await chrome.storage.local.get('recentPRs');
-      let recentPRs = result.recentPRs || [];
-
-      // 念のため重複を削除（同じキーのエントリが複数ある場合に対応）
-      recentPRs = recentPRs.filter((pr: RecentPR, index: number, self: RecentPR[]) => {
-        return index === self.findIndex((p: { key?: string }) => p.key === prKey);
-      });
+      const recentPRs = result.recentPRs || [];
 
       // 新しいPR情報
       const newPRInfo = {
         title,
         key: prKey, // キーを追加
         timestamp: Date.now(),
-      };
+      } as RecentPR;
 
       // 既存のエントリーを確認（キーで検索）
-      const existingIndex = recentPRs.findIndex((pr: { title: string; key: string; timestamp: number }) => {
+      const existingIndex = recentPRs.findIndex((pr: RecentPR) => {
         return pr.key === prKey;
       });
 
@@ -131,7 +116,7 @@ class PRDataStorage {
         // 新しいものを追加（最大10件まで）
         if (recentPRs.length >= 10) {
           // タイムスタンプで並べ替えて古いものを削除
-          recentPRs.sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp);
+          recentPRs.sort((a: RecentPR, b: RecentPR) => b.timestamp - a.timestamp);
           recentPRs.pop();
         }
 
@@ -139,7 +124,7 @@ class PRDataStorage {
       }
 
       // 最後にタイムスタンプでソートして保存
-      recentPRs.sort((a: { timestamp: number }, b: { timestamp: number }) => b.timestamp - a.timestamp);
+      recentPRs.sort((a: RecentPR, b: RecentPR) => b.timestamp - a.timestamp);
       await chrome.storage.local.set({ recentPRs });
       console.log(`Saved ${recentPRs.length} PRs to history with key format`);
     } catch (error) {
