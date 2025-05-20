@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { usePRData } from '../hooks/usePRData';
-import OpenAIKeySettings from '../components/OpenAIKeySettings';
-import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
 import { calculateReviewTime, getPrKey } from '../utils/prUtils';
 import PRAnalysis from '../components/PRAnalysis';
 import { useReward } from 'react-rewards';
@@ -9,9 +7,6 @@ import { useParams } from 'react-router-dom';
 
 const GitHubPRView = () => {
   const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
-  const [hasToken, setHasToken] = useState<boolean | null>(null);
-  const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
-  const [showOpenAISetup, setShowOpenAISetup] = useState(false);
   const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
     elementCount: 200,
     elementSize: 10,
@@ -31,73 +26,12 @@ const GitHubPRView = () => {
     isJustCompleted,
   } = usePRData(getPrKey(owner, repo, prNumber));
 
-  // トークンの確認
-  useEffect(() => {
-    const checkToken = async () => {
-      const token = await githubTokenStorage.get();
-      setHasToken(!!token);
-    };
-
-    const checkOpenAIKey = async () => {
-      const key = await openaiApiKeyStorage.get();
-      setHasOpenAIKey(!!key);
-    };
-
-    checkToken();
-    checkOpenAIKey();
-  }, []);
-
-  // useEffect内でプロパティを設定
-  useEffect(() => {
-    if (hasToken === true && hasOpenAIKey === false && !prData) {
-      setShowOpenAISetup(true);
-    }
-  }, [hasToken, hasOpenAIKey, prData]);
-
-  // OpenAI APIキー設定完了時のハンドラー
-  const handleOpenAIKeySetupComplete = async () => {
-    setHasOpenAIKey(true);
-    setShowOpenAISetup(false);
-  };
-
   // 完了時の紙吹雪エフェクトとメッセージ表示
   useEffect(() => {
     if (isJustCompleted) {
       confettiReward();
     }
   }, [isJustCompleted, confettiReward]);
-
-  // OpenAI API Keyのセットアップ画面を表示（GitHubトークンあり、OpenAIキーなし、ユーザーが表示を選択）
-  if (showOpenAISetup) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen p-6">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-          <h2 className="text-xl font-bold mb-4">OpenAI API Key Setup</h2>
-          <p className="text-sm mb-4">
-            Set up an OpenAI API key to enable AI-powered PR analysis features. This will help you get automated
-            insights about this PR.
-          </p>
-
-          <div className="mb-4">
-            <OpenAIKeySettings />
-          </div>
-
-          <div className="flex justify-between mt-6">
-            <button
-              onClick={() => setShowOpenAISetup(false)}
-              className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded text-sm">
-              Skip for now
-            </button>
-            <button
-              onClick={handleOpenAIKeySetupComplete}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
-              Continue to PR
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading PR data...</div>;

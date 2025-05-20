@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { githubApiDomainStorage, githubTokenStorage } from '@extension/storage';
 import { useNavigation } from '@src/context/NavigationContext';
+import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 
 const GithubTokenSetupView: React.FC = () => {
-  const { navigateToHome } = useNavigation();
+  const { navigateToHome, navigateToOpenAiTokenSetup } = useNavigation();
 
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, setApiDomain] = useState('');
+  const { openaiKey } = useOpenaiKeyAtom();
 
   // Load API domain from storage on mount
   useEffect(() => {
@@ -46,7 +48,11 @@ const GithubTokenSetupView: React.FC = () => {
       setIsLoading(false);
     }
 
-    navigateToHome();
+    if (openaiKey) {
+      navigateToHome();
+    } else {
+      navigateToOpenAiTokenSetup();
+    }
   };
 
   return (

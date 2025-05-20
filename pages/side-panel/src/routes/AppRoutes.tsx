@@ -2,9 +2,10 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import DefaultView from '../views/DefaultView';
 import GitHubPRView from '../views/GitHubPRView';
 import SettingsView from '../views/SettingsView';
-import GithubTokenSetupView from '../views/TokenSetupView';
+import GithubTokenSetupView from '../views/GithubTokenSetupView';
 import { NavigationProvider } from '../context/NavigationContext';
 import Layout from '../layouts/Layout';
+import OpenAiTokenSetupView from '@src/views/OpenAiTokenSetupView';
 
 // ルート定義
 export const routes = [
@@ -27,6 +28,10 @@ export const routes = [
       {
         path: 'github-token-setup',
         element: <GithubTokenSetupView />,
+      },
+      {
+        path: 'openai-token-setup',
+        element: <OpenAiTokenSetupView />,
       },
     ],
   },

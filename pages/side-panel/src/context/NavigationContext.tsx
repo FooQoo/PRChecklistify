@@ -6,9 +6,10 @@ import { atom, useAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { currentPageAtom } from '@src/atoms/currentPageAtom';
 import { useGithubTokenAtom } from '@src/hooks/useGithubTokenAtom';
+import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 
 // 現在のviewを管理するatom
-const currentViewAtom = atom<string | undefined>(undefined);
+const firstMountAtom = atom(true);
 
 // ナビゲーション状態の型
 interface NavigationContextType {
@@ -16,7 +17,8 @@ interface NavigationContextType {
   navigateToPrFromHistory: (owner: string, repo: string, prNumber: string) => void;
   navigateToSettings: () => void;
   navigateToHome: () => void;
-  navigateToGithubTokenSetup: () => void; // --- 追加: トークンセットアップ画面へのナビゲーション ---
+  navigateToGithubTokenSetup: () => void;
+  navigateToOpenAiTokenSetup: () => void;
 }
 
 // ナビゲーションコンテキストの作成
@@ -43,7 +45,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   const [generating] = useAtom(generatingAtom);
   const [currentPage] = useAtom(currentPageAtom);
   const { githubToken, isGithubTokenLoaded } = useGithubTokenAtom();
-  const [currentView, setCurrentView] = useAtom(currentViewAtom);
+  const { openaiKey, isOpenaiKeyLoaded } = useOpenaiKeyAtom();
+  const [firstMount, setFirstMount] = useAtom(firstMountAtom);
 
   // currentPageの変更を監視してPRページに遷移する
   useEffect(() => {
@@ -59,41 +62,47 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   // トークン
   useEffect(() => {
-    if (currentView === 'settings') return;
-
-    if (isGithubTokenLoaded && !githubToken) {
+    if (firstMount && isGithubTokenLoaded && !githubToken) {
+      setFirstMount(false);
       router.navigate('/github-token-setup');
+      return;
     }
-  }, [isGithubTokenLoaded, githubToken, currentView]);
+
+    if (firstMount && isOpenaiKeyLoaded && !openaiKey) {
+      setFirstMount(false);
+      router.navigate('/openai-token-setup');
+      return;
+    }
+  }, [isGithubTokenLoaded, githubToken, firstMount, setFirstMount, isOpenaiKeyLoaded, openaiKey]);
 
   // ナビゲーション関数
   const navigateToPr = (url: string) => {
     const prInfo = extractPRInfo(url);
     if (!prInfo) return;
     const { owner, repo, prNumber } = prInfo;
-    setCurrentView('pr');
     router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
   };
 
   const navigateToPrFromHistory = (owner: string, repo: string, prNumber: string) => {
-    setCurrentView('pr');
     router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
   };
 
   const navigateToSettings = () => {
-    setCurrentView('settings');
     router.navigate('/settings');
   };
 
   const navigateToHome = () => {
-    setCurrentView('home');
     router.navigate('/');
   };
 
   // --- 追加: トークンセットアップ画面へのナビゲーション ---
   const navigateToGithubTokenSetup = () => {
-    setCurrentView('github-token-setup');
     router.navigate('/github-token-setup');
+    router.navigate('/github-token-setup');
+  };
+
+  const navigateToOpenAiTokenSetup = () => {
+    router.navigate('/openai-token-setup');
   };
 
   // コンテキスト値の提供
@@ -102,7 +111,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     navigateToPrFromHistory,
     navigateToSettings,
     navigateToHome,
-    navigateToGithubTokenSetup, // 追加
+    navigateToGithubTokenSetup,
+    navigateToOpenAiTokenSetup,
   };
 
   return <NavigationContext.Provider value={contextValue}>{children}</NavigationContext.Provider>;
