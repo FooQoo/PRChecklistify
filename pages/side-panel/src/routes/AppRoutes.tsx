@@ -2,6 +2,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import DefaultView from '../views/DefaultView';
 import GitHubPRView from '../views/GitHubPRView';
 import SettingsView from '../views/SettingsView';
+import GithubTokenSetupView from '../views/TokenSetupView';
 import { NavigationProvider } from '../context/NavigationContext';
 import Layout from '../layouts/Layout';
 
@@ -22,6 +23,10 @@ export const routes = [
       {
         path: 'pr/:owner/:repo/:prNumber',
         element: <GitHubPRView />,
+      },
+      {
+        path: 'github-token-setup',
+        element: <GithubTokenSetupView />,
       },
     ],
   },

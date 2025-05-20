@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
-import { githubTokenStorage, githubApiDomainStorage } from '@extension/storage';
+import { useEffect, useState } from 'react';
+import { githubApiDomainStorage, githubTokenStorage } from '@extension/storage';
+import { useNavigation } from '@src/context/NavigationContext';
 
-interface TokenSetupPromptProps {
-  onComplete: () => void;
-}
+const GithubTokenSetupView: React.FC = () => {
+  const { navigateToHome } = useNavigation();
 
-const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,13 +39,14 @@ const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
       setIsLoading(true);
       // Save the token only if it's verified
       await githubTokenStorage.set(token);
-      onComplete();
     } catch (err) {
       setError('Network error. Please check your connection and try again.');
       console.error('Token verification error:', err);
     } finally {
       setIsLoading(false);
     }
+
+    navigateToHome();
   };
 
   return (
@@ -101,4 +101,4 @@ const TokenSetupPrompt: React.FC<TokenSetupPromptProps> = ({ onComplete }) => {
   );
 };
 
-export default TokenSetupPrompt;
+export default GithubTokenSetupView;

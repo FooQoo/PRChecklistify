@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { usePRData } from '../hooks/usePRData';
-import TokenSetupPrompt from '../components/TokenSetupPrompt';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
 import { calculateReviewTime, getPrKey } from '../utils/prUtils';
@@ -67,14 +66,6 @@ const GitHubPRView = () => {
       confettiReward();
     }
   }, [isJustCompleted, confettiReward]);
-
-  if (hasToken === null) {
-    return <div className="flex items-center justify-center h-screen">Checking configuration...</div>;
-  }
-
-  if (hasToken === false) {
-    return <TokenSetupPrompt onComplete={() => setHasToken(true)} />;
-  }
 
   // OpenAI API Keyのセットアップ画面を表示（GitHubトークンあり、OpenAIキーなし、ユーザーが表示を選択）
   if (showOpenAISetup) {
