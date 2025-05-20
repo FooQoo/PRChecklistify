@@ -30,40 +30,19 @@ export const isGitHubPRPage = (url: string): boolean => {
   return prRegex.test(url);
 };
 
-// PRのURLからオーナー、リポジトリ、PR番号を抽出する関数
-export const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string } | null => {
-  // PR番号までのURLを抽出（それ以降のパスは無視する）
-  // ドメイン名に依存しないパターンマッチング
-  const baseMatch = url.match(/https?:\/\/[^/]+\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-  if (!baseMatch) return null;
-
-  const [, owner, repo, prNumber] = baseMatch;
-  return { owner, repo, prNumber };
-};
-
 /**
- * 標準化されたPR URLを生成する（PR番号より後のパスを除去）
- */
-export const normalizePRUrl = (url: string): string | null => {
-  const prInfo = extractPRInfo(url);
-  if (!prInfo) return null;
-
-  // ドメイン部分を保持するために元のURLからドメイン部分を抽出
-  const domainMatch = url.match(/^(https?:\/\/[^/]+)/);
-  if (!domainMatch) return null;
-
-  const domainPart = domainMatch[1];
-  const { owner, repo, prNumber } = prInfo;
-
-  return `${domainPart}/${owner}/${repo}/pull/${prNumber}`;
-};
-
-/**
- * owner/repo/pull/123 のようなkeyからPR情報を抽出する
+ * owner/repo/123 のようなkeyからPR情報を抽出する
  */
 export const extractPRInfoFromKey = (key: string): { owner: string; repo: string; prNumber: string } | null => {
   const match = key.match(/^([^/]+)\/([^/]+)\/(\d+)$/);
   if (!match) return null;
   const [, owner, repo, prNumber] = match;
   return { owner, repo, prNumber };
+};
+
+export const getPrKey = (owner: string | undefined, repo: string | undefined, prNumber: string | undefined): string => {
+  if (!owner || !repo || !prNumber) {
+    throw new Error('Invalid PR information');
+  }
+  return `${owner}/${repo}/${prNumber}`;
 };

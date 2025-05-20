@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
-import { isGitHubPRPage, extractPRInfo, extractPRInfoFromKey } from '../utils/prUtils';
+import { isGitHubPRPage, extractPRInfoFromKey } from '../utils/prUtils';
 
 const DefaultView: React.FC = () => {
-  const { navigateToPR } = useNavigation();
+  const { navigateToPr, navigateToPrFromHistory } = useNavigation();
   const [prUrl, setPrUrl] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [recentPRs, setRecentPRs] = useState<{ url: string; title: string; timestamp: number; key: string }[]>([]);
@@ -44,21 +44,15 @@ const DefaultView: React.FC = () => {
   // PRナビゲーションハンドラー
   const handleGoToPR = () => {
     if (!isValid) return;
-
-    const prInfo = extractPRInfo(prUrl);
-    if (prInfo) {
-      const { owner, repo, prNumber } = prInfo;
-      navigateToPR(owner, repo, prNumber);
-    }
+    navigateToPr(prUrl);
   };
 
   // 履歴からのPRナビゲーションハンドラー
-  const handleRecentPRClick = (pr: { url: string; key?: string }) => {
-    const prInfo = pr.key ? extractPRInfoFromKey(pr.key) : extractPRInfo(pr.url);
-    if (prInfo) {
-      const { owner, repo, prNumber } = prInfo;
-      navigateToPR(owner, repo, prNumber);
-    }
+  const handleRecentPRClick = (prKey: string) => {
+    const prInfo = extractPRInfoFromKey(prKey);
+    if (!prInfo) return;
+    // PR情報を抽出してナビゲーション
+    navigateToPrFromHistory(prInfo.owner, prInfo.repo, prInfo.prNumber);
   };
 
   // 表示する最近のPR数を制御
@@ -105,14 +99,13 @@ const DefaultView: React.FC = () => {
             <h2 className="text-lg font-semibold mb-2">Recent Pull Requests</h2>
             <ul className="divide-y divide-gray-200">
               {displayedPRs.map((pr, index) => {
-                // key優先でPR識別子を作成
                 const prInfo = extractPRInfoFromKey(pr.key);
                 const prIdentifier = prInfo ? `${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}` : pr.key;
 
                 return (
                   <li key={index} className="py-2">
                     <button
-                      onClick={() => handleRecentPRClick(pr)}
+                      onClick={() => handleRecentPRClick(pr.key)}
                       className="w-full text-left hover:bg-gray-50 p-2 rounded">
                       <div className="text-sm font-medium text-blue-600 truncate">{pr.title}</div>
                       <div className="text-xs text-gray-500 truncate">{prIdentifier}</div>

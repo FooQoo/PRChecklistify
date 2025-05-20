@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult } from '../types';
-import { fetchPRData, prDataStorage, generatePRKey } from '../services/prDataService';
-import { extractPRInfo } from '@src/utils/prUtils';
+import { fetchPRData, prDataStorage } from '../services/prDataService';
 import { generatingAtom } from '@src/atoms/generatingAtom';
+import { extractPRInfoFromKey } from '@src/utils/prUtils';
 
-export const currentPageAtom = atom<{ url: string | null; key?: string | null }>({ url: null });
+const currentPrDataAtom = atom<PRData | null>(null);
 
 // PRデータを管理するためのカスタムフック
-export function usePRData() {
-  const [prData, setPRData] = useState<PRData | null>(null);
+export function usePRData(prKey: string) {
+  const [prData, setPRData] = useAtom(currentPrDataAtom);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | undefined>(undefined);
-  const [currentPage] = useAtom(currentPageAtom);
   const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
   const [isJustCompleted, setIsJustCompleted] = useState(false);
   const [isGenerating] = useAtom(generatingAtom);
+
   // PR情報を取得する関数
   useEffect(() => {
     if (isGenerating) return; // 生成中はデータを取得しない
@@ -25,13 +25,11 @@ export function usePRData() {
       // URL変更時に状態をリセット
       setPreviousApprovalPercentage(null);
       setIsJustCompleted(false);
-      // URLが設定されていない場合は何もしない
-      if (!currentPage?.url) return;
 
       // URLからPR識別子を抽出
-      const identifier = extractPRInfo(currentPage.url);
+      const identifier = extractPRInfoFromKey(prKey);
       if (!identifier) {
-        console.log('Not a PR URL, skipping data loading:', currentPage.url);
+        console.log('Not a PR URL, skipping data loading:', prKey);
         return;
       }
 
@@ -39,12 +37,10 @@ export function usePRData() {
       setError(null);
 
       try {
-        // PRキーの作成（関数の使用例として）
-        const prKey = generatePRKey(currentPage.url);
         console.log('Using PR key:', prKey);
 
         // まずストレージからデータを取得してみる
-        const savedData = await prDataStorage.getFromStorage(currentPage.url);
+        const savedData = await prDataStorage.getFromStorage(prKey);
 
         if (savedData) {
           // 保存されたデータがある場合はそれを使用
@@ -54,16 +50,16 @@ export function usePRData() {
           } else {
             setAnalysisResult(undefined);
           }
-          console.log('Loaded PR data from storage:', currentPage.url);
+          console.log('Loaded PR data from storage:', prKey);
         } else {
           // なければAPIから取得
-          console.log('Fetching PR data from API:', currentPage.url);
+          console.log('Fetching PR data from API:', prKey);
           const newData = await fetchPRData(identifier);
 
           if (newData) {
             setPRData(newData);
             // データをストレージに保存
-            await prDataStorage.saveToStorage(currentPage.url, newData);
+            await prDataStorage.saveToStorage(prKey, newData);
             setAnalysisResult(undefined);
           } else {
             setError('Failed to load PR data');
@@ -78,16 +74,16 @@ export function usePRData() {
     };
 
     loadPRData();
-  }, [currentPage.url, isGenerating]);
+  }, [prKey, isGenerating, setPRData]);
 
   // 分析結果を保存する関数
   const saveAnalysisResult = async (result: PRAnalysisResult | undefined) => {
-    if (!prData || !currentPage?.url) return;
+    if (!prData || !prKey) return;
 
     setAnalysisResult(result);
 
     try {
-      await prDataStorage.saveToStorage(currentPage.url, prData, result);
+      await prDataStorage.saveToStorage(prKey, prData, result);
     } catch (err) {
       console.error('Error saving analysis result:', err);
     }
@@ -95,9 +91,9 @@ export function usePRData() {
 
   // データを強制的に再読み込みする関数
   const refreshData = async () => {
-    if (!currentPage?.url) return;
+    if (!prKey) return;
 
-    const identifier = extractPRInfo(currentPage.url);
+    const identifier = extractPRInfoFromKey(prKey);
     if (!identifier) return;
 
     setIsLoading(true);
@@ -109,7 +105,7 @@ export function usePRData() {
       if (newData) {
         setPRData(newData);
         // 既存の分析結果を保持したまま、新しいデータを保存
-        await prDataStorage.saveToStorage(currentPage.url, newData, analysisResult || undefined);
+        await prDataStorage.saveToStorage(prKey, newData, analysisResult || undefined);
       } else {
         setError('Failed to refresh PR data');
       }
@@ -154,7 +150,6 @@ export function usePRData() {
     analysisResult,
     saveAnalysisResult,
     refreshData,
-    currentPage,
     approvedFilesCount,
     currentApprovalPercentage,
     isJustCompleted,

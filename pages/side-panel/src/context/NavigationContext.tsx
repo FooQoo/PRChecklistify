@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 import type React from 'react';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import { router } from '../routes/AppRoutes';
-import { extractPRInfo } from '@src/utils/prUtils';
 import { useAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
+import { currentPageAtom } from '@src/atoms/currentPageAtom';
 
 // ナビゲーション状態の型
 interface NavigationContextType {
-  prKey: string | null;
-  navigateToPR: (owner: string, repo: string, prNumber: string) => void;
+  navigateToPr: (url: string) => void;
+  navigateToPrFromHistory: (owner: string, repo: string, prNumber: string) => void;
   navigateToSettings: () => void;
   navigateToHome: () => void;
 }
@@ -22,108 +22,42 @@ interface NavigationProviderProps {
   children: ReactNode;
 }
 
+// PRのURLからオーナー、リポジトリ、PR番号を抽出する関数
+const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string } | null => {
+  const baseMatch = url.match(/https?:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+  if (!baseMatch) return null;
+
+  console.log('baseMatch', baseMatch);
+
+  const [, owner, repo, prNumber] = baseMatch;
+  return { owner, repo, prNumber };
+};
+
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
-  const [prKey, setPrKey] = useState<string | null>(null);
   const [generating] = useAtom(generatingAtom);
+  const [currentPage] = useAtom(currentPageAtom);
 
-  // Chrome のストレージ変更を監視
+  // currentPageの変更を監視してナビゲーション
   useEffect(() => {
-    if (generating) return; // 生成中はnavigateしない
-
-    const getCurrentPage = async () => {
-      try {
-        const result = await chrome.storage.local.get('currentPage');
-        if (result.currentPage?.url) {
-          // URLに基づいて適切なルートに初期ナビゲーション
-          const url = result.currentPage.url;
-          const prInfo = extractPRInfo(url);
-
-          if (prInfo) {
-            // もしresult.currentPage.keyがなければ、初期データにkeyを追加する
-            let key = result.currentPage.key;
-            if (!key) {
-              key = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
-              chrome.storage.local.set({
-                currentPage: {
-                  ...result.currentPage,
-                  key,
-                },
-              });
-            }
-            setPrKey(key);
-            router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
-          } else {
-            setPrKey(null);
-          }
-        } else {
-          setPrKey(null);
-        }
-      } catch (error) {
-        console.error('Error getting current page:', error);
-        setPrKey(null);
+    if (generating) return;
+    if (currentPage?.url) {
+      const prInfo = extractPRInfo(currentPage.url);
+      if (prInfo) {
+        router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
       }
-    };
-
-    // 初期状態を取得
-    getCurrentPage();
-
-    // ストレージの変更を監視
-    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-      if (generating) return; // 生成中はnavigateしない
-      if (changes.currentPage) {
-        const newValue = changes.currentPage.newValue;
-        let key = newValue?.key;
-        if (newValue?.url) {
-          const prInfo = extractPRInfo(newValue.url);
-          if (prInfo) {
-            if (!key) {
-              key = `${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`;
-              const updatedPage = {
-                ...newValue,
-                key,
-              };
-              chrome.storage.local.set({ currentPage: updatedPage });
-            }
-            setPrKey(key);
-            router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
-          } else {
-            setPrKey(null);
-          }
-        } else {
-          setPrKey(null);
-        }
-      }
-    };
-
-    chrome.storage.onChanged.addListener(handleStorageChange);
-
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
-  }, [generating]);
+    }
+  }, [generating, currentPage]);
 
   // ナビゲーション関数
-  const navigateToPR = (owner: string, repo: string, prNumber: string) => {
-    const key = `${owner}/${repo}/${prNumber}`;
-
-    // Update the router first
+  const navigateToPr = (url: string) => {
+    const prInfo = extractPRInfo(url);
+    if (!prInfo) return;
+    const { owner, repo, prNumber } = prInfo;
     router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
+  };
 
-    // Then update the storage and state
-    setPrKey(key);
-
-    // Store in Chrome storage with title for history tracking
-    chrome.storage.local
-      .set({
-        currentPage: {
-          title: `${owner}/${repo}#${prNumber}`,
-          key, // "owner/repo/prNumber" 形式のキー
-          isPRPage: true,
-        },
-      })
-      .catch(error => {
-        console.error('Error setting current page:', error);
-      });
+  const navigateToPrFromHistory = (owner: string, repo: string, prNumber: string) => {
+    router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
   };
 
   const navigateToSettings = () => {
@@ -136,8 +70,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   // コンテキスト値の提供
   const contextValue: NavigationContextType = {
-    prKey,
-    navigateToPR,
+    navigateToPr,
+    navigateToPrFromHistory,
     navigateToSettings,
     navigateToHome,
   };

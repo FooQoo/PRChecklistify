@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
-import { currentPageAtom } from './hooks/usePRData';
 import { useAtom } from 'jotai';
 import AppRouter from './routes/AppRoutes';
-
-// Define the CurrentPage type for clarity
-type CurrentPage = {
-  url: string;
-};
+import { currentPageAtom } from './atoms/currentPageAtom';
 
 const SidePanel = () => {
-  const [, setCurrentPage] = useState<CurrentPage | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Set up the atom for current page to be used by the hook
@@ -25,7 +19,6 @@ const SidePanel = () => {
         const result = await chrome.storage.local.get('currentPage');
         const page = result.currentPage || { url: '' };
 
-        setCurrentPage(page);
         // Update the atom so our hook can use it
         setCurrentPageAtom({ url: page.url });
       } catch (error) {
@@ -41,7 +34,6 @@ const SidePanel = () => {
         const newPage = changes.currentPage.newValue;
 
         if (newPage) {
-          setCurrentPage(newPage);
           // Update the atom so our hook can use it
           setCurrentPageAtom({ url: newPage.url });
         }

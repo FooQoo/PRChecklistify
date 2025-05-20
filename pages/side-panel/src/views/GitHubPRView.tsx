@@ -3,11 +3,13 @@ import { usePRData } from '../hooks/usePRData';
 import TokenSetupPrompt from '../components/TokenSetupPrompt';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import { githubTokenStorage, openaiApiKeyStorage } from '@extension/storage';
-import { calculateReviewTime } from '../utils/prUtils';
+import { calculateReviewTime, getPrKey } from '../utils/prUtils';
 import PRAnalysis from '../components/PRAnalysis';
 import { useReward } from 'react-rewards';
+import { useParams } from 'react-router-dom';
 
 const GitHubPRView = () => {
+  const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
   const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [showOpenAISetup, setShowOpenAISetup] = useState(false);
@@ -28,7 +30,7 @@ const GitHubPRView = () => {
     currentApprovalPercentage,
     approvedFilesCount,
     isJustCompleted,
-  } = usePRData();
+  } = usePRData(getPrKey(owner, repo, prNumber));
 
   // トークンの確認
   useEffect(() => {
