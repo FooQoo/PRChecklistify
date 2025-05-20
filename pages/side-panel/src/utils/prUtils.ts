@@ -57,3 +57,13 @@ export const normalizePRUrl = (url: string): string | null => {
 
   return `${domainPart}/${owner}/${repo}/pull/${prNumber}`;
 };
+
+/**
+ * owner/repo/pull/123 のようなkeyからPR情報を抽出する
+ */
+export const extractPRInfoFromKey = (key: string): { owner: string; repo: string; prNumber: string } | null => {
+  const match = key.match(/^([^/]+)\/([^/]+)\/(\d+)$/);
+  if (!match) return null;
+  const [, owner, repo, prNumber] = match;
+  return { owner, repo, prNumber };
+};

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
-import { isGitHubPRPage, extractPRInfo } from '../utils/prUtils';
+import { isGitHubPRPage, extractPRInfo, extractPRInfoFromKey } from '../utils/prUtils';
 
 const DefaultView: React.FC = () => {
   const { navigateToPR } = useNavigation();
   const [prUrl, setPrUrl] = useState('');
   const [isValid, setIsValid] = useState(false);
-  const [recentPRs, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
+  const [recentPRs, setRecentPRs] = useState<{ url: string; title: string; timestamp: number; key: string }[]>([]);
   const [showAllRecent, setShowAllRecent] = useState(false);
 
   // 最近表示したPRの履歴を読み込む
@@ -53,8 +53,8 @@ const DefaultView: React.FC = () => {
   };
 
   // 履歴からのPRナビゲーションハンドラー
-  const handleRecentPRClick = (url: string) => {
-    const prInfo = extractPRInfo(url);
+  const handleRecentPRClick = (pr: { url: string; key?: string }) => {
+    const prInfo = pr.key ? extractPRInfoFromKey(pr.key) : extractPRInfo(pr.url);
     if (prInfo) {
       const { owner, repo, prNumber } = prInfo;
       navigateToPR(owner, repo, prNumber);
@@ -105,15 +105,14 @@ const DefaultView: React.FC = () => {
             <h2 className="text-lg font-semibold mb-2">Recent Pull Requests</h2>
             <ul className="divide-y divide-gray-200">
               {displayedPRs.map((pr, index) => {
-                // URLからリポジトリ所有者、リポジトリ名、PR番号を抽出
-                const prInfo = extractPRInfo(pr.url);
-                // 表示用のPR識別子を作成（PR番号まで）
-                const prIdentifier = prInfo ? `${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}` : pr.url;
+                // key優先でPR識別子を作成
+                const prInfo = extractPRInfoFromKey(pr.key);
+                const prIdentifier = prInfo ? `${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}` : pr.key;
 
                 return (
                   <li key={index} className="py-2">
                     <button
-                      onClick={() => handleRecentPRClick(pr.url)}
+                      onClick={() => handleRecentPRClick(pr)}
                       className="w-full text-left hover:bg-gray-50 p-2 rounded">
                       <div className="text-sm font-medium text-blue-600 truncate">{pr.title}</div>
                       <div className="text-xs text-gray-500 truncate">{prIdentifier}</div>
