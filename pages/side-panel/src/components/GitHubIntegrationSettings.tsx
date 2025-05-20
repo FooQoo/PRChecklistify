@@ -8,17 +8,15 @@ interface GitHubIntegrationSettingsProps {
 }
 
 const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ onToast }) => {
-  const [inputToken, setInputToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { githubToken, setTokenAndStorage, clearToken } = useGithubTokenAtom();
   const { githubDomain, setDomainAndStorage, clearDomain } = useGithubApiDomainAtom();
+  const [inputToken, setInputToken] = useState('');
+  const [inputDomain, setInputDomain] = useState('');
 
   const handleGitHubTokenSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     if (!inputToken.trim()) {
-      setError('Please enter a valid GitHub token');
       return;
     }
     try {
@@ -28,7 +26,6 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
       onToast(t('settingsSavedSuccess'), 'success');
     } catch (err) {
       console.error('Token verification error:', err);
-      setError('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -42,31 +39,29 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
       onToast(t('remove'), 'success');
     } catch (err) {
       console.error('Error removing GitHub token:', err);
-      setError('Failed to remove token');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleApiDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null);
-    setDomainAndStorage(e.target.value);
+    setInputDomain(e.target.value);
   };
 
   const handleApiDomainSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     try {
+      setInputDomain('');
       setIsLoading(true);
-      const url = new URL(githubDomain || '');
+      const url = new URL(inputDomain || '');
       if (!url.protocol.startsWith('http')) {
-        throw new Error('Invalid URL format');
+        onToast(t('invalidUrlFormat'), 'error');
       }
-      await setDomainAndStorage(githubDomain || 'https://api.github.com');
+      await setDomainAndStorage(inputDomain || '');
       onToast(t('settingsSavedSuccess'), 'success');
     } catch (err) {
       console.error('Error saving GitHub API domain:', err);
-      setError('Please enter a valid URL (e.g. https://api.github.com)');
+      onToast(t('invalidUrlFormat'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -75,11 +70,11 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
   const handleResetApiDomain = async () => {
     try {
       setIsLoading(true);
+      setInputDomain('');
       await clearDomain();
       onToast(t('resetToDefault'), 'success');
     } catch (err) {
       console.error('Error resetting GitHub API domain:', err);
-      setError('Failed to reset API domain');
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +83,6 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
   return (
     <>
       <h2 className="text-lg font-semibold mb-4">{t('githubIntegration')}</h2>
-      {error && <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-md mb-4">{error}</div>}
       <form onSubmit={handleGitHubTokenSubmit} className="mb-6">
         <div className="mb-4">
           <label htmlFor="github-token" className="block text-sm font-medium text-gray-700 mb-1">
@@ -145,22 +139,26 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
             <input
               type="text"
               id="github-api-domain"
-              value={githubDomain || ''}
+              value={inputDomain}
               onChange={handleApiDomainChange}
               placeholder="https://api.github.com"
               className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={!inputDomain.trim()}
               className={`px-4 py-2 ${
-                isLoading ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'
+                isLoading || !inputDomain.trim()
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
               } rounded-r-md`}>
               {isLoading ? t('saving') : t('save')}
             </button>
           </div>
           <div className="mt-1 flex items-center justify-between">
-            <span className="text-xs text-gray-500">{t('githubEnterpriseNotice')}</span>
+            <span className="text-xs text-gray-500">
+              {githubDomain ? t('currentEndpoint') + githubDomain : t('usingDefaultEndpoint')}
+            </span>
             <button type="button" onClick={handleResetApiDomain} className="text-xs text-blue-500 hover:text-blue-700">
               {t('resetToDefault')}
             </button>

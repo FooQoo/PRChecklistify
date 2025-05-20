@@ -134,7 +134,7 @@
     "message": "有効なOpenAI APIエンドポイントを入力してください"
   },
   "invalidUrlFormat": {
-    "message": "有効なURLを入力してください（例：https://api.openai.com/v1）"
+    "message": "有効なURLを入力してください"
   },
   "currentEndpoint": {
     "message": "現在のエンドポイント: $1"

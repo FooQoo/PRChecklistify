@@ -3,7 +3,7 @@ import { githubApiDomainStorage } from '@extension/storage';
 import { useEffect } from 'react';
 
 // jotai atom: 初期値はnull、ロード時にstorageから取得
-const githubApiDomainAtom = atom<string | null>(null);
+const githubApiDomainAtom = atom<string>('https://api.github.com');
 
 // storageの値をjotai atomに同期するカスタムフック
 export function useGithubApiDomainAtom() {
@@ -29,8 +29,7 @@ export function useGithubApiDomainAtom() {
   // remover: デフォルト値にリセット
   const clearDomain = async () => {
     await githubApiDomainStorage.clear();
-    const val = await githubApiDomainStorage.get();
-    setGithubDomain(val);
+    setGithubDomain('https://api.github.com');
   };
 
   return { githubDomain, setDomainAndStorage, clearDomain } as const;

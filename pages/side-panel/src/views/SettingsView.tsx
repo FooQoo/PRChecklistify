@@ -123,7 +123,7 @@ const SettingsView: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">{t('openaiIntegration')}</h2>
-          <OpenAIKeySettings />
+          <OpenAIKeySettings onToast={showToast} />
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
