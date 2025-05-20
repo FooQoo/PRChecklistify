@@ -9,7 +9,7 @@ const OpenAIKeySettings = () => {
   const [savedKey, setSavedKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apiEndpoint, setApiEndpoint] = useState('');
+  const [apiEndpoint, setApiEndpoint] = useState('https://api.openai.com');
   const [savedEndpoint, setSavedEndpoint] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     visible: boolean;
