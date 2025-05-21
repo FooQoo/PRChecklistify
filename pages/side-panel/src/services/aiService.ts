@@ -63,4 +63,58 @@ export const fetchers = {
     if (!client) throw new Error('Failed to create OpenAI client');
     await client.streamChatCompletion(messages, onToken, options);
   },
+
+  // PR説明文のみ生成
+  generateSummary: async (prData: PRData, _language: string) => {
+    try {
+      if (!prData) throw new Error('Invalid PR data provided');
+      const client = await createOpenAIClient();
+      if (!client) throw new Error('Failed to create OpenAI client');
+      // summaryのみを生成するプロンプトを作成
+      // callOpenAIはprivateなのでanalyzePRを使う
+      const tempResult = await client.analyzePR({ ...prData, files: [] }, undefined);
+      // summaryだけ返す
+      return tempResult.summary;
+    } catch (error) {
+      console.error('Error in generateSummary fetcher:', error);
+      throw error;
+    }
+  },
+
+  // ファイルごとのチェックリストのみ生成
+  generateChecklist: async (prData: PRData, file: PRFile, _language: string) => {
+    try {
+      if (!prData || !file) throw new Error('Invalid PR data or file');
+      const client = await createOpenAIClient();
+      if (!client) throw new Error('Failed to create OpenAI client');
+      // checklistのみを生成するプロンプトを作成
+      // analyzePRを使い、対象ファイルのみでPRDataを構成
+      const tempResult = await client.analyzePR({ ...prData, files: [file] }, undefined);
+      // 1ファイル分だけ返す
+      return tempResult.fileAnalysis[0];
+    } catch (error) {
+      console.error('Error in generateChecklist fetcher:', error);
+      throw error;
+    }
+  },
+
+  // PR説明文のみ生成（ストリーム対応・テキスト出力）
+  generateSummaryStream: async (
+    prData: PRData,
+    _language: string,
+    onToken: (token: string) => void,
+    options?: { signal?: AbortSignal },
+  ) => {
+    try {
+      if (!prData) throw new Error('Invalid PR data provided');
+      const client = await createOpenAIClient();
+      if (!client) throw new Error('Failed to create OpenAI client');
+      // summaryのみを生成するプロンプト（テキストで返すよう指示）
+      const prompt = `このPRの内容を、背景・課題・解決策・実装の4つの観点で、簡潔に日本語で要約してください。\n\n【出力フォーマット】\n背景: ...\n課題: ...\n解決策: ...\n実装: ...\n\nPRタイトル: ${prData.title}\nPR説明: ${prData.body}`;
+      await client.streamChatCompletion([{ role: 'user', content: prompt }], onToken, options);
+    } catch (error) {
+      console.error('Error in generateSummaryStream fetcher:', error);
+      throw error;
+    }
+  },
 };

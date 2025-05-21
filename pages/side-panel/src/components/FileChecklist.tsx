@@ -1,11 +1,17 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { PRData, FileChecklist as FileChecklistType } from '../types';
+import { useAtom } from 'jotai';
+import { generatingAtom } from '@src/atoms/generatingAtom';
+import { fetchers } from '@src/services/aiService';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
   onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
   aiGeneratedChecklist?: FileChecklistType;
   onOpenChat?: () => void;
+  prData: PRData;
+  language: string;
+  onUpdateFileAnalysis: (fileChecklist: FileChecklistType) => void;
 }
 
 // チェックリスト項目コンポーネント
@@ -58,7 +64,18 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
   );
 };
 
-const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist, onOpenChat }: FileChecklistProps) => {
+const FileChecklist = ({
+  file,
+  onChecklistChange,
+  aiGeneratedChecklist,
+  onOpenChat,
+  prData,
+  language,
+  onUpdateFileAnalysis,
+}: FileChecklistProps) => {
+  const [generating, setGenerating] = useAtom(generatingAtom);
+  const [error, setError] = useState<string | null>(null);
+
   // AI生成されたチェックリストに基づいて動的オブジェクトを準備
   const initializeChecklistItems = useCallback(() => {
     // AIによって生成されたチェックリストが利用可能な場合、そのアイテムを含むオブジェクトを作成
@@ -304,6 +321,23 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist, onOpenCh
     );
   };
 
+  // Generate checklist for this file
+  const generateChecklist = async () => {
+    if (!prData || generating) return;
+    try {
+      setGenerating(true);
+      setError(null);
+      // ファイルごとのチェックリスト生成
+      const checklist = await fetchers.generateChecklist(prData, file, language);
+      onUpdateFileAnalysis(checklist);
+    } catch (error) {
+      setError('チェックリスト生成中にエラーが発生しました。');
+      console.error('Checklist generation error:', error);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
       <button
@@ -355,15 +389,30 @@ const FileChecklist = ({ file, onChecklistChange, aiGeneratedChecklist, onOpenCh
       {expanded && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
+              <button
+                className="px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded text-xs"
+                disabled={generating}
+                onClick={e => {
+                  e.stopPropagation(); // 親要素へのイベント伝播を防止
+                  generateChecklist();
+                }}>
+                {aiGeneratedChecklist ? '再生成' : 'チェックリスト生成'}
+              </button>
+            </div>
+
+            {error && (
+              <div className="p-2 bg-red-100 border border-red-300 text-red-800 rounded-md text-xs">{error}</div>
+            )}
+
             {aiGeneratedChecklist?.explanation && (
               <div className="mb-2">
-                <h4 className="text-sm font-semibold mb-2">AI-Generated Summary</h4>
+                <h4 className="text-sm font-semibold mb-2">ファイルの要約</h4>
                 <p className="text-xs text-gray-500">{aiGeneratedChecklist?.explanation}</p>
               </div>
             )}
             <div>
-              <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
-
               {/* チェックリストアイテムを表示 */}
 
               {aiGeneratedChecklist ? (
