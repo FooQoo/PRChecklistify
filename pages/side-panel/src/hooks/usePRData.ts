@@ -48,6 +48,22 @@ export function usePRData(prKey: string) {
     await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading, analysisResult);
   };
 
+  // PRデータをAPIから再取得して状態を更新する関数
+  const reloadPRData = async () => {
+    if (!prKey) return null;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading, analysisResult);
+      return prData;
+    } catch {
+      setError('Failed to reload PR data');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 現在の承認状態を計算
   const approvedFilesCount = prData && analysisResult ? getApprovedFiles(prData, analysisResult) : 0;
 
@@ -81,6 +97,7 @@ export function usePRData(prKey: string) {
     analysisResult,
     saveAnalysisResult,
     refreshData,
+    reloadPRData,
     approvedFilesCount,
     currentApprovalPercentage,
     isJustCompleted,
