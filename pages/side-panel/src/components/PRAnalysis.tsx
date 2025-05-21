@@ -11,13 +11,14 @@ interface PRAnalysisProps {
   prData: PRData;
   analysisResult: PRAnalysisResult | undefined;
   saveAnalysisResult: (result: PRAnalysisResult | undefined) => void;
+  reloadPRData?: () => Promise<PRData | null>; // 追加
 }
 
 const BLOCK_COLS = 10;
 const BLOCK_ROWS = 3;
 const BLOCK_TOTAL = BLOCK_COLS * BLOCK_ROWS;
 
-const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAnalysisResult }) => {
+const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAnalysisResult, reloadPRData }) => {
   const [generating, setGenerating] = useAtom(generatingAtom);
   const [language, setLanguage] = useState<string>('en');
   const [error, setError] = useState<string | null>(null);
@@ -75,8 +76,14 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
       setError(null);
       saveAnalysisResult(undefined); // Reset analysis result
 
-      // Generate analysis using the fetcher
-      const generatedAnalysis = await fetchers.generateAnalysis(prData, language);
+      let latestPRData = prData;
+      if (reloadPRData) {
+        const reloaded = await reloadPRData();
+        if (reloaded) latestPRData = reloaded;
+      }
+
+      // 最新のprDataで分析
+      const generatedAnalysis = await fetchers.generateAnalysis(latestPRData, language);
 
       // デバッグ用
       console.log('Generated analysis result:', generatedAnalysis);

@@ -21,6 +21,7 @@ const GitHubPRView = () => {
     analysisResult,
     saveAnalysisResult,
     refreshData,
+    reloadPRData, // 追加
     currentApprovalPercentage,
     approvedFilesCount,
     isJustCompleted,
@@ -33,7 +34,7 @@ const GitHubPRView = () => {
     }
   }, [isJustCompleted, confettiReward]);
 
-  if (isLoading) {
+  if (isLoading && !prData) {
     return <div className="flex items-center justify-center h-screen">Loading PR data...</div>;
   }
 
@@ -117,7 +118,12 @@ const GitHubPRView = () => {
           </div>
 
           {/* PRAnalysisコンポーネントを追加 - ファイル一覧の前に表示 */}
-          <PRAnalysis prData={prData} analysisResult={analysisResult} saveAnalysisResult={saveAnalysisResult} />
+          <PRAnalysis
+            prData={prData}
+            analysisResult={analysisResult}
+            saveAnalysisResult={saveAnalysisResult}
+            reloadPRData={reloadPRData} // 追加
+          />
 
           {/* 追加: 完了メッセージの表示 */}
           {currentApprovalPercentage === 100 && (
