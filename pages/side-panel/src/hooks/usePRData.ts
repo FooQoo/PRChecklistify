@@ -19,61 +19,12 @@ export function usePRData(prKey: string) {
 
   // PR情報を取得する関数
   useEffect(() => {
-    if (isGenerating) return; // 生成中はデータを取得しない
-
-    const loadPRData = async () => {
-      // URL変更時に状態をリセット
-      setPreviousApprovalPercentage(null);
-      setIsJustCompleted(false);
-
-      // URLからPR識別子を抽出
-      const identifier = extractPRInfoFromKey(prKey);
-      if (!identifier) {
-        console.log('Not a PR URL, skipping data loading:', prKey);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        console.log('Using PR key:', prKey);
-
-        // まずストレージからデータを取得してみる
-        const savedData = await prDataStorage.getFromStorage(prKey);
-
-        if (savedData) {
-          // 保存されたデータがある場合はそれを使用
-          setPRData(savedData.data);
-          if (savedData.analysisResult) {
-            setAnalysisResult(savedData.analysisResult);
-          } else {
-            setAnalysisResult(undefined);
-          }
-          console.log('Loaded PR data from storage:', prKey);
-        } else {
-          // なければAPIから取得
-          console.log('Fetching PR data from API:', prKey);
-          const newData = await fetchPRData(identifier);
-
-          if (newData) {
-            setPRData(newData);
-            // データをストレージに保存
-            await prDataStorage.saveToStorage(prKey, newData);
-            setAnalysisResult(undefined);
-          } else {
-            setError('Failed to load PR data');
-          }
-        }
-      } catch (err) {
-        console.error('Error in loadPRData:', err);
-        setError('An error occurred while loading PR data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPRData();
+    if (isGenerating) return;
+    setPreviousApprovalPercentage(null);
+    setIsJustCompleted(false);
+    setIsLoading(true);
+    setError(null);
+    loadPRDataFromAnySource(prKey, setPRData, setAnalysisResult, setError).finally(() => setIsLoading(false));
   }, [prKey, isGenerating, setPRData]);
 
   // 分析結果を保存する関数
@@ -93,24 +44,71 @@ export function usePRData(prKey: string) {
   const refreshData = async () => {
     if (!prKey) return;
 
+    await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading, analysisResult);
+  };
+
+  // PRデータをストレージ優先で取得し、なければAPIから取得
+  const loadPRDataFromAnySource = async (
+    prKey: string,
+    setPRData: (data: PRData | null) => void,
+    setAnalysisResult: (result: PRAnalysisResult | undefined) => void,
+    setError: (err: string | null) => void,
+  ) => {
+    const identifier = extractPRInfoFromKey(prKey);
+    if (!identifier) {
+      console.log('Not a PR URL, skipping data loading:', prKey);
+      return;
+    }
+    try {
+      // まずストレージからデータを取得してみる
+      const savedData = await prDataStorage.getFromStorage(prKey);
+      if (savedData) {
+        setPRData(savedData.data);
+        if (savedData.analysisResult) {
+          setAnalysisResult(savedData.analysisResult);
+        } else {
+          setAnalysisResult(undefined);
+        }
+        console.log('Loaded PR data from storage:', prKey);
+      } else {
+        // なければAPIから取得
+        console.log('Fetching PR data from API:', prKey);
+        const newData = await fetchPRData(identifier);
+        if (newData) {
+          setPRData(newData);
+          await prDataStorage.saveToStorage(prKey, newData);
+          setAnalysisResult(undefined);
+        } else {
+          setError('Failed to load PR data');
+        }
+      }
+    } catch {
+      console.error('Error in loadPRData');
+      setError('An error occurred while loading PR data');
+    }
+  };
+
+  // PRデータをAPIから強制取得し、状態を更新
+  const fetchAndSetPRData = async (
+    prKey: string,
+    setPRData: (data: PRData | null) => void,
+    setError: (err: string | null) => void,
+    setIsLoading: (b: boolean) => void,
+    analysisResult: PRAnalysisResult | undefined,
+  ) => {
     const identifier = extractPRInfoFromKey(prKey);
     if (!identifier) return;
-
     setIsLoading(true);
     setError(null);
-
     try {
       const newData = await fetchPRData(identifier);
-
       if (newData) {
         setPRData(newData);
-        // 既存の分析結果を保持したまま、新しいデータを保存
         await prDataStorage.saveToStorage(prKey, newData, analysisResult || undefined);
       } else {
         setError('Failed to refresh PR data');
       }
-    } catch (err) {
-      console.error('Error in refreshData:', err);
+    } catch {
       setError('An error occurred while refreshing PR data');
     } finally {
       setIsLoading(false);
