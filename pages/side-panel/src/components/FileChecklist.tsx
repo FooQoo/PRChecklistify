@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { PRData, FileChecklist as FileChecklistType } from '../types';
-import { useAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { fetchers } from '@src/services/aiService';
 
@@ -73,7 +73,8 @@ const FileChecklist = ({
   language,
   onUpdateFileAnalysis,
 }: FileChecklistProps) => {
-  const [generating, setGenerating] = useAtom(generatingAtom);
+  const [generating, setGenerating] = useState(false);
+  const setGlobalGenerating = useSetAtom(generatingAtom);
   const [error, setError] = useState<string | null>(null);
 
   // AI生成されたチェックリストに基づいて動的オブジェクトを準備
@@ -325,9 +326,22 @@ const FileChecklist = ({
   const generateChecklist = async () => {
     if (!prData || generating) return;
     try {
+      // 生成中状態をセット
       setGenerating(true);
+      setGlobalGenerating(true);
       setError(null);
+      setExpandOverride(true); // 強制的に展開状態に
+
+      // スクロールを生成中の要素に移動するために少し遅延
+      setTimeout(() => {
+        window.scrollTo({
+          top: window.scrollY,
+          behavior: 'smooth',
+        });
+      }, 100);
+
       // ファイルごとのチェックリスト生成
+      console.log(`Generating checklist for file: ${file.filename}`);
       const checklist = await fetchers.generateChecklist(prData, file, language);
       onUpdateFileAnalysis(checklist);
     } catch (error) {
@@ -335,6 +349,7 @@ const FileChecklist = ({
       console.error('Checklist generation error:', error);
     } finally {
       setGenerating(false);
+      setGlobalGenerating(false);
     }
   };
 
@@ -391,22 +406,59 @@ const FileChecklist = ({
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center">
               <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
-              <button
-                className="px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded text-xs"
-                disabled={generating}
-                onClick={e => {
-                  e.stopPropagation(); // 親要素へのイベント伝播を防止
-                  generateChecklist();
-                }}>
-                {aiGeneratedChecklist ? '再生成' : 'チェックリスト生成'}
-              </button>
+              {aiGeneratedChecklist && (
+                <button
+                  className="px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded text-xs"
+                  disabled={generating}
+                  onClick={e => {
+                    e.stopPropagation(); // 親要素へのイベント伝播を防止
+                    generateChecklist();
+                  }}>
+                  再生成
+                </button>
+              )}
             </div>
 
             {error && (
               <div className="p-2 bg-red-100 border border-red-300 text-red-800 rounded-md text-xs">{error}</div>
             )}
 
-            {aiGeneratedChecklist?.explanation && (
+            {generating && (
+              <div className="flex items-center justify-center py-6">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+                <span className="ml-3 text-sm text-gray-600">チェックリストを生成中...</span>
+              </div>
+            )}
+
+            {!generating && !aiGeneratedChecklist && (
+              <div className="flex flex-col items-center justify-center py-10">
+                <p className="text-sm text-gray-500 mb-4">このファイルのAIチェックリストはまだ生成されていません。</p>
+                <button
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
+                  disabled={generating}
+                  onClick={e => {
+                    e.stopPropagation();
+                    generateChecklist();
+                  }}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                  チェックリストを生成
+                </button>
+              </div>
+            )}
+
+            {!generating && aiGeneratedChecklist?.explanation && (
               <div className="mb-2">
                 <h4 className="text-sm font-semibold mb-2">ファイルの要約</h4>
                 <p className="text-xs text-gray-500">{aiGeneratedChecklist?.explanation}</p>
@@ -415,8 +467,9 @@ const FileChecklist = ({
             <div>
               {/* チェックリストアイテムを表示 */}
 
-              {aiGeneratedChecklist ? (
+              {!generating && aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0 && (
                 <div className="space-y-2">
+                  <h4 className="text-sm font-semibold mb-2">チェック項目</h4>
                   {aiGeneratedChecklist.checklistItems.map((item, index) => (
                     <ChecklistItem
                       key={item.id}
@@ -430,10 +483,10 @@ const FileChecklist = ({
                     />
                   ))}
                 </div>
-              ) : null}
+              )}
             </div>
 
-            {file.patch && (
+            {!generating && aiGeneratedChecklist && file.patch && (
               <div>
                 <h4 className="text-sm font-semibold mb-2">Code Changes</h4>
                 {renderGitHubStyleDiff(file.patch)}
@@ -441,31 +494,33 @@ const FileChecklist = ({
             )}
 
             {/* AIレビューチャットボタン */}
-            <div className="flex justify-center items-center mt-4">
-              {onOpenChat && (
-                <button
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
-                  onClick={e => {
-                    e.stopPropagation(); // 親要素へのイベント伝播を防止
-                    onOpenChat();
-                  }}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                    />
-                  </svg>
-                  AIレビュー チャットを開く
-                </button>
-              )}
-            </div>
+            {!generating && aiGeneratedChecklist && (
+              <div className="flex justify-center items-center mt-4">
+                {onOpenChat && (
+                  <button
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
+                    onClick={e => {
+                      e.stopPropagation(); // 親要素へのイベント伝播を防止
+                      onOpenChat();
+                    }}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                    AIレビュー チャットを開く
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
