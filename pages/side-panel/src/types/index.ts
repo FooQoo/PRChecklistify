@@ -83,17 +83,9 @@ export interface FileChecklist {
   checklistItems: ChecklistItem[];
 }
 
-// PR分析結果の概要
-export interface PRAnalysisSummary {
-  background: string;
-  problem: string;
-  solution: string;
-  implementation: string;
-}
-
 // PR分析結果の型
 export interface PRAnalysisResult {
-  summary: PRAnalysisSummary;
+  summary: string; // 以前はPRAnalysisSummaryオブジェクトでしたが、シンプルにstringに変更
   fileAnalysis: FileChecklist[];
   prompt: string;
 }
