@@ -70,11 +70,20 @@ export const fetchers = {
       if (!prData) throw new Error('Invalid PR data provided');
       const client = await createOpenAIClient();
       if (!client) throw new Error('Failed to create OpenAI client');
-      // summaryのみを生成するプロンプトを作成
-      // callOpenAIはprivateなのでanalyzePRを使う
-      const tempResult = await client.analyzePR({ ...prData, files: [] }, undefined);
-      // summaryだけ返す
-      return tempResult.summary;
+
+      // 新しい実装：ChatCompletionを直接呼び出す
+      let summaryText = '';
+      const prompt = `このPRの内容を簡潔に日本語で要約してください。\n\nPRタイトル: ${prData.title}\nPR説明: ${prData.body}`;
+
+      await client.streamChatCompletion(
+        [{ role: 'user', content: prompt }],
+        (token: string) => {
+          summaryText += token;
+        },
+        {},
+      );
+
+      return summaryText;
     } catch (error) {
       console.error('Error in generateSummary fetcher:', error);
       throw error;

@@ -83,9 +83,9 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
           signal: undefined,
         },
       );
-      // ストリーム完了後に構造体で保存
+      // ストリーム完了後に保存（文字列として）
       saveAnalysisResult({
-        summary: parseSummaryText(streamed),
+        summary: streamed,
         fileAnalysis: analysisResult?.fileAnalysis || [],
         prompt: streamed, // テキストも保存
       });
@@ -96,28 +96,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
       setIsStreaming(false);
     }
   };
-
-  // テキスト形式のsummaryをパースする関数
-  function parseSummaryText(text: string) {
-    // 例: "背景: ...\n課題: ...\n解決策: ...\n実装: ..."
-    const background = (() => {
-      const m = text.match(/背景[:：][\s\S]*?(?=\n(課題|解決策|実装)[:：]|$)/);
-      return m ? m[0].replace(/^背景[:：]/, '').trim() : '';
-    })();
-    const problem = (() => {
-      const m = text.match(/課題[:：][\s\S]*?(?=\n(背景|解決策|実装)[:：]|$)/);
-      return m ? m[0].replace(/^課題[:：]/, '').trim() : '';
-    })();
-    const solution = (() => {
-      const m = text.match(/解決策[:：][\s\S]*?(?=\n(背景|課題|実装)[:：]|$)/);
-      return m ? m[0].replace(/^解決策[:：]/, '').trim() : '';
-    })();
-    const implementation = (() => {
-      const m = text.match(/実装[:：][\s\S]*$/);
-      return m ? m[0].replace(/^実装[:：]/, '').trim() : '';
-    })();
-    return { background, problem, solution, implementation };
-  }
 
   // 注意: generateChecklistForFile関数はFileChecklistコンポーネントに移動済み
 
@@ -151,26 +129,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
     saveAnalysisResult(updatedAnalysisResult);
   };
 
-  const displaySummary = (summary: {
-    background: string;
-    problem: string;
-    solution: string;
-    implementation: string;
-  }) => {
-    return `
-    背景: 
-    ${summary.background}
-
-    課題: 
-    ${summary.problem}
-
-    解決策: 
-    ${summary.solution}
-
-    実装: 
-    ${summary.implementation}
-
-    `;
+  const displaySummary = (summary: string) => {
+    return summary;
   };
 
   return (
@@ -230,12 +190,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
                       saveAnalysisResult({
                         ...analysisResult,
                         fileAnalysis: updatedFileAnalysis,
-                        summary: analysisResult?.summary || {
-                          background: '',
-                          problem: '',
-                          solution: '',
-                          implementation: '',
-                        },
+                        summary: analysisResult?.summary || '',
                         prompt: analysisResult?.prompt || '',
                       });
                     }}
