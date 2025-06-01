@@ -77,7 +77,6 @@ export interface ChecklistItem {
 
 // ファイルチェックリストの型
 export interface FileChecklist {
-  id: string;
   filename: string;
   explanation: string;
   checklistItems: ChecklistItem[];

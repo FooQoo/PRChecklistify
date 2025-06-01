@@ -1,5 +1,5 @@
 // OpenAI API integration for PR checklist generation
-import type { PRAnalysisResult, PRData, ChecklistItemStatus, PRFile } from '@src/types';
+import type { PRData, PRFile, FileChecklist } from '@src/types';
 import { OpenAI } from 'openai';
 import type { ModelClient } from './modelClient';
 import type { Language } from '@extension/storage';
@@ -28,12 +28,12 @@ class OpenAIClient implements ModelClient {
   /**
    * Analyze a PR and generate checklist and summary
    */
-  async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<PRAnalysisResult> {
+  async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<FileChecklist> {
     try {
       console.log(`Using language for analysis: ${getLanguageLabel(language)}`);
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const response = await this.callOpenAI(prompt);
-      return this.parseAnalysisResponse(prompt, response);
+      return JSON.parse(response) as FileChecklist;
     } catch (error) {
       console.error('Error analyzing PR with OpenAI:', error);
       throw new Error('Failed to analyze PR with OpenAI');
@@ -95,55 +95,6 @@ class OpenAIClient implements ModelClient {
     } catch (error) {
       console.error('Error streaming OpenAI chat completion:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Parse the OpenAI response into a structured format
-   */
-  private parseAnalysisResponse(prompt: string, responseText: string): PRAnalysisResult {
-    try {
-      // Parse the JSON response
-      const parsedResponse = JSON.parse(responseText) as {
-        summary: string;
-        fileAnalysis: Array<{
-          id?: string;
-          filename: string;
-          explanation: string;
-          checklistItems: Array<{ id?: string; description: string; status?: string }>;
-          order: number;
-        }>;
-      };
-
-      // マッピング関数を作成して文字列からChecklistItemStatusに変換
-      const mapStatus = (status?: string): ChecklistItemStatus => {
-        if (status === 'OK' || status === 'WARNING' || status === 'ERROR' || status === 'PENDING') {
-          return status as ChecklistItemStatus;
-        }
-        return 'PENDING';
-      };
-
-      // Ensure all file checklist items have IDs
-      const fileAnalysis = parsedResponse.fileAnalysis.map((fileChecklist, fileIndex) => ({
-        id: fileChecklist.id || `file-${fileIndex}`,
-        filename: fileChecklist.filename,
-        explanation: fileChecklist.explanation,
-        checklistItems: fileChecklist.checklistItems.map((item, index) => ({
-          id: item.id || `${fileChecklist.filename}-item-${index}`,
-          description: item.description,
-          status: mapStatus(item.status),
-        })),
-        order: fileChecklist.order,
-      }));
-
-      return {
-        summary: parsedResponse.summary,
-        fileAnalysis: fileAnalysis,
-        prompt: prompt + '\n\nFinally, you should format the JSON output in a human-readable way.',
-      };
-    } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
-      throw new Error('Failed to parse OpenAI response');
     }
   }
 }

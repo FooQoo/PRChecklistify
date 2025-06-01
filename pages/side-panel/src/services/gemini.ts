@@ -1,5 +1,5 @@
 // Gemini API integration for PR checklist generation
-import type { PRAnalysisResult, PRData, PRFile, ChecklistItemStatus } from '@src/types';
+import type { PRData, PRFile, FileChecklist } from '@src/types';
 import { GoogleGenAI, Type } from '@google/genai';
 import { buildPRAnalysisPrompt, type ModelClient } from './modelClient';
 import type { Language } from '@extension/storage';
@@ -21,12 +21,12 @@ class GeminiClient implements ModelClient {
   /**
    * Analyze a PR and generate checklist and summary
    */
-  async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<PRAnalysisResult> {
+  async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<FileChecklist> {
     try {
       console.log(`Using language for analysis: ${language}`);
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const response = await this.callGemini(prompt);
-      return this.parseAnalysisResponse(prompt, response);
+      return JSON.parse(response) as FileChecklist;
     } catch (error) {
       console.error('Error analyzing PR with Gemini:', error);
       throw new Error('Failed to analyze PR with Gemini');
@@ -43,38 +43,24 @@ class GeminiClient implements ModelClient {
       const responseSchema = {
         type: Type.OBJECT,
         properties: {
-          summary: {
-            type: Type.STRING,
-          },
-          fileAnalysis: {
+          filename: { type: Type.STRING },
+          explanation: { type: Type.STRING },
+          checklistItems: {
             type: Type.ARRAY,
             items: {
               type: Type.OBJECT,
               properties: {
                 id: { type: Type.STRING },
-                filename: { type: Type.STRING },
-                explanation: { type: Type.STRING },
-                checklistItems: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      description: { type: Type.STRING },
-                      status: { type: Type.STRING, enum: ['OK', 'WARNING', 'ERROR', 'PENDING'] },
-                    },
-                    propertyOrdering: ['id', 'description', 'status'],
-                    required: ['id', 'description', 'status'],
-                  },
-                },
+                description: { type: Type.STRING },
+                status: { type: Type.STRING, enum: ['OK', 'WARNING', 'ERROR', 'PENDING'] },
               },
-              propertyOrdering: ['id', 'filename', 'explanation', 'checklistItems'],
-              required: ['id', 'filename', 'explanation', 'checklistItems'],
+              propertyOrdering: ['id', 'description', 'status'],
+              required: ['id', 'description', 'status'],
             },
           },
         },
-        propertyOrdering: ['summary', 'fileAnalysis'],
-        required: ['summary', 'fileAnalysis'],
+        required: ['filename', 'explanation', 'checklistItems'],
+        propertyOrdering: ['filename', 'explanation', 'checklistItems'],
       };
 
       const result = await this.client.models.generateContent({
@@ -136,55 +122,6 @@ class GeminiClient implements ModelClient {
     } catch (error) {
       console.error('Error streaming Gemini chat completion:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Parse the Gemini response into a structured format
-   */
-  private parseAnalysisResponse(prompt: string, responseText: string): PRAnalysisResult {
-    try {
-      // Parse the JSON response
-      const parsedResponse = JSON.parse(responseText) as {
-        summary: string;
-        fileAnalysis: Array<{
-          id?: string;
-          filename: string;
-          explanation: string;
-          checklistItems: Array<{ id?: string; description: string; status?: string }>;
-          order: number;
-        }>;
-      };
-
-      // マッピング関数を作成して文字列からChecklistItemStatusに変換
-      const mapStatus = (status?: string): ChecklistItemStatus => {
-        if (status === 'OK' || status === 'WARNING' || status === 'ERROR' || status === 'PENDING') {
-          return status as ChecklistItemStatus;
-        }
-        return 'PENDING';
-      };
-
-      // Ensure all file checklist items have IDs
-      const fileAnalysis = parsedResponse.fileAnalysis.map((fileChecklist, fileIndex) => ({
-        id: fileChecklist.id || `file-${fileIndex}`,
-        filename: fileChecklist.filename,
-        explanation: fileChecklist.explanation,
-        checklistItems: fileChecklist.checklistItems.map((item, index) => ({
-          id: item.id || `${fileChecklist.filename}-item-${index}`,
-          description: item.description,
-          status: mapStatus(item.status),
-        })),
-        order: fileChecklist.order,
-      }));
-
-      return {
-        summary: parsedResponse.summary,
-        fileAnalysis: fileAnalysis,
-        prompt: prompt + '\n\nFinally, you should format the JSON output in a human-readable way.',
-      };
-    } catch (error) {
-      console.error('Error parsing Gemini response:', error);
-      throw new Error('Failed to parse Gemini response');
     }
   }
 }
