@@ -2,7 +2,22 @@ import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
 
 // Define the supported languages
-type Language = 'en' | 'ja' | 'ko' | 'zh';
+export type Language = 'en' | 'ja' | 'ko' | 'zh';
+
+export const getLanguageLabel = (lang: Language): string => {
+  switch (lang) {
+    case 'en':
+      return 'English';
+    case 'ja':
+      return '日本語';
+    case 'ko':
+      return '한국어';
+    case 'zh':
+      return '中文';
+    default:
+      return 'Unknown Language';
+  }
+};
 
 type LanguagePreferenceStorage = BaseStorage<Language> & {
   /**

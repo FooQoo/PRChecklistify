@@ -40,6 +40,7 @@ export interface PRData {
   commits: number;
   comments: number;
   review_comments: number;
+  copilot_instructions?: string; // Copilotの指示内容
 }
 
 // リポジトリの所有者、名前、PR番号の情報
@@ -76,24 +77,14 @@ export interface ChecklistItem {
 }
 
 // ファイルチェックリストの型
-export interface FileChecklist {
-  id: string;
+export interface Checklist {
   filename: string;
   explanation: string;
   checklistItems: ChecklistItem[];
 }
 
-// PR分析結果の概要
-export interface PRAnalysisSummary {
-  background: string;
-  problem: string;
-  solution: string;
-  implementation: string;
-}
-
 // PR分析結果の型
 export interface PRAnalysisResult {
-  summary: PRAnalysisSummary;
-  fileAnalysis: FileChecklist[];
-  prompt: string;
+  summary: string;
+  fileAnalysis: Checklist[];
 }

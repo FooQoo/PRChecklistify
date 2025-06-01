@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
+import GeminiKeySettings from '../components/GeminiKeySettings';
+import { ModelClientType, modelClientTypeStorage } from '../services/modelClient';
+import type { Language } from '@extension/storage';
 import { languagePreferenceStorage } from '@extension/storage';
 import { t } from '@extension/i18n';
 import Toast from '../components/Toast';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('en' as Language);
   const [, setOpenaiApiEndpoint] = useState('');
   const [, setHasCustomOpenaiEndpoint] = useState(false);
   const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
@@ -21,6 +24,7 @@ const SettingsView: React.FC = () => {
     message: '',
     type: 'success',
   });
+  const [modelClientType, setModelClientType] = useState<ModelClientType>(ModelClientType.OpenAI);
 
   // Load settings on mount
   useEffect(() => {
@@ -29,6 +33,10 @@ const SettingsView: React.FC = () => {
         // Load language preference
         const savedLanguage = await languagePreferenceStorage.get();
         setLanguage(savedLanguage);
+
+        // Load model client type
+        const savedModelType = await modelClientTypeStorage.get();
+        if (savedModelType) setModelClientType(savedModelType);
 
         // Load OpenAI API endpoint
         const result = await chrome.storage.local.get('openaiApiEndpoint');
@@ -43,8 +51,8 @@ const SettingsView: React.FC = () => {
           const sortedPRs = [...prResult.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
           setRecentPRs(sortedPRs);
         }
-      } catch (err) {
-        console.error('Error loading settings:', err);
+      } catch {
+        console.error('Error loading settings');
         showToast('Failed to load settings', 'error');
       }
     };
@@ -67,12 +75,12 @@ const SettingsView: React.FC = () => {
   };
 
   const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLanguage = e.target.value;
+    const newLanguage = e.target.value as Language;
     setLanguage(newLanguage);
 
     try {
       // Save language preference to storage
-      await languagePreferenceStorage.set(newLanguage as 'en' | 'ja' | 'ko' | 'zh');
+      await languagePreferenceStorage.set(newLanguage);
 
       // Save to chrome.storage.local for i18n to access
       await chrome.storage.local.set({ languagePreference: newLanguage });
@@ -88,6 +96,13 @@ const SettingsView: React.FC = () => {
       console.error('Error saving language preference:', err);
       showToast('Failed to save language preference', 'error');
     }
+  };
+
+  const handleModelClientTypeChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = e.target.value as ModelClientType;
+    setModelClientType(newType);
+    await modelClientTypeStorage.set(newType);
+    showToast('Model client type saved', 'success');
   };
 
   return (
@@ -122,8 +137,30 @@ const SettingsView: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">{t('openaiIntegration')}</h2>
-          <OpenAIKeySettings onToast={showToast} />
+          <h2 className="text-lg font-semibold mb-4">AI Provider</h2>
+          <label htmlFor="modelClientType" className="block text-sm font-medium text-gray-700 mb-1">
+            Select AI Provider
+          </label>
+          <select
+            id="modelClientType"
+            value={modelClientType}
+            onChange={handleModelClientTypeChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value={ModelClientType.OpenAI}>OpenAI</option>
+            <option value={ModelClientType.Gemini}>Gemini</option>
+          </select>
+          {modelClientType === ModelClientType.OpenAI && (
+            <>
+              <h2 className="text-lg font-semibold mb-4">{t('openaiIntegration')}</h2>
+              <OpenAIKeySettings onToast={showToast} />
+            </>
+          )}
+          {modelClientType === ModelClientType.Gemini && (
+            <>
+              <h2 className="text-lg font-semibold mb-4">Gemini Integration</h2>
+              <GeminiKeySettings onToast={showToast} />
+            </>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">

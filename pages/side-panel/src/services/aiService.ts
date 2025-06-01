@@ -1,26 +1,27 @@
 import type { PRData, PRFile } from '@src/types';
-import { createOpenAIClient } from './openai';
+import { createModelClient } from './modelClient';
+import { getLanguageLabel, type Language } from '@extension/storage';
 
 // Add SWR fetchers for use with useSWR
 
 export const fetchers = {
   // Fetcher for generating OpenAI analysis
-  generateAnalysis: async (prData: PRData, language: string) => {
+  generateAnalysis: async (prData: PRData, file: PRFile, language: Language) => {
     try {
       // プロパティを確認して確実にPRDataがあることを確認
       if (!prData || !prData.files || !Array.isArray(prData.files)) {
         throw new Error('Invalid PR data provided');
       }
 
-      // OpenAIクライアントを取得
-      const client = await createOpenAIClient();
+      // モデルクライアント（OpenAI/Gemini）を取得
+      const client = await createModelClient();
 
       if (!client) {
-        throw new Error('Failed to create OpenAI client');
+        throw new Error('Failed to create model client');
       }
 
-      // OpenAIを使用してPRを分析
-      const analysisResult = await client.analyzePR(prData, language);
+      // 選択されたAIプロバイダーでPRを分析
+      const analysisResult = await client.analyzePR(prData, file, language);
 
       return analysisResult;
     } catch (error) {
@@ -39,12 +40,13 @@ export const fetchers = {
     allDiffs?: Record<string, string>,
   ) => {
     // PR情報をシステムプロンプトに含める
-    const prInfo = `PRタイトル: ${prData.title || ''}\nPR説明: ${prData.body || ''}\n作成者: ${prData.user?.login || ''}`;
-    const fileInfo = `\n対象ファイル: ${file.filename}\n差分:\n${file.patch || ''}\n修正後のコード:\n${file.decodedContent || ''}`;
+    const prInfo = `title: ${prData.title || ''}\ndescription: ${prData.body || ''}\nauthor: ${prData.user?.login || ''}`;
+    const fileInfo = `\nfilename: ${file.filename}\ndiff:\n${file.patch || ''}\nfull code:\n${file.decodedContent || ''}`;
+    const copilotInstructions = `\n--- Repository Information ---\n${prData.copilot_instructions || ''}`;
     let allDiffsInfo = '';
     if (allDiffs) {
       allDiffsInfo =
-        '\n--- 全ファイルのdiff一覧 ---\n' +
+        '\n--- all diff ---\n' +
         Object.entries(allDiffs)
           .map(([fname, diff]) => `【${fname}】\n${diff}`)
           .join('\n\n');
@@ -52,15 +54,58 @@ export const fetchers = {
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       {
         role: 'system',
-        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}`,
+        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}`,
       },
       ...chatHistory.map((msg): { role: 'user' | 'assistant'; content: string } => ({
         role: msg.sender === 'You' ? 'user' : 'assistant',
         content: msg.message,
       })),
     ];
-    const client = await createOpenAIClient();
-    if (!client) throw new Error('Failed to create OpenAI client');
+    const client = await createModelClient();
+    if (!client) throw new Error('Failed to create model client');
     await client.streamChatCompletion(messages, onToken, options);
+  },
+
+  // ファイルごとのチェックリストのみ生成
+  generateChecklist: async (prData: PRData, file: PRFile, _language: Language) => {
+    try {
+      if (!prData || !file) throw new Error('Invalid PR data or file');
+      const client = await createModelClient();
+      if (!client) throw new Error('Failed to create model client');
+      return await client.analyzePR(prData, file, _language);
+    } catch (error) {
+      console.error('Error in generateChecklist fetcher:', error);
+      throw error;
+    }
+  },
+
+  // PR説明文のみ生成（ストリーム対応・テキスト出力）
+  generateSummaryStream: async (
+    prData: PRData,
+    _language: Language,
+    onToken: (token: string) => void,
+    options?: { signal?: AbortSignal },
+  ) => {
+    try {
+      if (!prData) throw new Error('Invalid PR data provided');
+      const client = await createModelClient();
+      if (!client) throw new Error('Failed to create model client');
+      const diff = prData.files.map(file => file.patch || '').join('\n\n');
+      const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+        {
+          role: 'system',
+          content: `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${getLanguageLabel(_language)}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\n
+          PR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nRepository information: ${prData.copilot_instructions || ''}`,
+        },
+        {
+          role: 'user',
+          content: `Summarize the content of this pull request concisely from the following four perspectives: Background, Problem, Solution, and Implementation.`,
+        },
+      ];
+      await client.streamChatCompletion(messages, onToken, options);
+    } catch (error) {
+      console.error('Error in generateSummaryStream fetcher:', error);
+      throw error;
+    }
   },
 };

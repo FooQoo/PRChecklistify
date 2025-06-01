@@ -7,6 +7,7 @@ import { generatingAtom } from '@src/atoms/generatingAtom';
 import { currentPageAtom } from '@src/atoms/currentPageAtom';
 import { useGithubTokenAtom } from '@src/hooks/useGithubTokenAtom';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
+import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 
 // 現在のviewを管理するatom
 const firstMountAtom = atom(true);
@@ -46,6 +47,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   const [currentPage] = useAtom(currentPageAtom);
   const { githubToken, isGithubTokenLoaded } = useGithubTokenAtom();
   const { openaiKey, isOpenaiKeyLoaded } = useOpenaiKeyAtom();
+  const { geminiKey, isGeminiKeyLoaded } = useGeminiKeyAtom();
   const [firstMount, setFirstMount] = useAtom(firstMountAtom);
 
   // currentPageの変更を監視してPRページに遷移する
@@ -68,12 +70,21 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
       return;
     }
 
-    if (firstMount && isOpenaiKeyLoaded && !openaiKey) {
+    if (firstMount && isOpenaiKeyLoaded && isGeminiKeyLoaded && !openaiKey && !geminiKey) {
       setFirstMount(false);
       router.navigate('/openai-token-setup');
       return;
     }
-  }, [isGithubTokenLoaded, githubToken, firstMount, setFirstMount, isOpenaiKeyLoaded, openaiKey]);
+  }, [
+    isGithubTokenLoaded,
+    githubToken,
+    firstMount,
+    setFirstMount,
+    isOpenaiKeyLoaded,
+    openaiKey,
+    isGeminiKeyLoaded,
+    geminiKey,
+  ]);
 
   // ナビゲーション関数
   const navigateToPr = (url: string) => {
