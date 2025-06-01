@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PRData, Checklist, PRAnalysisResult } from '../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
@@ -65,6 +65,10 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
   );
 };
 
+const BLOCK_COLS = 10;
+const BLOCK_ROWS = 3;
+const BLOCK_TOTAL = BLOCK_COLS * BLOCK_ROWS;
+
 const FileChecklist = ({
   file,
   onChecklistChange,
@@ -77,6 +81,8 @@ const FileChecklist = ({
   const [generating, setGenerating] = useState(false);
   const setGlobalGenerating = useSetAtom(generatingAtom);
   const [error, setError] = useState<string | null>(null);
+  const [blockActive, setBlockActive] = useState(0);
+  const blockTimer = useRef<NodeJS.Timeout | null>(null);
 
   const aiGeneratedChecklist = useMemo(() => {
     return analysisResult?.fileAnalysis.find(item => item.filename === file.filename);
@@ -358,6 +364,22 @@ const FileChecklist = ({
     }
   };
 
+  // ローディングアニメーション制御
+  useEffect(() => {
+    if (generating) {
+      setBlockActive(0);
+      blockTimer.current = setInterval(() => {
+        setBlockActive(prev => (prev + 1) % (BLOCK_TOTAL + 1));
+      }, 1000); // 1秒ごとに進める
+    } else {
+      setBlockActive(0);
+      if (blockTimer.current) clearInterval(blockTimer.current);
+    }
+    return () => {
+      if (blockTimer.current) clearInterval(blockTimer.current);
+    };
+  }, [generating]);
+
   return (
     <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
       <button
@@ -409,9 +431,9 @@ const FileChecklist = ({
       {expanded && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-3">
-            <div className="flex justify-between items-center">
-              <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
-              {aiGeneratedChecklist && (
+            {aiGeneratedChecklist && (
+              <div className="flex justify-between items-center">
+                <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
                 <button
                   className="px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded text-xs"
                   disabled={generating}
@@ -421,17 +443,32 @@ const FileChecklist = ({
                   }}>
                   再生成
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {error && (
               <div className="p-2 bg-red-100 border border-red-300 text-red-800 rounded-md text-xs">{error}</div>
             )}
 
             {generating && (
-              <div className="flex items-center justify-center py-6">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-                <span className="ml-3 text-sm text-gray-600">チェックリストを生成中...</span>
+              <div className="flex flex-col items-center justify-center py-6 w-full text-gray-600">
+                <div>チェックリストを生成中...</div>
+                <div className="w-full flex justify-center mt-4">
+                  <div
+                    className="grid gap-1 w-full"
+                    style={{
+                      gridTemplateColumns: `repeat(${BLOCK_COLS}, 1fr)`,
+                      gridTemplateRows: `repeat(${BLOCK_ROWS}, 16px)`,
+                    }}>
+                    {Array.from({ length: blockActive }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="rounded-sm bg-blue-500 transition-all duration-300"
+                        style={{ width: '100%', height: 16 }}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
