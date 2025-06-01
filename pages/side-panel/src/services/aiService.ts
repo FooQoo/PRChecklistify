@@ -1,5 +1,5 @@
 import type { PRData, PRFile } from '@src/types';
-import { createOpenAIClient } from './openai';
+import { createModelClient } from './modelClient';
 import { getLanguageLabel, type Language } from '@extension/storage';
 
 // Add SWR fetchers for use with useSWR
@@ -13,14 +13,14 @@ export const fetchers = {
         throw new Error('Invalid PR data provided');
       }
 
-      // OpenAIクライアントを取得
-      const client = await createOpenAIClient();
+      // モデルクライアント（OpenAI/Gemini）を取得
+      const client = await createModelClient();
 
       if (!client) {
-        throw new Error('Failed to create OpenAI client');
+        throw new Error('Failed to create model client');
       }
 
-      // OpenAIを使用してPRを分析
+      // 選択されたAIプロバイダーでPRを分析
       const analysisResult = await client.analyzePR(prData, file, language);
 
       return analysisResult;
@@ -60,8 +60,8 @@ export const fetchers = {
         content: msg.message,
       })),
     ];
-    const client = await createOpenAIClient();
-    if (!client) throw new Error('Failed to create OpenAI client');
+    const client = await createModelClient();
+    if (!client) throw new Error('Failed to create model client');
     await client.streamChatCompletion(messages, onToken, options);
   },
 
@@ -69,8 +69,8 @@ export const fetchers = {
   generateChecklist: async (prData: PRData, file: PRFile, _language: Language) => {
     try {
       if (!prData || !file) throw new Error('Invalid PR data or file');
-      const client = await createOpenAIClient();
-      if (!client) throw new Error('Failed to create OpenAI client');
+      const client = await createModelClient();
+      if (!client) throw new Error('Failed to create model client');
       // checklistのみを生成するプロンプトを作成
       // analyzePRを使い、対象ファイルのみでPRDataを構成
       const tempResult = await client.analyzePR(prData, file, _language);
@@ -91,8 +91,8 @@ export const fetchers = {
   ) => {
     try {
       if (!prData) throw new Error('Invalid PR data provided');
-      const client = await createOpenAIClient();
-      if (!client) throw new Error('Failed to create OpenAI client');
+      const client = await createModelClient();
+      if (!client) throw new Error('Failed to create model client');
       const prompt = `Summarize the content of this pull request concisely in ${getLanguageLabel(_language)} from the following four perspectives: Background, Problem, Solution, and Implementation.\n\n[Output Format]\nBackground: ...\nProblem: ...\nSolution: ...\nImplementation: ...\n\nPR Title: ${prData.title}\nPR Description: ${prData.body}`;
       await client.streamChatCompletion([{ role: 'user', content: prompt }], onToken, options);
     } catch (error) {

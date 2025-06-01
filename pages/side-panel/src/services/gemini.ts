@@ -1,6 +1,6 @@
 // Gemini API integration for PR checklist generation
 import type { PRAnalysisResult, PRData, PRFile, ChecklistItemStatus } from '@src/types';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { buildPRAnalysisPrompt, type ModelClient } from './modelClient';
 import type { Language } from '@extension/storage';
 
@@ -10,12 +10,12 @@ export interface GeminiConfig {
 }
 
 class GeminiClient implements ModelClient {
-  private client: GoogleGenerativeAI;
+  private client: GoogleGenAI;
   private model: string;
 
   constructor(config: GeminiConfig) {
-    this.client = new GoogleGenerativeAI(config.apiKey);
-    this.model = config.model || 'gemini-1.5-pro';
+    this.client = new GoogleGenAI({ apiKey: config.apiKey });
+    this.model = config.model || 'gemini-2.0-flash';
   }
 
   /**
@@ -38,15 +38,58 @@ class GeminiClient implements ModelClient {
    */
   private async callGemini(prompt: string): Promise<string> {
     try {
-      const generativeModel = this.client.getGenerativeModel({ model: this.model });
-
-      // Systemプロンプトと本文を一緒に送信
       const systemPrompt =
         'You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback in JSON format as requested.';
-      const fullPrompt = `${systemPrompt}\n\n${prompt}`;
+      const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+          summary: {
+            type: Type.STRING,
+          },
+          fileAnalysis: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                filename: { type: Type.STRING },
+                explanation: { type: Type.STRING },
+                checklistItems: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: { type: Type.STRING },
+                      description: { type: Type.STRING },
+                      status: { type: Type.STRING, enum: ['OK', 'WARNING', 'ERROR', 'PENDING'] },
+                    },
+                    propertyOrdering: ['id', 'description', 'status'],
+                    required: ['id', 'description', 'status'],
+                  },
+                },
+              },
+              propertyOrdering: ['id', 'filename', 'explanation', 'checklistItems'],
+              required: ['id', 'filename', 'explanation', 'checklistItems'],
+            },
+          },
+        },
+        propertyOrdering: ['summary', 'fileAnalysis'],
+        required: ['summary', 'fileAnalysis'],
+      };
 
-      const result = await generativeModel.generateContent(fullPrompt);
-      return result.response.text();
+      const result = await this.client.models.generateContent({
+        model: this.model,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema,
+          systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
+        },
+      });
+
+      console.info('Gemini response:', result.text);
+
+      return result.text || '';
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       throw error;
@@ -59,61 +102,35 @@ class GeminiClient implements ModelClient {
   async streamChatCompletion(
     messages: { role: 'user' | 'system' | 'assistant'; content: string }[],
     onToken: (token: string) => void,
-    options?: { signal?: AbortSignal },
   ): Promise<void> {
     try {
-      // Gemini用のモデルを取得
-      const generativeModel = this.client.getGenerativeModel({
+      // 会話履歴を構築
+      const chatHistory = [];
+      let systemInstruction = undefined;
+
+      // システムメッセージを最初に追加
+      for (const message of messages) {
+        if (message.role === 'system') {
+          systemInstruction = { role: 'system', parts: [{ text: message.content }] };
+        } else if (message.role === 'user') {
+          chatHistory.push({ role: 'user', parts: [{ text: message.content }] });
+        } else if (message.role === 'assistant') {
+          chatHistory.push({ role: 'model', parts: [{ text: message.content }] });
+        }
+      }
+
+      console.info('Streaming Gemini chat completion with history:', messages);
+
+      const response = await this.client.models.generateContentStream({
         model: this.model,
-        generationConfig: {
-          temperature: 0.3,
+        contents: chatHistory,
+        config: {
+          systemInstruction,
         },
       });
 
-      // システムメッセージとユーザーメッセージを抽出
-      const systemMessage = messages.find(msg => msg.role === 'system')?.content || '';
-      const userMessages = messages.filter(msg => msg.role === 'user').map(msg => msg.content);
-      const assistantMessages = messages.filter(msg => msg.role === 'assistant').map(msg => msg.content);
-
-      // 会話履歴を構築
-      const chatHistory = [];
-      const maxMessages = Math.max(userMessages.length, assistantMessages.length);
-
-      for (let i = 0; i < maxMessages - 1; i++) {
-        if (i < userMessages.length - 1) {
-          chatHistory.push({ role: 'user', parts: [{ text: userMessages[i] }] });
-        }
-        if (i < assistantMessages.length) {
-          chatHistory.push({ role: 'model', parts: [{ text: assistantMessages[i] }] });
-        }
-      }
-
-      // 最後のユーザーメッセージ
-      const lastUserMessage = userMessages[userMessages.length - 1];
-
-      let result;
-      if (chatHistory.length > 0) {
-        // 会話履歴がある場合はチャットを開始
-        const chat = generativeModel.startChat({
-          history: chatHistory,
-          systemInstruction: systemMessage,
-        });
-
-        const streamOptions = options?.signal ? { signal: options.signal } : undefined;
-        result = await chat.sendMessageStream(lastUserMessage, streamOptions);
-      } else {
-        // 会話履歴がない場合は単一のリクエスト
-        let content = lastUserMessage;
-        if (systemMessage) {
-          content = `${systemMessage}\n\n${content}`;
-        }
-
-        const streamOptions = options?.signal ? { signal: options.signal } : undefined;
-        result = await generativeModel.generateContentStream(content, streamOptions);
-      }
-
-      for await (const chunk of result.stream) {
-        const text = chunk.text();
+      for await (const chunk of response) {
+        const text = chunk.text;
         if (text) onToken(text);
       }
     } catch (error) {
