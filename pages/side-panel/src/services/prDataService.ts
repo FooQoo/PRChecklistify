@@ -1,6 +1,5 @@
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier } from '../types';
-import { githubTokenStorage, githubApiDomainStorage } from '@extension/storage';
-import { Octokit } from '@octokit/rest';
+import { getGithubClient } from './github';
 
 type RecentPR = { title: string; key: string; timestamp: number };
 
@@ -139,65 +138,29 @@ export const prDataStorage = new PRDataStorage();
 // Service to fetch PR data from GitHub
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
+    const github = await getGithubClient();
     const { owner, repo, prNumber } = identifier;
 
     console.log(`Fetching PR data for ${owner}/${repo}#${prNumber}`);
 
-    // Get GitHub token if available
-    const token = await githubTokenStorage.get();
-    // Get GitHub API domain
-    const apiDomain = (await githubApiDomainStorage.get()) || '';
-
-    // Octokitインスタンスを初期化
-    const octokit = new Octokit({
-      auth: token || undefined,
-      baseUrl: apiDomain || undefined,
-    });
-
-    if (token) {
-      console.log('Using GitHub PAT for API requests');
-    } else {
-      console.log('No GitHub PAT found, API requests may be rate limited');
-    }
-
-    console.log(`Using GitHub API domain: ${apiDomain}`);
-
-    // Octokitを使用してPRデータを取得
-    const { data: prData } = await octokit.pulls.get({
-      owner,
-      repo,
-      pull_number: Number(prNumber),
-    });
+    // PRデータ取得
+    const { data: prData } = await github.fetchPullRequest(identifier);
 
     // 変更されたファイル一覧を取得
-    const { data: filesData } = await octokit.pulls.listFiles({
-      owner,
-      repo,
-      pull_number: Number(prNumber),
-    });
+    const { data: filesData } = await github.fetchPullRequestFiles(identifier);
 
-    // --- ここから追加 ---
     // 各ファイルのcontents_urlからbase64デコードした内容を取得
     const filesWithDecodedContent = await Promise.all(
       filesData.map(async file => {
         let decodedContent;
         if (file.contents_url) {
           try {
-            // URLからパスを抽出
             const contentUrlParts = file.contents_url.split('/contents/');
             if (contentUrlParts.length > 1) {
               const path = decodeURIComponent(contentUrlParts[1]);
-
               try {
-                const { data: contentData } = await octokit.repos.getContent({
-                  owner,
-                  repo,
-                  path,
-                  ref: prData.head.sha,
-                });
-
+                const { data: contentData } = await github.fetchFileContent(owner, repo, path, prData.head.sha);
                 if ('content' in contentData && !Array.isArray(contentData)) {
-                  // 改行を除去してbase64デコード
                   const base64 = contentData.content.replace(/\n/g, '');
                   decodedContent = atob(base64);
                 }
@@ -209,7 +172,6 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
             console.warn('Failed to fetch or decode file content:', file.filename, e);
           }
         }
-
         return {
           filename: file.filename,
           status: file.status,
@@ -217,36 +179,26 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
           deletions: file.deletions,
           patch: file.patch,
           contents_url: file.contents_url,
-          decodedContent, // 追加: base64デコードした内容
+          decodedContent,
         } as PRFile;
       }),
     );
 
     console.info('file:', JSON.stringify(filesWithDecodedContent, null, 2));
 
-    // レビューデータを取得（レビューがアサインされた時間を特定するため）
+    // レビューデータを取得
     let reviewAssignedAt = null;
-
     try {
-      const { data: reviewsData } = await octokit.pulls.listReviews({
-        owner,
-        repo,
-        pull_number: Number(prNumber),
-      });
-
-      // レビューが存在する場合、最初のレビューの時間をレビューアサイン時間として使用
+      const { data: reviewsData } = await github.fetchPullRequestReviews(identifier);
       if (reviewsData && reviewsData.length > 0) {
-        // レビューは時系列順に並んでいるため、最初のレビューの時間を使用
         reviewAssignedAt = reviewsData[0].submitted_at;
         console.log(`Review assigned at: ${reviewAssignedAt}`);
       } else {
-        // レビューがまだない場合は、作成時間をレビューアサイン時間として使用
         reviewAssignedAt = prData.created_at;
         console.log(`No reviews found, using PR creation time: ${reviewAssignedAt}`);
       }
     } catch (error) {
       console.warn('Failed to fetch PR reviews:', error);
-      // レビューデータを取得できない場合は、PRの作成時間を使用
       reviewAssignedAt = prData.created_at;
     }
 

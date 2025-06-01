@@ -85,7 +85,7 @@ const FileChecklist = ({
   const blockTimer = useRef<NodeJS.Timeout | null>(null);
 
   const aiGeneratedChecklist = useMemo(() => {
-    return analysisResult?.fileAnalysis.find(item => item.filename === file.filename);
+    return analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
   }, [analysisResult, file.filename]);
 
   // AI生成されたチェックリストに基づいて動的オブジェクトを準備

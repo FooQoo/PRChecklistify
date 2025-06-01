@@ -52,7 +52,7 @@ export function usePRData(prKey: string) {
     let newFileAnalysis: Checklist[];
 
     // すでに分析結果にchecklistと同じファイル名が存在する場合は更新
-    if (analysisResult?.fileAnalysis.some(item => item.filename === fileChecklist.filename)) {
+    if (analysisResult?.fileAnalysis?.some(item => item.filename === fileChecklist.filename)) {
       newFileAnalysis = analysisResult.fileAnalysis.map(item =>
         item.filename === fileChecklist.filename ? fileChecklist : item,
       );
