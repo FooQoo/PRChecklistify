@@ -282,8 +282,13 @@ const FileChecklist = ({
   const renderGitHubStyleDiff = (patch: string) => {
     if (!patch) return null;
 
-    // Split the patch into lines
     const lines = patch.split('\n');
+    // 行番号管理
+    let oldLine = 1;
+    let newLine = 1;
+
+    // hunk headerから行番号を取得する正規表現
+    const hunkHeaderRegex = /^@@\s*-(\d+),?\d*\s*\+(\d+),?\d*\s*@@/;
 
     return (
       <div className="text-xs border rounded overflow-hidden">
@@ -295,32 +300,74 @@ const FileChecklist = ({
             <span className="text-red-600">-{file.deletions}</span>
           </div>
         </div>
-
         {/* Diff content */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="py-0 px-2 w-10 text-right font-mono bg-gray-50">old</th>
+                <th className="py-0 px-2 w-10 text-right font-mono bg-gray-50 text-green-700">new</th>
+                <th className="py-0 px-2 w-6 text-center font-mono bg-gray-50"></th>
+                <th className="py-0 px-2 font-mono bg-gray-50 text-left">内容</th>
+              </tr>
+            </thead>
             <tbody>
               {lines.map((line, index) => {
-                // Determine line type
                 let lineClass = '';
                 let prefix = '';
+                let displayOldLine = '';
+                let displayNewLine = '';
+                let oldLineClass = 'text-gray-400';
+                let newLineClass = 'text-green-700';
 
-                if (line.startsWith('+')) {
+                if (line.startsWith('@@')) {
+                  // hunk header
+                  const match = line.match(hunkHeaderRegex);
+                  if (match) {
+                    oldLine = parseInt(match[1], 10);
+                    newLine = parseInt(match[2], 10);
+                  }
+                  lineClass = 'bg-blue-100';
+                  prefix = '';
+                  displayOldLine = '';
+                  displayNewLine = '';
+                  oldLineClass = '';
+                  newLineClass = '';
+                } else if (line.startsWith('+')) {
                   lineClass = 'bg-green-50';
                   prefix = '+';
+                  displayOldLine = '';
+                  displayNewLine = String(newLine);
+                  oldLineClass = 'text-gray-400';
+                  newLineClass = 'text-green-700 font-bold';
+                  newLine++;
                 } else if (line.startsWith('-')) {
                   lineClass = 'bg-red-50';
                   prefix = '-';
-                } else if (line.startsWith('@')) {
-                  lineClass = 'bg-blue-100';
-                  prefix = '';
+                  displayOldLine = String(oldLine);
+                  displayNewLine = '';
+                  oldLineClass = 'text-gray-400';
+                  newLineClass = '';
+                  oldLine++;
                 } else {
+                  // context line
                   prefix = ' ';
+                  displayOldLine = String(oldLine);
+                  displayNewLine = String(newLine);
+                  oldLineClass = 'text-gray-400';
+                  newLineClass = 'text-green-700';
+                  oldLine++;
+                  newLine++;
                 }
 
                 return (
                   <tr key={index} className={lineClass}>
-                    <td className="py-0 px-2 select-none text-gray-500 border-r w-12 text-right">{index + 1}</td>
+                    <td className={`py-0 px-2 select-none border-r w-10 text-right font-mono ${oldLineClass}`}>
+                      {displayOldLine}
+                    </td>
+                    <td className={`py-0 px-2 select-none border-r w-10 text-right font-mono ${newLineClass}`}>
+                      {displayNewLine}
+                    </td>
                     <td className="py-0 px-2 select-none text-gray-500 w-6 text-center font-mono">{prefix}</td>
                     <td className="py-0 px-2 whitespace-pre font-mono">{line.substring(prefix === '' ? 0 : 1)}</td>
                   </tr>
