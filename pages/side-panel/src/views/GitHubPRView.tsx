@@ -121,6 +121,7 @@ const GitHubPRView = () => {
           <PRAnalysis
             prData={prData}
             analysisResult={analysisResult}
+            refreshData={refreshData}
             saveAnalysisResultSummary={saveAnalysisResultSummary}
             saveAnalysisResultChecklist={saveAnalysisResultChecklist}
           />
