@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import type { ChecklistItemStatus, Checklist, PRAnalysisResult, PRData } from '../types';
 import type { Language } from '@extension/storage';
@@ -32,7 +32,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
     }
     return {};
   });
-  const blockTimer = useRef<NodeJS.Timeout | null>(null);
 
   // 言語設定を読み込む
   useEffect(() => {
@@ -51,21 +50,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
     localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
   }, [chatHistories]);
 
-  // ローディングアニメーション制御
-  useEffect(() => {
-    if (generating) {
-      if (blockTimer.current) clearInterval(blockTimer.current);
-      blockTimer.current = setInterval(() => {
-        // ここでsetBlockActiveは不要なので何もしない
-      }, 2000); // 2秒ごとに進める
-    } else {
-      if (blockTimer.current) clearInterval(blockTimer.current);
-    }
-    return () => {
-      if (blockTimer.current) clearInterval(blockTimer.current);
-    };
-  }, [generating]);
-
   // PR説明文（summary）のみ生成（ストリームでテキストを受け取り、リアルタイム表示）
   const [streamedSummary, setStreamedSummary] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -74,7 +58,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   const generateSummary = async () => {
     if (!prData || generating) return;
     setIsStreaming(true);
-    setStreamedSummary('');
+    setStreamedSummary('starting...');
     setError(null);
     setGenerating(true);
     let streamed = '';
