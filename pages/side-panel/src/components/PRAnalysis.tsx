@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAtom } from 'jotai';
 import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
+import type { Language } from '@extension/storage';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
 import FileChecklist from './FileChecklist';
@@ -15,7 +16,7 @@ interface PRAnalysisProps {
 
 const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAnalysisResult }) => {
   const [generating, setGenerating] = useAtom(generatingAtom);
-  const [language, setLanguage] = useState<string>('en');
+  const [language, setLanguage] = useState<Language>('en'); // デフォルト言語を設定
   const [error, setError] = useState<string | null>(null);
   const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
   const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {

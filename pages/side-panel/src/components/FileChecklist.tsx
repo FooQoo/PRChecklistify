@@ -3,6 +3,7 @@ import type { PRData, FileChecklist as FileChecklistType } from '../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { fetchers } from '@src/services/aiService';
+import type { Language } from '@extension/storage';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
@@ -10,7 +11,7 @@ interface FileChecklistProps {
   aiGeneratedChecklist?: FileChecklistType;
   onOpenChat?: () => void;
   prData: PRData;
-  language: string;
+  language: Language;
   onUpdateFileAnalysis: (fileChecklist: FileChecklistType) => void;
 }
 

@@ -1,11 +1,12 @@
 import type { PRData, PRFile } from '@src/types';
 import { createOpenAIClient } from './openai';
+import type { Language } from '@extension/storage';
 
 // Add SWR fetchers for use with useSWR
 
 export const fetchers = {
   // Fetcher for generating OpenAI analysis
-  generateAnalysis: async (prData: PRData, language: string) => {
+  generateAnalysis: async (prData: PRData, language: Language) => {
     try {
       // プロパティを確認して確実にPRDataがあることを確認
       if (!prData || !prData.files || !Array.isArray(prData.files)) {
@@ -90,7 +91,7 @@ export const fetchers = {
   },
 
   // ファイルごとのチェックリストのみ生成
-  generateChecklist: async (prData: PRData, file: PRFile, _language: string) => {
+  generateChecklist: async (prData: PRData, file: PRFile, _language: Language) => {
     try {
       if (!prData || !file) throw new Error('Invalid PR data or file');
       const client = await createOpenAIClient();

@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
+import type { Language } from '@extension/storage';
 import { languagePreferenceStorage } from '@extension/storage';
 import { t } from '@extension/i18n';
 import Toast from '../components/Toast';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('en' as Language);
   const [, setOpenaiApiEndpoint] = useState('');
   const [, setHasCustomOpenaiEndpoint] = useState(false);
   const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
@@ -67,12 +68,12 @@ const SettingsView: React.FC = () => {
   };
 
   const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLanguage = e.target.value;
+    const newLanguage = e.target.value as Language;
     setLanguage(newLanguage);
 
     try {
       // Save language preference to storage
-      await languagePreferenceStorage.set(newLanguage as 'en' | 'ja' | 'ko' | 'zh');
+      await languagePreferenceStorage.set(newLanguage);
 
       // Save to chrome.storage.local for i18n to access
       await chrome.storage.local.set({ languagePreference: newLanguage });

@@ -2,6 +2,8 @@
 import type { PRAnalysisResult, PRData, PRFile, ChecklistItemStatus } from '@src/types';
 import { OpenAI } from 'openai';
 import type { ModelClient } from './modelClient';
+import type { Language } from '@extension/storage';
+import { getLanguageLabel } from '@extension/storage';
 
 export interface OpenAIConfig {
   apiKey: string;
@@ -25,12 +27,9 @@ class OpenAIClient implements ModelClient {
   /**
    * Analyze a PR and generate checklist and summary
    */
-  async analyzePR(prData: PRData, languageOverride?: string): Promise<PRAnalysisResult> {
+  async analyzePR(prData: PRData, language: Language): Promise<PRAnalysisResult> {
     try {
-      // Get language preference from storage or use override if provided
-      const language = languageOverride || (await languagePreferenceStorage.get()) || navigator.language || 'en';
-
-      console.log(`Using language for analysis: ${language}`);
+      console.log(`Using language for analysis: ${getLanguageLabel(language)}`);
       const prompt = this.buildPRAnalysisPrompt(prData, language);
       const response = await this.callOpenAI(prompt);
       return this.parseAnalysisResponse(prompt, response);
@@ -43,7 +42,7 @@ class OpenAIClient implements ModelClient {
   /**
    * Build the prompt for PR analysis with language preference
    */
-  private buildPRAnalysisPrompt(prData: PRData, language: string = 'en'): string {
+  private buildPRAnalysisPrompt(prData: PRData, language: Language): string {
     // Format the PR data for the prompt
     const { title, body, files } = prData;
 
@@ -57,9 +56,6 @@ ${file.patch ? `Patch:\n${file.patch}` : 'No patch available'}
 `;
       })
       .join('\n---\n');
-
-    // Determine output language based on browser's language setting
-    const outputLanguage = language.startsWith('ja') ? 'Japanese' : language.startsWith('ko') ? 'Korean' : 'English';
 
     // Construct the full prompt with language instruction
     return `
@@ -111,7 +107,7 @@ ${fileChanges}
 
 Format your response as a JSON object with the following structure:
 {
-  "summary": "summary of the PR in ${outputLanguage}",
+  "summary": "summary of the PR in ${getLanguageLabel(language)}",
   "fileAnalysis": [
     {
       "id": "file-1",
@@ -131,7 +127,7 @@ Format your response as a JSON object with the following structure:
   ]
 }
 
-Important: All text content and checklist inside the JSON must be in ${outputLanguage}. Keep the JSON structure and field names in English.
+Important: All text content and checklist inside the JSON must be in ${getLanguageLabel(language)}. Keep the JSON structure and field names in English.
 `;
   }
 
