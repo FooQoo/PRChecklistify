@@ -1,5 +1,5 @@
 // Common interface for LLM clients (OpenAI, Gemini, etc.)
-import type { FileChecklist, PRData, PRFile } from '@src/types';
+import type { Checklist, PRData, PRFile } from '@src/types';
 
 // ModelClientType for selecting the appropriate LLM service
 export enum ModelClientType {
@@ -9,7 +9,7 @@ export enum ModelClientType {
 
 // Common interface for all LLM clients
 export interface ModelClient {
-  analyzePR(prData: PRData, file: PRFile, languageOverride?: string): Promise<FileChecklist>;
+  analyzePR(prData: PRData, file: PRFile, languageOverride?: string): Promise<Checklist>;
   streamChatCompletion(
     messages: { role: 'user' | 'system' | 'assistant'; content: string }[],
     onToken: (token: string) => void,
@@ -91,6 +91,8 @@ For each changed file, create a checklist of specific items to review, focusing 
    * Code is well-formatted and consistent with project style
 
 ### Additional instructions for file analysis:
+
+* Max checklist items per file: 5
 
 * For **core logic files, UI components, specifications, and tests**, generate detailed checklist items with:
   * description: e.g. "Check that..." 

@@ -1,20 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAtom } from 'jotai';
-import type { ChecklistItemStatus, PRAnalysisResult, PRData } from '../types';
+import type { ChecklistItemStatus, Checklist, PRAnalysisResult, PRData } from '../types';
 import type { Language } from '@extension/storage';
 import { languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
-import FileChecklist from './FileChecklist';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
+import FileChecklist from './FileChecklist';
 
 interface PRAnalysisProps {
   prData: PRData;
   analysisResult: PRAnalysisResult | undefined;
-  saveAnalysisResult: (result: PRAnalysisResult | undefined) => void;
+  saveAnalysisResultSummary: (summary: string) => Promise<void>;
+  saveAnalysisResultChecklist: (fileChecklist: Checklist) => Promise<void>;
 }
 
-const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAnalysisResult }) => {
+const PRAnalysis: React.FC<PRAnalysisProps> = ({
+  prData,
+  analysisResult,
+  saveAnalysisResultSummary,
+  saveAnalysisResultChecklist,
+}) => {
   const [generating, setGenerating] = useAtom(generatingAtom);
   const [language, setLanguage] = useState<Language>('en'); // デフォルト言語を設定
   const [error, setError] = useState<string | null>(null);
@@ -85,11 +91,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
         },
       );
       // ストリーム完了後に保存（文字列として）
-      saveAnalysisResult({
-        summary: streamed,
-        fileAnalysis: analysisResult?.fileAnalysis || [],
-        prompt: streamed, // テキストも保存
-      });
+      saveAnalysisResultSummary(streamed);
     } catch {
       setError('Failed to generate summary. Please try again.');
     } finally {
@@ -98,15 +100,14 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
     }
   };
 
-  // 注意: generateChecklistForFile関数はFileChecklistコンポーネントに移動済み
-
   // チェックリスト変更時のハンドラー
   const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
     if (!prData || !analysisResult) return;
 
     // 分析結果のファイルチェックリストを更新する
-    const updatedFileChecklists = analysisResult.fileAnalysis.map(checklist => {
-      if (checklist.filename === filename) {
+    const updatedFileChecklists = analysisResult.fileAnalysis
+      .filter(checklist => checklist.filename === filename)
+      .map(checklist => {
         // ステータスマッピングしたチェックリストアイテムを作成
         const updatedItems = checklist.checklistItems.map((item, index) => {
           const key = `item_${index}`;
@@ -116,22 +117,10 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
           return item;
         });
         return { ...checklist, checklistItems: updatedItems };
-      }
-      return checklist;
-    });
-
-    // 更新後の分析結果オブジェクトを作成
-    const updatedAnalysisResult = {
-      ...analysisResult,
-      fileAnalysis: updatedFileChecklists,
-    };
+      });
 
     // 分析結果を更新
-    saveAnalysisResult(updatedAnalysisResult);
-  };
-
-  const displaySummary = (summary: string) => {
-    return summary;
+    saveAnalysisResultChecklist(updatedFileChecklists[0]);
   };
 
   return (
@@ -151,7 +140,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
         {streamedSummary || analysisResult?.summary ? (
           <div className="pr-summary mb-4">
             <div className="bg-gray-50 p-3 rounded-md text-left text-sm whitespace-pre-line">
-              {streamedSummary || displaySummary(analysisResult!.summary)}
+              {streamedSummary || analysisResult!.summary}
             </div>
           </div>
         ) : (
@@ -178,23 +167,11 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({ prData, analysisResult, saveAna
                   <FileChecklist
                     file={file}
                     onChecklistChange={handleChecklistChange}
-                    aiGeneratedChecklist={aiGeneratedChecklist}
+                    analysisResult={analysisResult}
                     onOpenChat={() => setChatModalOpen(file.filename)}
                     prData={prData}
                     language={language}
-                    onUpdateFileAnalysis={fileChecklist => {
-                      // 既存のanalysisResultにfileAnalysisをマージ
-                      const updatedFileAnalysis = [
-                        ...(analysisResult?.fileAnalysis || []).filter(f => f.filename !== file.filename),
-                        fileChecklist,
-                      ];
-                      saveAnalysisResult({
-                        ...analysisResult,
-                        fileAnalysis: updatedFileAnalysis,
-                        summary: analysisResult?.summary || '',
-                        prompt: analysisResult?.prompt || '',
-                      });
-                    }}
+                    saveAnalysisResultChecklist={saveAnalysisResultChecklist}
                   />
                   <FileChatModal
                     open={chatModalOpen === file.filename}

@@ -19,9 +19,9 @@ const GitHubPRView = () => {
     isLoading,
     error: prError,
     analysisResult,
-    saveAnalysisResult,
+    saveAnalysisResultSummary,
+    saveAnalysisResultChecklist,
     refreshData,
-    reloadPRData, // 追加
     currentApprovalPercentage,
     approvedFilesCount,
     isJustCompleted,
@@ -121,8 +121,8 @@ const GitHubPRView = () => {
           <PRAnalysis
             prData={prData}
             analysisResult={analysisResult}
-            saveAnalysisResult={saveAnalysisResult}
-            reloadPRData={reloadPRData} // 追加
+            saveAnalysisResultSummary={saveAnalysisResultSummary}
+            saveAnalysisResultChecklist={saveAnalysisResultChecklist}
           />
 
           {/* 追加: 完了メッセージの表示 */}

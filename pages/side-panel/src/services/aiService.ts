@@ -71,9 +71,7 @@ export const fetchers = {
       if (!prData || !file) throw new Error('Invalid PR data or file');
       const client = await createModelClient();
       if (!client) throw new Error('Failed to create model client');
-      const result = await client.analyzePR(prData, file, _language);
-      // 1ファイル分だけ返す
-      return result;
+      return await client.analyzePR(prData, file, _language);
     } catch (error) {
       console.error('Error in generateChecklist fetcher:', error);
       throw error;

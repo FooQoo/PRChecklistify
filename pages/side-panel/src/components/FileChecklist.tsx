@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { PRData, FileChecklist as FileChecklistType } from '../types';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import type { PRData, Checklist, PRAnalysisResult } from '../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { fetchers } from '@src/services/aiService';
@@ -8,11 +8,11 @@ import type { Language } from '@extension/storage';
 interface FileChecklistProps {
   file: PRData['files'][0];
   onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
-  aiGeneratedChecklist?: FileChecklistType;
+  analysisResult: PRAnalysisResult | undefined;
   onOpenChat?: () => void;
   prData: PRData;
   language: Language;
-  onUpdateFileAnalysis: (fileChecklist: FileChecklistType) => void;
+  saveAnalysisResultChecklist: (fileChecklist: Checklist) => Promise<void>;
 }
 
 // チェックリスト項目コンポーネント
@@ -68,15 +68,19 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
 const FileChecklist = ({
   file,
   onChecklistChange,
-  aiGeneratedChecklist,
+  analysisResult,
   onOpenChat,
   prData,
   language,
-  onUpdateFileAnalysis,
+  saveAnalysisResultChecklist,
 }: FileChecklistProps) => {
   const [generating, setGenerating] = useState(false);
   const setGlobalGenerating = useSetAtom(generatingAtom);
   const [error, setError] = useState<string | null>(null);
+
+  const aiGeneratedChecklist = useMemo(() => {
+    return analysisResult?.fileAnalysis.find(item => item.filename === file.filename);
+  }, [analysisResult, file.filename]);
 
   // AI生成されたチェックリストに基づいて動的オブジェクトを準備
   const initializeChecklistItems = useCallback(() => {
@@ -344,7 +348,7 @@ const FileChecklist = ({
       // ファイルごとのチェックリスト生成
       console.log(`Generating checklist for file: ${file.filename}`);
       const checklist = await fetchers.generateChecklist(prData, file, language);
-      onUpdateFileAnalysis(checklist);
+      await saveAnalysisResultChecklist(checklist);
     } catch (error) {
       setError('チェックリスト生成中にエラーが発生しました。');
       console.error('Checklist generation error:', error);

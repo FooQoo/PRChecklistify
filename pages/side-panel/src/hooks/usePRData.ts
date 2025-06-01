@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
-import type { PRData, PRAnalysisResult } from '../types';
+import type { PRData, PRAnalysisResult, Checklist } from '../types';
 import { prDataStorage } from '../services/prDataService';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { loadPRDataFromAnySource, fetchAndSetPRData } from './prDataLoader';
@@ -29,13 +29,49 @@ export function usePRData(prKey: string) {
   }, [prKey, isGenerating, setPRData]);
 
   // 分析結果を保存する関数
-  const saveAnalysisResult = async (result: PRAnalysisResult | undefined) => {
+  const saveAnalysisResultSummary = async (summary: string) => {
     if (!prData || !prKey) return;
 
-    setAnalysisResult(result);
+    const newResult = {
+      ...analysisResult,
+      summary,
+    } as PRAnalysisResult;
+
+    setAnalysisResult(newResult);
 
     try {
-      await prDataStorage.saveToStorage(prKey, prData, result);
+      await prDataStorage.saveToStorage(prKey, prData, newResult);
+    } catch (err) {
+      console.error('Error saving analysis result:', err);
+    }
+  };
+
+  const saveAnalysisResultChecklist = async (fileChecklist: Checklist) => {
+    if (!prData || !prKey) return;
+
+    let newFileAnalysis: Checklist[];
+
+    // すでに分析結果にchecklistと同じファイル名が存在する場合は更新
+    if (analysisResult?.fileAnalysis.some(item => item.filename === fileChecklist.filename)) {
+      newFileAnalysis = analysisResult.fileAnalysis.map(item =>
+        item.filename === fileChecklist.filename ? fileChecklist : item,
+      );
+    } else {
+      // 含まれない場合は新しいチェックリストを追加
+      newFileAnalysis = (analysisResult?.fileAnalysis || []).concat(fileChecklist);
+    }
+
+    const newResult = {
+      ...analysisResult,
+      fileAnalysis: newFileAnalysis,
+    } as PRAnalysisResult;
+
+    console.log('Saving analysis result checklist:', fileChecklist);
+
+    setAnalysisResult(newResult);
+
+    try {
+      await prDataStorage.saveToStorage(prKey, prData, newResult);
     } catch (err) {
       console.error('Error saving analysis result:', err);
     }
@@ -95,7 +131,8 @@ export function usePRData(prKey: string) {
     isLoading,
     error,
     analysisResult,
-    saveAnalysisResult,
+    saveAnalysisResultSummary,
+    saveAnalysisResultChecklist,
     refreshData,
     reloadPRData,
     approvedFilesCount,

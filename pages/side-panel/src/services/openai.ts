@@ -1,5 +1,5 @@
 // OpenAI API integration for PR checklist generation
-import type { PRData, PRFile, FileChecklist } from '@src/types';
+import type { PRData, PRFile, Checklist } from '@src/types';
 import { OpenAI } from 'openai';
 import type { ModelClient } from './modelClient';
 import type { Language } from '@extension/storage';
@@ -28,12 +28,12 @@ class OpenAIClient implements ModelClient {
   /**
    * Analyze a PR and generate checklist and summary
    */
-  async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<FileChecklist> {
+  async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<Checklist> {
     try {
       console.log(`Using language for analysis: ${getLanguageLabel(language)}`);
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const response = await this.callOpenAI(prompt);
-      return JSON.parse(response) as FileChecklist;
+      return JSON.parse(response) as Checklist;
     } catch (error) {
       console.error('Error analyzing PR with OpenAI:', error);
       throw new Error('Failed to analyze PR with OpenAI');

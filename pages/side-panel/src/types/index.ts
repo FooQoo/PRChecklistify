@@ -76,7 +76,7 @@ export interface ChecklistItem {
 }
 
 // ファイルチェックリストの型
-export interface FileChecklist {
+export interface Checklist {
   filename: string;
   explanation: string;
   checklistItems: ChecklistItem[];
@@ -85,6 +85,5 @@ export interface FileChecklist {
 // PR分析結果の型
 export interface PRAnalysisResult {
   summary: string;
-  fileAnalysis: FileChecklist[];
-  prompt: string;
+  fileAnalysis: Checklist[];
 }
