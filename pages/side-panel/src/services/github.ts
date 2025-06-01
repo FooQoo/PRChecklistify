@@ -37,6 +37,25 @@ export class GithubClient {
     const { owner, repo, prNumber } = identifier;
     return this.octokit.pulls.listReviews({ owner, repo, pull_number: Number(prNumber) });
   }
+
+  /**
+   * mainブランチから .github/copilot-instructions.md の内容を取得する
+   * @param owner リポジトリオーナー
+   * @param repo リポジトリ名
+   * @returns ファイル内容（string）またはnull（存在しない場合）
+   */
+  async fetchCopilotInstructionsFromMain(owner: string, repo: string): Promise<string | undefined> {
+    try {
+      const { data } = await this.fetchFileContent(owner, repo, '.github/copilot-instructions.md', 'main');
+      if ('content' in data && typeof data.content === 'string') {
+        const base64 = data.content.replace(/\n/g, '');
+        return atob(base64);
+      }
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }
 }
 
 let githubClientSingleton: GithubClient | null = null;

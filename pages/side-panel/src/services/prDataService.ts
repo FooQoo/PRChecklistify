@@ -188,6 +188,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
 
     // レビューデータを取得
     let reviewAssignedAt = null;
+    let copilotInstructions = undefined;
     try {
       const { data: reviewsData } = await github.fetchPullRequestReviews(identifier);
       if (reviewsData && reviewsData.length > 0) {
@@ -197,6 +198,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
         reviewAssignedAt = prData.created_at;
         console.log(`No reviews found, using PR creation time: ${reviewAssignedAt}`);
       }
+      copilotInstructions = await github.fetchCopilotInstructionsFromMain(owner, repo);
     } catch (error) {
       console.warn('Failed to fetch PR reviews:', error);
       reviewAssignedAt = prData.created_at;
@@ -234,6 +236,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       commits: prData.commits,
       comments: prData.comments,
       review_comments: prData.review_comments,
+      copilot_instructions: copilotInstructions,
     };
   } catch (error) {
     console.error('Error fetching PR data:', error);

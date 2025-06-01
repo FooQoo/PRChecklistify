@@ -109,6 +109,7 @@ For each changed file, create a checklist of specific items to review, focusing 
 
 PR Title: ${title}
 PR Description: ${body}
+Repository information: ${prData.copilot_instructions || 'No instructions provided.'}
 
 Format your response as a JSON object with the following structure:
 {
