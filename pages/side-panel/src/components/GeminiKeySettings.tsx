@@ -1,3 +1,4 @@
+import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useState } from 'react';
 
 interface GeminiKeySettingsProps {
@@ -5,6 +6,8 @@ interface GeminiKeySettingsProps {
 }
 
 const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
+  const { geminiKey, setKeyAndStorage, clearKey } = useGeminiKeyAtom();
+
   // Gemini APIキーの状態
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +21,11 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
     }
     try {
       setIsLoading(true);
-      await chrome.storage.local.set({ geminiApiKey: apiKey });
+      if (!apiKey.startsWith('AIza')) {
+        onToast('Invalid Gemini API key format', 'error');
+        return;
+      }
+      await setKeyAndStorage(apiKey);
       setApiKey('');
       onToast('Gemini API key saved', 'success');
     } catch {
@@ -32,7 +39,7 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
   const handleRemoveKey = async () => {
     try {
       setIsLoading(true);
-      await chrome.storage.local.remove('geminiApiKey');
+      await clearKey();
       setApiKey('');
       onToast('Gemini API key cleared', 'success');
     } catch {
@@ -61,7 +68,7 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
               id="gemini-key"
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
-              placeholder={getMaskedApiKey(apiKey)}
+              placeholder={geminiKey ? getMaskedApiKey(geminiKey) : 'Enter your Gemini API key'}
               className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
@@ -76,17 +83,22 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
             </button>
           </div>
         </div>
+        {geminiKey && (
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-xs text-gray-500">Gemini API key is set</span>
+            <button
+              type="button"
+              onClick={handleRemoveKey}
+              className="text-xs text-red-500 hover:text-red-700"
+              disabled={isLoading}>
+              Remove
+            </button>
+          </div>
+        )}
         <div className="text-xs text-gray-500 mt-2">
           <p>Store your Gemini API key securely. It is only saved in your browser.</p>
         </div>
       </form>
-      <button
-        type="button"
-        onClick={handleRemoveKey}
-        disabled={isLoading}
-        className="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">
-        Remove Key
-      </button>
     </div>
   );
 };
