@@ -71,9 +71,8 @@ export const fetchers = {
       const client = await createOpenAIClient();
       if (!client) throw new Error('Failed to create OpenAI client');
 
-      // 新しい実装：ChatCompletionを直接呼び出す
       let summaryText = '';
-      const prompt = `このPRの内容を簡潔に日本語で要約してください。\n\nPRタイトル: ${prData.title}\nPR説明: ${prData.body}`;
+      const prompt = `このPRの内容を簡潔に日本語で要約してください。\n\nPRタイトル: ${prData.title}\nPR説明: ${prData.body}\n出力言語：${_language}\n\n【出力フォーマット】\n背景: ...\n課題: ...\n解決策: ...\n実装: ...`;
 
       await client.streamChatCompletion(
         [{ role: 'user', content: prompt }],
@@ -98,7 +97,7 @@ export const fetchers = {
       if (!client) throw new Error('Failed to create OpenAI client');
       // checklistのみを生成するプロンプトを作成
       // analyzePRを使い、対象ファイルのみでPRDataを構成
-      const tempResult = await client.analyzePR({ ...prData, files: [file] }, undefined);
+      const tempResult = await client.analyzePR({ ...prData, files: [file] }, _language);
       // 1ファイル分だけ返す
       return tempResult.fileAnalysis[0];
     } catch (error) {

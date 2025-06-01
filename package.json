@@ -39,6 +39,7 @@
     "module-manager": "pnpm -F module-manager start"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@octokit/rest": "^21.1.1",
     "jotai": "^2.12.3",
     "openai": "^4.28.0",
