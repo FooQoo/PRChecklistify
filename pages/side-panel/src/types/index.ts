@@ -85,7 +85,7 @@ export interface FileChecklist {
 
 // PR分析結果の型
 export interface PRAnalysisResult {
-  summary: string; // 以前はPRAnalysisSummaryオブジェクトでしたが、シンプルにstringに変更
+  summary: string;
   fileAnalysis: FileChecklist[];
   prompt: string;
 }

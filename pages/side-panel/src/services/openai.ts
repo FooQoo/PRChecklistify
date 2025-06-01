@@ -110,12 +110,7 @@ ${fileChanges}
 
 Format your response as a JSON object with the following structure:
 {
-  "summary": {
-    "background": "...",
-    "problem": "...",
-    "solution": "...",
-    "implementation": "..."
-  },
+  "summary": "summary of the PR in ${outputLanguage}",
   "fileAnalysis": [
     {
       "id": "file-1",
@@ -204,7 +199,7 @@ Important: All text content and checklist inside the JSON must be in ${outputLan
     try {
       // Parse the JSON response
       const parsedResponse = JSON.parse(responseText) as {
-        summary: { background: string; problem: string; solution: string; implementation: string };
+        summary: string;
         fileAnalysis: Array<{
           id?: string;
           filename: string;
