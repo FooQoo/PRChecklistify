@@ -7,6 +7,7 @@ import { fetchers } from '@src/services/aiService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -23,7 +24,9 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   saveAnalysisResultSummary,
   saveAnalysisResultChecklist,
 }) => {
-  const [generating, setGenerating] = useAtom(generatingAtom);
+  const [, setGenerating] = useAtom(generatingAtom);
+  // summaryのgenerateを管理
+  const [summaryGenerating, setSummaryGenerating] = useState(false);
   const [language, setLanguage] = useState<Language>('en'); // デフォルト言語を設定
   const [error, setError] = useState<string | null>(null);
   const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
@@ -58,11 +61,12 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
 
   // summaryストリーム生成時はテキストを構造体にパースして保存
   const generateSummary = async () => {
-    if (!prData || generating) return;
+    if (!prData || summaryGenerating) return;
     setIsStreaming(true);
     setStreamedSummary('starting...');
     setError(null);
     setGenerating(true);
+    setSummaryGenerating(true);
     let streamed = '';
     await refreshData();
     try {
@@ -83,6 +87,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
       setError('Failed to generate summary. Please try again.');
     } finally {
       setGenerating(false);
+      setSummaryGenerating(false);
       setIsStreaming(false);
     }
   };
@@ -115,7 +120,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
       <div className="pr-analysis p-4 border border-gray-300 rounded-md mb-4 bg-white shadow-sm">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-lg font-bold">PR Analysis</h3>
-          {generating ? (
+          {summaryGenerating ? (
             <div className="flex items-center justify-center h-8 w-8">
               <svg
                 className="animate-spin h-6 w-6 text-blue-500"
@@ -130,7 +135,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
             <button
               onClick={generateSummary}
               className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm">
-              {analysisResult?.summary ? 'Regenerate Summary' : 'Generate Summary'}
+              {analysisResult?.summary || streamedSummary ? 'Sync latest commit' : 'Generate Summary'}
             </button>
           )}
         </div>
@@ -138,12 +143,12 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
         {streamedSummary || analysisResult?.summary ? (
           <div className="pr-summary mb-4">
             <div className="bg-gray-50 p-3 rounded-md text-left text-sm whitespace-pre-line">
-              {streamedSummary || analysisResult!.summary}
+              <MarkdownRenderer content={streamedSummary || analysisResult!.summary} />
             </div>
           </div>
         ) : (
           <div className="bg-gray-50 p-4 rounded-md text-gray-500 text-center">
-            {generating || isStreaming
+            {summaryGenerating || isStreaming
               ? 'Analyzing your PR. This may take a moment...'
               : "Click 'Generate Summary' to get AI-powered summary about this PR."}
           </div>

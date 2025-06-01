@@ -157,13 +157,8 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
           try {
             const contentUrlParts = file.contents_url.split('/contents/');
             if (contentUrlParts.length > 1) {
-              const path = decodeURIComponent(contentUrlParts[1]);
               try {
-                const { data: contentData } = await github.fetchFileContent(owner, repo, path, prData.head.sha);
-                if ('content' in contentData && !Array.isArray(contentData)) {
-                  const base64 = contentData.content.replace(/\n/g, '');
-                  decodedContent = atob(base64);
-                }
+                decodedContent = await github.fetchBlob(owner, repo, file.sha);
               } catch (e) {
                 console.warn('Failed to get content for file:', file.filename, e);
               }
@@ -189,6 +184,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
     // レビューデータを取得
     let reviewAssignedAt = null;
     let copilotInstructions = undefined;
+    let readme = undefined;
     try {
       const { data: reviewsData } = await github.fetchPullRequestReviews(identifier);
       if (reviewsData && reviewsData.length > 0) {
@@ -199,6 +195,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
         console.log(`No reviews found, using PR creation time: ${reviewAssignedAt}`);
       }
       copilotInstructions = await github.fetchCopilotInstructionsFromMain(owner, repo);
+      readme = await github.fetchReadmeContent(owner, repo);
     } catch (error) {
       console.warn('Failed to fetch PR reviews:', error);
       reviewAssignedAt = prData.created_at;
@@ -237,6 +234,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       comments: prData.comments,
       review_comments: prData.review_comments,
       copilot_instructions: copilotInstructions,
+      readme,
     };
   } catch (error) {
     console.error('Error fetching PR data:', error);

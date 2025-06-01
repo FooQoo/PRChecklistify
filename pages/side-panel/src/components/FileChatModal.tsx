@@ -285,7 +285,9 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                             }}>
                             {status}
                           </button>
-                          <span className="text-sm">{item.description}</span>
+                          <span className="text-sm">
+                            <MarkdownRenderer content={item.description} />
+                          </span>
                         </div>
                       );
                     })}

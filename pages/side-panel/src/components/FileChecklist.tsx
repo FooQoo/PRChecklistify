@@ -4,6 +4,7 @@ import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { fetchers } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
@@ -60,7 +61,9 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
         className={getButtonClasses(status)}>
         {renderButtonContent(status)}
       </button>
-      <label className="text-sm">{label}</label>
+      <span className="text-sm">
+        <MarkdownRenderer content={label} />
+      </span>
     </div>
   );
 };
@@ -488,7 +491,7 @@ const FileChecklist = ({
                     e.stopPropagation(); // 親要素へのイベント伝播を防止
                     generateChecklist();
                   }}>
-                  再生成
+                  Regenerate
                 </button>
               </div>
             )}
@@ -550,7 +553,9 @@ const FileChecklist = ({
             {!generating && aiGeneratedChecklist?.explanation && (
               <div className="mb-2">
                 <h4 className="text-sm font-semibold mb-2">ファイルの要約</h4>
-                <p className="text-xs text-gray-500">{aiGeneratedChecklist?.explanation}</p>
+                <p className="text-xs text-gray-500">
+                  <MarkdownRenderer content={aiGeneratedChecklist?.explanation} />
+                </p>
               </div>
             )}
             <div>

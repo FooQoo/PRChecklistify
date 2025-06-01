@@ -40,7 +40,8 @@ export interface PRData {
   commits: number;
   comments: number;
   review_comments: number;
-  copilot_instructions?: string; // Copilotの指示内容
+  copilot_instructions?: string;
+  readme?: string;
 }
 
 // リポジトリの所有者、名前、PR番号の情報

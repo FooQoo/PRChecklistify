@@ -29,8 +29,8 @@ export class GithubClient {
     return this.octokit.pulls.listFiles({ owner, repo, pull_number: Number(prNumber) });
   }
 
-  async fetchFileContent(owner: string, repo: string, path: string, ref: string) {
-    return this.octokit.repos.getContent({ owner, repo, path, ref });
+  async fetchFileContent(owner: string, repo: string, path: string) {
+    return this.octokit.repos.getContent({ owner, repo, path });
   }
 
   async fetchPullRequestReviews(identifier: PRIdentifier) {
@@ -46,7 +46,7 @@ export class GithubClient {
    */
   async fetchCopilotInstructionsFromMain(owner: string, repo: string): Promise<string | undefined> {
     try {
-      const { data } = await this.fetchFileContent(owner, repo, '.github/copilot-instructions.md', 'main');
+      const { data } = await this.fetchFileContent(owner, repo, '.github/copilot-instructions.md');
       if ('content' in data && typeof data.content === 'string') {
         const base64 = data.content.replace(/\n/g, '');
         return atob(base64);
@@ -55,6 +55,32 @@ export class GithubClient {
     } catch {
       return undefined;
     }
+  }
+
+  // READMEファイルの内容を取得
+  async fetchReadmeContent(owner: string, repo: string): Promise<string | undefined> {
+    try {
+      const { data } = await this.fetchFileContent(owner, repo, 'README.md');
+      if ('content' in data && typeof data.content === 'string') {
+        const base64 = data.content.replace(/\n/g, '');
+        return atob(base64);
+      }
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * 指定したSHAのblobを取得
+   * @param owner リポジトリオーナー
+   * @param repo リポジトリ名
+   * @param file_sha ファイルのSHA
+   */
+  async fetchBlob(owner: string, repo: string, file_sha: string) {
+    const blob = await this.octokit.git.getBlob({ owner, repo, file_sha });
+    const base64 = blob.data.content.replace(/\n/g, '');
+    return atob(base64);
   }
 }
 
