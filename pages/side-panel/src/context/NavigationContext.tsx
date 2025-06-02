@@ -36,8 +36,6 @@ const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: st
   const baseMatch = url.match(/(?:https?:\/\/)?[^/]+\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
   if (!baseMatch) return null;
 
-  console.log('baseMatch', baseMatch);
-
   const [, owner, repo, prNumber] = baseMatch;
   return { owner, repo, prNumber };
 };

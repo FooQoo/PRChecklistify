@@ -10,7 +10,6 @@ export const loadPRDataFromAnySource = async (
 ) => {
   const identifier = extractPRInfoFromKey(prKey);
   if (!identifier) {
-    console.log('Not a PR URL, skipping data loading:', prKey);
     return;
   }
   try {
@@ -22,9 +21,7 @@ export const loadPRDataFromAnySource = async (
       } else {
         setAnalysisResult(undefined);
       }
-      console.log('Loaded PR data from storage:', prKey);
     } else {
-      console.log('Fetching PR data from API:', prKey);
       const newData = await fetchPRData(identifier);
       if (newData) {
         setPRData(newData);

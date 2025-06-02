@@ -23,7 +23,6 @@ class GeminiClient implements ModelClient {
    */
   async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<Checklist> {
     try {
-      console.log(`Using language for analysis: ${language}`);
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const response = await this.callGemini(prompt);
       return JSON.parse(response) as Checklist;

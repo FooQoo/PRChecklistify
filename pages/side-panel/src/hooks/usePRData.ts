@@ -66,8 +66,6 @@ export function usePRData(prKey: string) {
       fileAnalysis: newFileAnalysis,
     } as PRAnalysisResult;
 
-    console.log('Saving analysis result checklist:', fileChecklist);
-
     setAnalysisResult(newResult);
 
     try {

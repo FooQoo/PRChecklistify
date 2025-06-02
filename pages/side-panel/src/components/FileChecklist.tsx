@@ -189,9 +189,6 @@ const FileChecklist = ({
   useEffect(() => {
     // checklistItemsがローカルで変更されたときだけ実行
     if (checklistItems && Object.keys(checklistItems).length > 0) {
-      // 不要な更新を避けるため、必要なときだけ親コンポーネントに通知
-      console.log(`Updating checklist for file: ${file.filename}`, checklistItems);
-
       // Check if all items just became OK
       const allOK = Object.values(checklistItems).every(item => item === 'OK');
       if (allOK && !allItemsJustChecked) {
@@ -206,8 +203,6 @@ const FileChecklist = ({
 
   // Toggle through the review states: PENDING -> NG -> OK -> NG
   const toggleReviewState = (item: string) => {
-    console.log(`Toggling review state for '${item}' in file: ${file.filename}`);
-
     if (!checklistItems) return;
 
     const currentState = checklistItems[item];
@@ -401,8 +396,6 @@ const FileChecklist = ({
         });
       }, 100);
 
-      // ファイルごとのチェックリスト生成
-      console.log(`Generating checklist for file: ${file.filename}`);
       const checklist = await fetchers.generateChecklist(prData, file, language);
       await saveAnalysisResultChecklist(checklist);
     } catch (error) {

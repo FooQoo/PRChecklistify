@@ -108,10 +108,8 @@ class PRDataStorage {
 
       if (existingIndex >= 0) {
         // 既存のものを更新
-        console.log(`Updating existing PR in history: ${prKey}`);
         recentPRs[existingIndex] = newPRInfo;
       } else {
-        console.log(`Adding new PR to history: ${prKey}`);
         // 新しいものを追加（最大10件まで）
         if (recentPRs.length >= 10) {
           // タイムスタンプで並べ替えて古いものを削除
@@ -125,7 +123,6 @@ class PRDataStorage {
       // 最後にタイムスタンプでソートして保存
       recentPRs.sort((a: RecentPR, b: RecentPR) => b.timestamp - a.timestamp);
       await chrome.storage.local.set({ recentPRs });
-      console.log(`Saved ${recentPRs.length} PRs to history with key format`);
     } catch (error) {
       console.error('Error updating recent PRs:', error);
     }
@@ -139,9 +136,7 @@ export const prDataStorage = new PRDataStorage();
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
     const github = await getGithubClient();
-    const { owner, repo, prNumber } = identifier;
-
-    console.log(`Fetching PR data for ${owner}/${repo}#${prNumber}`);
+    const { owner, repo } = identifier;
 
     // PRデータ取得
     const { data: prData } = await github.fetchPullRequest(identifier);

@@ -30,7 +30,6 @@ class OpenAIClient implements ModelClient {
    */
   async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<Checklist> {
     try {
-      console.log(`Using language for analysis: ${getLanguageLabel(language)}`);
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const response = await this.callOpenAI(prompt);
       return JSON.parse(response) as Checklist;

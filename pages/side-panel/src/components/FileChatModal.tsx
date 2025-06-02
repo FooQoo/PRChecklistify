@@ -80,10 +80,6 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
     if (onResetChat) {
       // 親コンポーネントから提供されたリセット関数を使用
       onResetChat();
-    } else {
-      // 親コンポーネントから関数が提供されていない場合、何もしない
-      // ここに追加のロジックを入れることも可能
-      console.log('チャット履歴のリセットが要求されましたが、onResetChat関数が提供されていません');
     }
   };
 
