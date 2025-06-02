@@ -15,6 +15,12 @@ export class GithubClient {
     const octokit = new Octokit({
       auth: token || undefined,
       baseUrl: apiDomain || undefined,
+      log: {
+        debug: () => {},
+        info: () => {},
+        warn: () => {},
+        error: () => {},
+      },
     });
     return new GithubClient(octokit);
   }
@@ -80,7 +86,12 @@ export class GithubClient {
   async fetchBlob(owner: string, repo: string, file_sha: string) {
     const blob = await this.octokit.git.getBlob({ owner, repo, file_sha });
     const base64 = blob.data.content.replace(/\n/g, '');
-    return atob(base64);
+    const decodedContent = atob(base64);
+    // 各行で200文字を超える場合はtruncateする
+    return decodedContent
+      .split('\n')
+      .map(line => line.slice(0, 200))
+      .join('\n');
   }
 }
 
