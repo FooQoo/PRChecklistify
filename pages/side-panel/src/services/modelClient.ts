@@ -92,7 +92,7 @@ For each changed file, create a checklist of specific items to review, focusing 
 
 ### Additional instructions for file analysis:
 
-* Max checklist items per file: 5
+* Max checklist items per file: 3
 
 * For **core logic files, UI components, specifications, and tests**, generate detailed checklist items with:
   * description: e.g. "Check that..." 
