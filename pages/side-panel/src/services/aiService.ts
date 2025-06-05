@@ -71,7 +71,6 @@ export const fetchers = {
         content: msg.message,
       })),
     ];
-    console.info('fileChatStream messages:', JSON.stringify(messages, null, 2));
 
     const client = await createModelClient();
     if (!client) throw new Error('Failed to create model client');

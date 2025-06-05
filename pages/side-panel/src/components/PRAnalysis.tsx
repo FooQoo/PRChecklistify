@@ -162,9 +162,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
           </div>
           <div className="detailed-checklists">
             {prData.files.map((file, index) => {
-              const aiGeneratedChecklist = analysisResult?.fileAnalysis?.find(
-                checklist => checklist.filename === file.filename,
-              );
               return (
                 <div key={index} className="mb-2">
                   <FileChecklist
@@ -180,8 +177,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                     open={chatModalOpen === file.filename}
                     onClose={() => setChatModalOpen(null)}
                     file={file}
-                    diff={file.patch || ''}
-                    aiAnalysis={aiGeneratedChecklist}
                     chatHistory={chatHistories[file.filename] || []}
                     onResetChat={() => {
                       setChatHistories(prev => ({
@@ -227,16 +222,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                         if (streamOpts?.onDone) streamOpts.onDone();
                       }
                     }}
-                    status={null}
                     allDiffs={Object.fromEntries(prData.files.map(f => [f.filename, f.patch || '']))}
-                    checklistItems={(() => {
-                      if (!aiGeneratedChecklist) return undefined;
-                      const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
-                      aiGeneratedChecklist.checklistItems.forEach((item, idx) => {
-                        items[item.id || `item_${idx}`] = item.status as 'PENDING' | 'OK' | 'NG';
-                      });
-                      return items;
-                    })()}
+                    analysisResult={analysisResult}
                     onChecklistChange={checklistItems => handleChecklistChange(file.filename, checklistItems)}
                   />
                 </div>

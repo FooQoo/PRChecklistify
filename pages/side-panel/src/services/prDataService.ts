@@ -174,33 +174,20 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       }),
     );
 
-    console.info('file:', JSON.stringify(filesWithDecodedContent, null, 2));
-
     // レビューデータを取得
-    let reviewAssignedAt = null;
     let copilotInstructions = undefined;
     let readme = undefined;
     try {
-      const { data: reviewsData } = await github.fetchPullRequestReviews(identifier);
-      if (reviewsData && reviewsData.length > 0) {
-        reviewAssignedAt = reviewsData[0].submitted_at;
-        console.log(`Review assigned at: ${reviewAssignedAt}`);
-      } else {
-        reviewAssignedAt = prData.created_at;
-        console.log(`No reviews found, using PR creation time: ${reviewAssignedAt}`);
-      }
       copilotInstructions = await github.fetchCopilotInstructionsFromMain(owner, repo);
       readme = await github.fetchReadmeContent(owner, repo);
     } catch (error) {
       console.warn('Failed to fetch PR reviews:', error);
-      reviewAssignedAt = prData.created_at;
     }
 
     // PRレビューコメント（pulls.listReviewComments）を取得
     let userComments: PRUserComment[] = [];
     try {
       const { data: reviewCommentsData } = await github.fetchPullRequestReviewComments(identifier);
-      console.info('Review comments data:', JSON.stringify(reviewCommentsData, null, 2));
 
       userComments = reviewCommentsData.map(comment => ({
         id: comment.id,

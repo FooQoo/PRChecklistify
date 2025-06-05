@@ -1,17 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import type { PRFile } from '../types';
+import type { PRFile, PRAnalysisResult } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface FileChatModalProps {
   open: boolean;
   onClose: () => void;
   file: PRFile;
-  diff?: string;
-  aiAnalysis?: {
-    filename: string;
-    explanation: string;
-    checklistItems: { id: string; description: string; status: string }[];
-  };
   chatHistory: { sender: string; message: string }[];
   onSendMessage: (
     msg: string,
@@ -19,11 +13,10 @@ interface FileChatModalProps {
     context?: { allDiffs?: Record<string, string> },
   ) => Promise<void>;
   onResetChat?: () => void;
-  status: null;
   // 他ファイルのdiff情報を渡す
   allDiffs?: Record<string, string>;
-  // チェックリスト状態と変更用コールバックを追加
-  checklistItems?: Record<string, 'PENDING' | 'OK' | 'NG'>;
+  // onChecklistChangeは残す
+  analysisResult?: PRAnalysisResult;
   onChecklistChange: (checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
 }
 
@@ -35,9 +28,8 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   onSendMessage,
   onResetChat,
   allDiffs,
-  aiAnalysis,
-  checklistItems,
   onChecklistChange,
+  analysisResult,
 }) => {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -49,6 +41,20 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   // チャットメッセージ終端への参照を追加
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // checklistItems, aiAnalysisの状態をローカルで管理
+  const aiAnalysis = analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
+  const [localChecklistItems, setLocalChecklistItems] = useState<Record<string, 'PENDING' | 'OK' | 'NG'>>({});
+
+  // aiAnalysisが変わったらローカル状態を初期化
+  useEffect(() => {
+    if (aiAnalysis) {
+      const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+      aiAnalysis.checklistItems.forEach((item, idx) => {
+        items[item.id || `item_${idx}`] = item.status as 'PENDING' | 'OK' | 'NG';
+      });
+      setLocalChecklistItems(items);
+    }
+  }, [aiAnalysis]);
 
   // チャットを一番下までスクロールする関数
   const scrollToBottom = () => {
@@ -247,7 +253,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     {aiAnalysis.checklistItems.map((item, idx) => {
                       // checklistItems propがあればそちらを使う
                       const key = `item_${idx}`;
-                      const status = (checklistItems && checklistItems[key]) || item.status;
+                      const status = (localChecklistItems && localChecklistItems[key]) || item.status;
                       let statusClass = '';
                       if (status === 'OK') statusClass = 'bg-green-500 text-white border-green-500';
                       else if (status === 'NG') statusClass = 'bg-red-500 text-white border-red-500';
@@ -266,18 +272,15 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                               } else {
                                 next = 'NG';
                               }
-
-                              const newChecklistItems = { ...checklistItems, [key]: next };
-
-                              console.info('Updated checklist items:', JSON.stringify(newChecklistItems));
+                              const newChecklistItems = { ...localChecklistItems, [key]: next };
+                              setLocalChecklistItems(newChecklistItems);
+                              onChecklistChange(newChecklistItems);
 
                               // すべてのチェックリストがOKの場合、完了モーダルを表示
                               const allChecked = Object.values(newChecklistItems).every(s => s === 'OK');
                               if (allChecked) {
                                 setShowCompleteModal(true);
                               }
-
-                              onChecklistChange(newChecklistItems);
                             }}>
                             {status}
                           </button>

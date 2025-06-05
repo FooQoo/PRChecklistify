@@ -72,8 +72,6 @@ class GeminiClient implements ModelClient {
         },
       });
 
-      console.info('Gemini response:', result.text);
-
       return result.text || '';
     } catch (error) {
       console.error('Error calling Gemini API:', error);
@@ -103,8 +101,6 @@ class GeminiClient implements ModelClient {
           chatHistory.push({ role: 'model', parts: [{ text: message.content }] });
         }
       }
-
-      console.info('Streaming Gemini chat completion with history:', messages);
 
       const response = await this.client.models.generateContentStream({
         model: this.model,
