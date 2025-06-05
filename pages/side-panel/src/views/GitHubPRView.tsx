@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom';
 
 const GitHubPRView = () => {
   const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
+  const prKey = getPrKey(owner, repo, prNumber);
   const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
     elementCount: 200,
     elementSize: 10,
@@ -25,7 +26,7 @@ const GitHubPRView = () => {
     currentApprovalPercentage,
     approvedFilesCount,
     isJustCompleted,
-  } = usePRData(getPrKey(owner, repo, prNumber));
+  } = usePRData(prKey);
 
   // 完了時の紙吹雪エフェクトとメッセージ表示
   useEffect(() => {
@@ -62,7 +63,7 @@ const GitHubPRView = () => {
   const { reviewTime } = { reviewTime: calculateReviewTime(prData) };
 
   return (
-    <div className="App bg-slate-50">
+    <div key={prKey} className="App bg-slate-50">
       {/* 紙吹雪アニメーションを表示するための要素 */}
       <span id="confettiReward" className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50" />
 
