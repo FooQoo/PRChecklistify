@@ -1,4 +1,4 @@
-import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier } from '../types';
+import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
 import { getGithubClient } from './github';
 
 type RecentPR = { title: string; key: string; timestamp: number };
@@ -196,6 +196,28 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       reviewAssignedAt = prData.created_at;
     }
 
+    // PRレビューコメント（pulls.listReviewComments）を取得
+    let userComments: PRUserComment[] = [];
+    try {
+      const { data: reviewCommentsData } = await github.fetchPullRequestReviewComments(identifier);
+      console.info('Review comments data:', JSON.stringify(reviewCommentsData, null, 2));
+
+      userComments = reviewCommentsData.map(comment => ({
+        id: comment.id,
+        user: {
+          login: comment.user?.login || '',
+          avatar_url: comment.user?.avatar_url || '',
+        },
+        path: comment.path || '',
+        body: comment.body || '',
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        url: comment.html_url,
+      }));
+    } catch (e) {
+      console.warn('Failed to fetch review comments:', e);
+    }
+
     return {
       id: prData.id,
       number: prData.number,
@@ -230,6 +252,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       review_comments: prData.review_comments,
       copilot_instructions: copilotInstructions,
       readme,
+      userComments, // ここでレビューコメントを格納
     };
   } catch (error) {
     console.error('Error fetching PR data:', error);

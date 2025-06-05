@@ -93,6 +93,33 @@ export class GithubClient {
       .map(line => line.slice(0, 200))
       .join('\n');
   }
+
+  /**
+   * PRのレビューコメント（pulls.listReviewComments）を取得
+   */
+  async fetchPullRequestReviewComments(identifier: PRIdentifier) {
+    const { owner, repo, prNumber } = identifier;
+    return this.octokit.pulls.listReviewComments({
+      owner,
+      repo,
+      pull_number: Number(prNumber),
+      per_page: 100,
+    });
+  }
+
+  /**
+   * PRのユーザコメント（issue comments）を取得
+   * （旧：pulls.listReviewComments推奨）
+   */
+  // async fetchPullRequestUserComments(identifier: PRIdentifier) {
+  //   const { owner, repo, prNumber } = identifier;
+  //   return this.octokit.issues.listComments({
+  //     owner,
+  //     repo,
+  //     issue_number: Number(prNumber),
+  //     per_page: 100,
+  //   });
+  // }
 }
 
 let githubClientSingleton: GithubClient | null = null;

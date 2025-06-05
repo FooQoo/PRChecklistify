@@ -44,6 +44,15 @@ export const fetchers = {
     const fileInfo = `\nfilename: ${file.filename}\ndiff:\n${file.patch || ''}\nfull code:\n${file.decodedContent || ''}`;
     const copilotInstructions = `\n--- Repository Information ---\n${prData.copilot_instructions || ''}`;
     const readme = `\n--- README Content ---\n${prData.readme || ''}`;
+    // --- 追加: PRレビューコメントを整形して追記 ---
+    let commentsText = '';
+    if (prData.userComments && prData.userComments.length > 0) {
+      commentsText =
+        '\n--- Review Comments (for reviewer context) ---\n' +
+        prData.userComments
+          .map(c => `- [${c.user.login} at ${c.created_at}]: ${c.body.replace(/\n/g, ' ')} (file: ${c.path})`)
+          .join('\n');
+    }
     let allDiffsInfo = '';
     if (allDiffs) {
       allDiffsInfo =
@@ -55,13 +64,15 @@ export const fetchers = {
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       {
         role: 'system',
-        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}${readme}`,
+        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}${readme}${commentsText}`,
       },
       ...chatHistory.map((msg): { role: 'user' | 'assistant'; content: string } => ({
         role: msg.sender === 'You' ? 'user' : 'assistant',
         content: msg.message,
       })),
     ];
+    console.info('fileChatStream messages:', JSON.stringify(messages, null, 2));
+
     const client = await createModelClient();
     if (!client) throw new Error('Failed to create model client');
     await client.streamChatCompletion(messages, onToken, options);
@@ -92,11 +103,19 @@ export const fetchers = {
       const client = await createModelClient();
       if (!client) throw new Error('Failed to create model client');
       const diff = prData.files.map(file => file.patch || '').join('\n\n');
+      // --- 追加: PRレビューコメントを整形して追記 ---
+      let commentsText = '';
+      if (prData.userComments && prData.userComments.length > 0) {
+        commentsText =
+          '\n--- Review Comments (for reviewer context) ---\n' +
+          prData.userComments
+            .map(c => `- [${c.user.login} at ${c.created_at}]: ${c.body.replace(/\n/g, ' ')}`)
+            .join('\n');
+      }
       const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
         {
           role: 'system',
-          content: `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${getLanguageLabel(_language)}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\n
-          PR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nRepository README: ${prData.readme || ''}\nRepository information: ${prData.copilot_instructions || ''}`,
+          content: `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${getLanguageLabel(_language)}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\nPR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nRepository README: ${prData.readme || ''}\nRepository information: ${prData.copilot_instructions || ''}${commentsText}`,
         },
         {
           role: 'user',

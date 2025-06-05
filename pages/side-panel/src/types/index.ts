@@ -42,6 +42,23 @@ export interface PRData {
   review_comments: number;
   copilot_instructions?: string;
   readme?: string;
+  userComments?: PRUserComment[]; // ユーザコメント情報を追加
+}
+
+/**
+ * PRに紐づくユーザコメント情報
+ */
+export interface PRUserComment {
+  id: number;
+  user: {
+    login: string;
+    avatar_url: string;
+  };
+  path: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+  url: string;
 }
 
 // リポジトリの所有者、名前、PR番号の情報
