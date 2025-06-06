@@ -111,14 +111,15 @@ export const fetchers = {
             .map(c => `- [${c.user.login} at ${c.created_at}]: ${c.body.replace(/\n/g, ' ')}`)
             .join('\n');
       }
+      const mergeStatus = prData.merged_at ? 'merged' : prData.closed_at ? 'closed' : 'open';
       const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
         {
           role: 'system',
-          content: `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${getLanguageLabel(_language)}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\nPR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nRepository README: ${prData.readme || ''}\nRepository information: ${prData.copilot_instructions || ''}${commentsText}`,
+          content: `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${getLanguageLabel(_language)}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\nPR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nRepository README: ${prData.readme || ''}\nRepository information: ${prData.copilot_instructions || ''}\nPR Merge Status: ${mergeStatus}${commentsText}`,
         },
         {
           role: 'user',
-          content: `Summarize the content of this pull request concisely from the following four perspectives: Background, Problem, Solution, and Implementation.`,
+          content: `Summarize the content of this pull request concisely from the following five perspectives: Background, Problem, Solution, Implementation, and Review Comments.\n\nFor the 'Review Comments' section, output a "Review Highlight Timeline".\n- Instead of listing every event, summarize the review activity for each day.\n- For each day, provide a brief summary of the main review points, status changes, and any important feedback.\n- Clearly indicate the current review status (e.g., "in review", "changes requested", "approved", etc.).\n- If possible, infer the overall review progress and any blockers.\n- Output should be easy to read as a daily timeline for the team to quickly grasp the review situation.`,
         },
       ];
       await client.streamChatCompletion(messages, onToken, options);
