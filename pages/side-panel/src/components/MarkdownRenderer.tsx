@@ -20,33 +20,33 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         components={{
           // 見出し要素のカスタマイズ
           h1: ({ children, ...props }) => (
-            <h1 className="text-2xl font-bold mb-4 mt-6" {...props}>
+            <h1 className="text-2xl font-bold" {...props}>
               {children}
             </h1>
           ),
           h2: ({ children, ...props }) => (
-            <h2 className="text-xl font-bold mb-3 mt-5" {...props}>
+            <h2 className="text-xl font-bold" {...props}>
               {children}
             </h2>
           ),
           h3: ({ children, ...props }) => (
-            <h3 className="text-lg font-bold mb-2 mt-4" {...props}>
+            <h3 className="text-lg font-bold" {...props}>
               {children}
             </h3>
           ),
           h4: ({ children, ...props }) => (
-            <h4 className="text-base font-bold mb-2 mt-3" {...props}>
+            <h4 className="text-base font-bold" {...props}>
               {children}
             </h4>
           ),
 
           // リスト要素のカスタマイズ
-          ul: ({ ...props }) => <ul className="list-disc pl-5 mb-4" {...props} />,
-          ol: ({ ...props }) => <ol className="list-decimal pl-5 mb-4" {...props} />,
-          li: ({ ...props }) => <li className="mb-1" {...props} />,
+          ul: ({ ...props }) => <ul className="list-disc pl-5" {...props} />,
+          ol: ({ ...props }) => <ol className="list-decimal pl-5" {...props} />,
+          li: ({ ...props }) => <li {...props} />,
 
           // その他の要素のカスタマイズ
-          p: ({ ...props }) => <p className="mb-4" {...props} />,
+          p: ({ ...props }) => <p {...props} />,
           a: ({ children, ...props }) => (
             <a className="text-blue-600 hover:underline" {...props}>
               {children}
