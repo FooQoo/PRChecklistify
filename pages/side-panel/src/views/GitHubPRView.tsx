@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePRData } from '../hooks/usePRData';
 import { calculateReviewTime, getPrKey } from '../utils/prUtils';
 import PRAnalysis from '../components/PRAnalysis';
@@ -14,6 +14,9 @@ const GitHubPRView = () => {
     spread: 160,
   });
 
+  // PRキーの変更を検知するためのref
+  const prevPrKeyRef = useRef<string | undefined>(undefined);
+
   // 統合された状態管理フックを使用
   const {
     prData,
@@ -27,6 +30,16 @@ const GitHubPRView = () => {
     approvedFilesCount,
     isJustCompleted,
   } = usePRData(prKey);
+
+  // PRキーが変わったときにローディング状態をリセット
+  useEffect(() => {
+    if (prevPrKeyRef.current !== prKey) {
+      // ここでローディング状態をリセットするためにリフレッシュを強制実行
+      refreshData();
+      prevPrKeyRef.current = prKey;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prKey]);
 
   // 完了時の紙吹雪エフェクトとメッセージ表示
   useEffect(() => {
