@@ -17,6 +17,7 @@ PR Checklistifyは、Pull Requestのレビューを効率化するためのChrom
 - [開発方法](#開発方法)
 - [ディレクトリ構成](#ディレクトリ構成)
 - [ライセンス](#ライセンス)
+- [クレジット](#クレジット)
 
 ## 特徴
 
@@ -49,3 +50,9 @@ PR Checklistifyは、Pull Requestのレビューを効率化するためのChrom
 - `chrome-extension/` ... 拡張機能本体
 - `pages/` ... 各種ページ（side-panel）
 - `packages/` ... 共有ライブラリ・ユーティリティ
+
+## クレジット
+
+本プロジェクトは以下のテンプレートを利用しています：
+
+- [chrome-extension-boilerplate-react-vite](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite)
