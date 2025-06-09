@@ -2,35 +2,35 @@
 
 ## Overview
 
-This folder, named `utils`, contains utility functions used within the side panel component. These functions primarily focus on processing and calculating data related to pull requests (PRs), such as approval status and review time. They abstract complex logic, making the main component code cleaner and easier to maintain.
+This folder, named `utils`, contains utility functions used within the side panel component. These functions primarily focus on processing and calculating data related to pull requests (PRs), such as approval status, estimated review time, and general PR information. They abstract complex logic, making the main component code cleaner, more readable, and easier to maintain.
 
 - **Folder Name:** `utils`
-- **Purpose:** Provides utility functions for calculating and processing PR-related data in the side panel.
+- **Purpose:** Provides utility functions for calculating, processing, and extracting PR-related data in the side panel.
 
 ## Naming Conventions
 
--   Function names should clearly describe their purpose (e.g., `calculateReviewTime`, `getApprovedFiles`).
+-   Function names should clearly describe their purpose (e.g., `calculateReviewTime`, `getApprovedFiles`, `extractPRInfoFromKey`).
 -   Variable names should be descriptive and concise.
--   Filenames should relate to the general functionality of the functions they contain (e.g., `prApprovalUtils.ts` for PR approval-related utilities).
+-   Filenames should relate to the general functionality of the functions they contain (e.g., `prApprovalUtils.ts` for PR approval-related utilities, `reviewTimeUtils.ts` for review time calculation).
 
 ## Design Policy
 
 -   Functions should be designed to be reusable and testable.
 -   Avoid side effects where possible. Functions should ideally be pure, meaning they return the same output for the same input and don't modify external state.
 -   Type annotations should be used extensively for improved code clarity and maintainability.
--   Error handling should be implemented gracefully, preventing the application from crashing due to unexpected data.
+-   Error handling should be implemented gracefully, preventing the application from crashing due to unexpected data or invalid inputs. Consider returning `null` or throwing an error when appropriate.
 
 ## Technologies and Libraries Used
 
--   TypeScript: For type safety and improved code organization.
+-   TypeScript: For type safety, improved code organization, and enhanced maintainability.
 
 ## File Roles
 
-| File Name         | Role                                                                                                        | Logic and Functions                                                                                                                                                              | Names of other files used |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| `prApprovalUtils.ts` | Provides utility functions for determining PR approval status.                                             | - `getApprovedFiles`: Filters PR files to find those that have passed all checklist items in `analysisResult`.  Returns the number of approved files.<br>- `getApprovalPercentage`: Calculates the percentage of approved files in a PR. | `../types`                |
-| `prUtils.ts`        | Contains general utility functions related to PR data and information extraction.                                | - `calculateReviewTime`: Calculates the review time of a PR in hours, considering the creation and merge time.<br>- `isGitHubPRPage`: Checks if a given URL is a GitHub PR page.<br>- `extractPRInfoFromKey`: Extracts the owner, repo, and PR number from a key string.<br>- `getPrKey`: Constructs a PR key string from the owner, repo, and PR number. | `../types`                |
-| `reviewTimeUtils.ts`| Provides utility functions for estimating PR review time based on file size and number of changes. | - `calculateReviewTime`: Calculates an estimated review time in minutes based on the number of files and changes in a PR. The logic uses different thresholds for small, medium and large PRs. | `../types`                |
+| File Name              | Role                                                                                                                             | Logic and Functions                                                                                                                                                                                                                                                                                                                                                                                                          | Names of other files used |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `prApprovalUtils.ts`   | Provides utility functions for determining PR approval status and calculating the approval percentage.                                | - `getApprovedFiles`: Filters PR files to find those that have passed all checklist items in `analysisResult`. Returns the number of approved files.<br>- `getApprovalPercentage`: Calculates the percentage of approved files in a PR.  Returns `null` if `prData` is null or `prData.files` is empty to handle cases where there are no files to analyze.                                                                                                                                            | `../types`                |
+| `prUtils.ts`           | Contains general utility functions related to PR data and information extraction, including review time calculation and URL validation.  | - `calculateReviewTime`: Calculates the review time of a PR in hours, considering the creation and merge time. Returns 0 if `prData.created_at` is null.<br>- `isGitHubPRPage`: Checks if a given URL is a GitHub PR page using a regular expression to match the URL pattern.  <br>- `extractPRInfoFromKey`: Extracts the owner, repo, and PR number from a key string (e.g., "owner/repo/123"). Returns `null` if the key doesn't match the expected format.<br>- `getPrKey`: Constructs a PR key string from the owner, repo, and PR number. Throws an error if any of the inputs are undefined. | `../types`                |
+| `reviewTimeUtils.ts` | Provides utility functions for estimating PR review time based on file size and number of changes.                             | - `calculateReviewTime`: Calculates an estimated review time in minutes based on the number of files and changes in a PR. The logic uses different thresholds for small, medium and large PRs. Returns an object with a `minutes` property representing the estimated review time. The function uses `Math.max` to ensure a minimum review time for each category.                                                                                                          | `../types`                |
 
 ## Code Style and Examples
 
@@ -47,7 +47,7 @@ This folder, named `utils`, contains utility functions used within the side pane
       }).length;
     };
     ```
-    This example shows how to filter files based on checklist item status. It utilizes optional chaining (`?.`) to safely access nested properties and the `every` method to ensure all checklist items are `OK`.
+    This example shows how to filter files based on checklist item status. It utilizes optional chaining (`?.`) to safely access nested properties and the `every` method to ensure all checklist items are `OK`. It also demonstrates handling null or undefined inputs by returning 0.
 
 -   **`prUtils.ts`**
     ```typescript
@@ -120,13 +120,18 @@ export const functionName = (parameterName: SomeType): ReturnType => {
 
 -   **Type Safety:** Utilize TypeScript's type system to catch errors early and improve code reliability.
 -   **Immutability:** Avoid modifying input data directly. Create copies when necessary to maintain data integrity.
--   **Error Handling:** Handle potential errors gracefully, using `try...catch` blocks or conditional checks where appropriate.
+-   **Error Handling:** Handle potential errors gracefully, using `try...catch` blocks or conditional checks where appropriate. Consider returning `null` or throwing errors when necessary to signal invalid states.
 -   **Code Comments:** Write clear and concise comments to explain complex logic or non-obvious behavior.
--   **Testing:** Write unit tests for all utility functions to ensure they function correctly.
+-   **Testing:** Write unit tests for all utility functions to ensure they function correctly and cover edge cases.
+-   **Single Responsibility Principle:** Each function should have a single, well-defined purpose.
+-   **Keep functions short and focused:** Break down complex tasks into smaller, more manageable functions.
+-   **Avoid deeply nested logic:** Simplify complex conditional statements to improve readability.
 
 ## Notes for Developers
 
 -   When adding new utility functions, consider their reusability and place them in the appropriate file.
 -   Ensure that all functions are well-documented and follow the established coding conventions.
 -   When modifying existing functions, be mindful of potential side effects and ensure that the changes don't break existing functionality.
--   Keep functions focused and avoid writing overly complex or long functions. Break down complex tasks into smaller, more manageable functions.
+-   Prioritize code readability and maintainability.
+-   When handling edge cases or potential errors, choose the most appropriate approach (e.g., returning `null`, throwing an error, or providing a default value).
+-   Be consistent with the existing coding style and conventions.

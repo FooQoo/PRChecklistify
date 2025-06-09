@@ -2,7 +2,7 @@
 
 ## Overview
 
-This folder, named `routes`, is responsible for defining and managing the application's navigation structure and routing logic. It uses `react-router-dom` to create a memory router that renders different views based on the URL. This allows the side panel application to navigate between different sections, such as the default view, settings, GitHub PR view, and token setup views.
+This folder, named `routes`, is responsible for defining and managing the application's navigation structure and routing logic. It uses `react-router-dom` to create a memory router that renders different views based on the URL. This allows the side panel application to navigate between different sections, such as the default view, settings, GitHub PR view, GitHub token setup view, and OpenAI token setup view.
 
 - **Folder Name:** routes
 - **Purpose:** Defines and manages the application's routing and navigation.
@@ -31,13 +31,13 @@ This folder, named `routes`, is responsible for defining and managing the applic
 
 | File Name      | Role                                  | Logic and Functions                                                                                                                                                                                                                               | Names of other files used                                                                          |
 | -------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| AppRoutes.tsx  | Defines the application's routes and provides the router. | - Defines an array of route objects, each mapping a URL path to a specific React component (view).<br>- Uses `createMemoryRouter` to create a router instance based on these routes.<br>- Renders the `RouterProvider` to enable routing.   | `DefaultView`, `GitHubPRView`, `SettingsView`, `GithubTokenSetupView`, `OpenAiTokenSetupView`, `Layout`, `NavigationProvider` |
+| AppRoutes.tsx  | Defines the application's routes and provides the router. | - Defines an array of route objects, each mapping a URL path to a specific React component (view).<br>- Uses `createMemoryRouter` to create a router instance based on these routes.<br>- Renders the `RouterProvider` to enable routing, wrapped with necessary context providers.   | `DefaultView`, `GitHubPRView`, `SettingsView`, `GithubTokenSetupView`, `OpenAiTokenSetupView`, `Layout`, `NavigationProvider` |
 
 ## Code Style and Examples
 
 ### Defining Routes
 
-Routes are defined as an array of objects, where each object specifies the `path` and the corresponding `element` (React component) to render.
+Routes are defined as an array of objects, where each object specifies the `path` and the corresponding `element` (React component) to render.  Child routes are used for nested layouts.
 
 ```typescript
 export const routes = [

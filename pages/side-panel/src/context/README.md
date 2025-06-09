@@ -2,7 +2,7 @@
 
 ## Overview
 
-This folder, named `context`, is responsible for managing the global state and navigation logic of the side panel application. It provides a centralized way to access and modify application state, as well as navigate between different views.
+This folder, named `context`, is responsible for managing the global state and navigation logic of the side panel application. It provides a centralized way to access and modify application state, as well as navigate between different views. It utilizes React Context and Jotai for efficient state management.
 
 - **Folder Name:** `context`
 - **Purpose:** Manages global state and navigation logic for the side panel application.
@@ -21,7 +21,7 @@ This folder, named `context`, is responsible for managing the global state and n
 -   Navigation logic should be centralized within the context to ensure consistency and maintainability.
 -   Context providers should wrap the parts of the application that need access to the context.
 -   Custom hooks should be used to simplify access to context values.
--   Avoid storing large amounts of data in the context to prevent performance issues.
+-   Avoid storing large amounts of data in the context to prevent performance issues.  Use Jotai atoms for larger or more frequently updated state.
 -   Keep context logic lean and focused on state management and navigation.
 -   Side effects within the context should be handled carefully to avoid unexpected behavior.
 
@@ -29,14 +29,14 @@ This folder, named `context`, is responsible for managing the global state and n
 
 -   **React:**  For building the UI and using context API.
 -   **`createContext` and `useContext` (from React):** For creating and consuming the navigation context.
--   **`useEffect` (from React):** For performing side effects, such as navigating based on state changes.
+-   **`useEffect` (from React):** For performing side effects, such as navigating based on state changes and managing token checks.
 -   **`jotai`:** For managing global state using atoms.
--   **`@src/atoms/generatingAtom`:** For tracking the generating status.
--   **`@src/atoms/currentPageAtom`:** For tracking the current page URL.
+-   **`@src/atoms/generatingAtom`:** For tracking the generating status, preventing navigation during generation.
+-   **`@src/atoms/currentPageAtom`:** For tracking the current page URL and triggering navigation when it changes.
 -   **`@src/hooks/useGithubTokenAtom`:** Custom hook for accessing and managing the GitHub token.
 -   **`@src/hooks/useOpenaiKeyAtom`:** Custom hook for accessing and managing the OpenAI API key.
 -   **`@src/hooks/useGeminiKeyAtom`:** Custom hook for accessing and managing the Gemini API key.
--   **`@src/routes/AppRoutes`:** For handling navigation within the application.
+-   **`@src/routes/AppRoutes`:** For handling navigation within the application, specifically using the `router.navigate` function.
 
 ## File Roles
 
@@ -49,8 +49,8 @@ This folder, named `context`, is responsible for managing the global state and n
 |                           |                                                                 | - `navigateToGithubTokenSetup`: Navigates to the GitHub token setup page.\
 |                           |                                                                 | - `navigateToOpenAiTokenSetup`: Navigates to the OpenAI token setup page.\
 |                           |                                                                 | - `extractPRInfo`: Extracts the owner, repository, and PR number from a PR URL. \
-|                           |                                                                 | - `useEffect`: Monitors changes to `currentPage` and navigates to the PR page if necessary. \
-|                           |                                                                 | - `useEffect`: Monitors changes to token and navigates to setting page if no token.                                                                                               | `AppRoutes.ts`, `generatingAtom`, `currentPageAtom`, `useGithubTokenAtom`, `useOpenaiKeyAtom`, `useGeminiKeyAtom` |
+|                           |                                                                 | - `useEffect`: Monitors changes to `currentPage` and navigates to the PR page if necessary. It avoids navigation if `generating` is true.\
+|                           |                                                                 | - `useEffect`: Monitors token status and navigates to token setup pages on the first mount if tokens are missing. Prevents redundant navigations.                                                                                               | `AppRoutes.ts`, `generatingAtom`, `currentPageAtom`, `useGithubTokenAtom`, `useOpenaiKeyAtom`, `useGeminiKeyAtom` |
 
 ## Code Style and Examples
 
@@ -210,7 +210,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   // --- 追加: トークンセットアップ画面へのナビゲーション ---
   const navigateToGithubTokenSetup = () => {
     router.navigate('/github-token-setup');
-    router.navigate('/github-token-setup');
   };
 
   const navigateToOpenAiTokenSetup = () => {
@@ -240,7 +239,7 @@ export const useNavigation = (): NavigationContextType => {
 };
 ```
 
-This file creates and exports a React Context named `NavigationContext`.  It provides functions to navigate the application to different routes.  It also handles initial navigation to token setup pages if tokens are missing on the first mount.
+This file creates and exports a React Context named `NavigationContext`.  It provides functions to navigate the application to different routes.  It also handles initial navigation to token setup pages if tokens are missing on the first mount. It avoids redundant navigations to the same pages.
 
 ## Coding Rules Based on the Above
 
@@ -253,6 +252,7 @@ This file creates and exports a React Context named `NavigationContext`.  It pro
 -   Handle side effects carefully within the context, using `useEffect` appropriately.
 -   When extracting information from URLs, use a dedicated function like `extractPRInfo` to encapsulate the logic.
 -   Avoid redundant navigations (e.g., navigating to the same page twice in a row).
+-   When using `useEffect` for token checks, use a `firstMount` atom to ensure the navigation to token setup only happens on initial load.
 
 ## Notes for Developers
 
@@ -262,3 +262,4 @@ This file creates and exports a React Context named `NavigationContext`.  It pro
 -   Consider adding unit tests to verify the behavior of the navigation functions and context provider.
 -   If performance becomes an issue, investigate ways to optimize the context usage and reduce unnecessary re-renders.
 -   When adding new atoms, ensure that they are properly documented and used consistently throughout the application.
+-   Ensure that token checks only occur once during the application's initial load to avoid unnecessary redirects.

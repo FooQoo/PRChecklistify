@@ -111,6 +111,7 @@ export const myAtom = atom<MyAtomValue | null>(null);
 *   **Define types:** Always define the type of data an atom holds. This helps prevent errors.
 *   **Minimize dependencies:** Atoms should be as independent as possible.
 *   **Use `useAtom` hook to read and write atom values.**
+*   **Use explicit types** Always define explicit types for atom values to ensure type safety and prevent unexpected behavior.
 
 ## Notes for Developers
 
