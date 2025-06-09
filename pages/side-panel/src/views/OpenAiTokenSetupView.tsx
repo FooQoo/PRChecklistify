@@ -1,8 +1,9 @@
 import { useNavigation } from '../context/NavigationContext';
 import { t } from '@extension/i18n';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
+import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 
 const PROVIDERS = [
   {
@@ -31,12 +32,25 @@ const OpenAiTokenSetupView: React.FC = () => {
   const { navigateToHome } = useNavigation();
   const { openaiKey, setKeyAndStorage } = useOpenaiKeyAtom();
   const { geminiKey, setKeyAndStorage: setGeminiKeyAndStorage } = useGeminiKeyAtom();
-  const [provider, setProvider] = useState('openai');
+  const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
+  const [provider, setProvider] = useState(modelClientType);
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const currentProvider = PROVIDERS.find(p => p.id === provider)!;
+
+  // プロバイダー初期値をストレージから取得
+  useEffect(() => {
+    setProvider(modelClientType);
+  }, [modelClientType]);
+
+  // プロバイダー選択時にストレージへ保存
+  const handleProviderChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newProvider = e.target.value as typeof modelClientType;
+    setProvider(newProvider);
+    await setTypeAndStorage(newProvider);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +92,7 @@ const OpenAiTokenSetupView: React.FC = () => {
           <select
             id="provider"
             value={provider}
-            onChange={e => setProvider(e.target.value)}
+            onChange={handleProviderChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
             {PROVIDERS.map(p => (
               <option key={p.id} value={p.id}>
