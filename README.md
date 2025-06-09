@@ -45,6 +45,15 @@ PR Checklistifyは、Pull Requestのレビューを効率化するためのChrom
 - モノレポ構成（Turborepo）
 - React, TypeScript, Vite, Tailwind CSS, ESLint, Prettier などを利用
 
+### .envファイルの作成
+
+以下のコマンドで`.env`ファイルを作成してください（side-panel用）:
+
+```sh
+echo 'VITE_OPENAI_API_ENDPOINT=https://api.openai.com/v1' > pages/side-panel/.env
+echo 'VITE_GITHUB_API_DOMAIN=https://api.github.com' >> pages/side-panel/.env
+```
+
 ## ディレクトリ構成
 
 - `chrome-extension/` ... 拡張機能本体

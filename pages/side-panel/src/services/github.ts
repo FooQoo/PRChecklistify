@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import { githubTokenStorage, githubApiDomainStorage } from '@extension/storage';
+import { githubTokenStorage } from '@extension/storage';
 import type { PRIdentifier } from '../types';
 
 export class GithubClient {
@@ -11,10 +11,9 @@ export class GithubClient {
 
   static async create() {
     const token = await githubTokenStorage.get();
-    const apiDomain = (await githubApiDomainStorage.get()) || '';
     const octokit = new Octokit({
       auth: token || undefined,
-      baseUrl: apiDomain || undefined,
+      baseUrl: import.meta.env.VITE_GITHUB_API_DOMAIN,
       log: {
         debug: () => {},
         info: () => {},
@@ -106,20 +105,6 @@ export class GithubClient {
       per_page: 100,
     });
   }
-
-  /**
-   * PRのユーザコメント（issue comments）を取得
-   * （旧：pulls.listReviewComments推奨）
-   */
-  // async fetchPullRequestUserComments(identifier: PRIdentifier) {
-  //   const { owner, repo, prNumber } = identifier;
-  //   return this.octokit.issues.listComments({
-  //     owner,
-  //     repo,
-  //     issue_number: Number(prNumber),
-  //     per_page: 100,
-  //   });
-  // }
 }
 
 let githubClientSingleton: GithubClient | null = null;

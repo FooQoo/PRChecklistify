@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { githubApiDomainStorage, githubTokenStorage } from '@extension/storage';
+import { useState } from 'react';
+import { githubTokenStorage } from '@extension/storage';
 import { useNavigation } from '@src/context/NavigationContext';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 
@@ -9,24 +9,7 @@ const GithubTokenSetupView: React.FC = () => {
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [, setApiDomain] = useState('');
   const { openaiKey } = useOpenaiKeyAtom();
-
-  // Load API domain from storage on mount
-  useEffect(() => {
-    const loadApiDomain = async () => {
-      try {
-        const domain = await githubApiDomainStorage.get();
-        if (domain) {
-          setApiDomain(domain);
-        }
-      } catch (err) {
-        console.error('Error loading API domain:', err);
-      }
-    };
-
-    loadApiDomain();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

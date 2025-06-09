@@ -3,7 +3,6 @@ import type { PRData, PRFile, Checklist } from '@src/types';
 import { OpenAI } from 'openai';
 import type { ModelClient } from './modelClient';
 import type { Language } from '@extension/storage';
-import { getLanguageLabel } from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
 
 export interface OpenAIConfig {
@@ -198,13 +197,10 @@ export const createOpenAIClient = async (): Promise<OpenAIClient> => {
     throw new Error('Failed to retrieve OpenAI API key');
   }
 
-  // APIエンドポイントを取得
-  const apiEndpoint = await openaiApiEndpointStorage.get();
-
   return new OpenAIClient({
     apiKey,
     model: 'gpt-4o',
-    apiEndpoint: apiEndpoint || '',
+    apiEndpoint: import.meta.env.VITE_OPENAI_API_ENDPOINT,
   });
 };
 
