@@ -5,13 +5,14 @@ import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
 import GeminiKeySettings from '../components/GeminiKeySettings';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import type { Language } from '@extension/storage';
-import { languagePreferenceStorage } from '@extension/storage';
+import { defaultLanguage, languagePreferenceStorage } from '@extension/storage';
 import { t } from '@extension/i18n';
 import Toast from '../components/Toast';
+import { isGeminiApiEnabled } from '../utils/envUtils';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
-  const [language, setLanguage] = useState('en' as Language);
+  const [language, setLanguage] = useState(defaultLanguage);
   const [, setOpenaiApiEndpoint] = useState('');
   const [, setHasCustomOpenaiEndpoint] = useState(false);
   const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
@@ -26,6 +27,8 @@ const SettingsView: React.FC = () => {
   });
   // modelClientTypeのJotai hooksを利用
   const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
+  // Geminiエンドポイント有効判定
+  const geminiEnabled = isGeminiApiEnabled();
 
   // Load settings on mount
   useEffect(() => {
@@ -145,7 +148,7 @@ const SettingsView: React.FC = () => {
             onChange={handleModelClientTypeChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="openai">OpenAI</option>
-            <option value="gemini">Gemini</option>
+            {geminiEnabled && <option value="gemini">Gemini</option>}
           </select>
           {modelClientType === 'openai' && (
             <>
@@ -153,7 +156,7 @@ const SettingsView: React.FC = () => {
               <OpenAIKeySettings onToast={showToast} />
             </>
           )}
-          {modelClientType === 'gemini' && (
+          {modelClientType === 'gemini' && geminiEnabled && (
             <>
               <h2 className="text-lg font-semibold mb-4">Gemini Integration</h2>
               <GeminiKeySettings onToast={showToast} />

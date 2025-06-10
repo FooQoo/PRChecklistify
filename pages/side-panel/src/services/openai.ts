@@ -2,7 +2,7 @@
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { OpenAI } from 'openai';
 import type { ModelClient } from './modelClient';
-import { geminiApiKeyStorage, type Language } from '@extension/storage';
+import { geminiApiKeyStorage, openaiApiKeyStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
 
 export interface OpenAIConfig {
@@ -96,99 +96,6 @@ class OpenAIClient implements ModelClient {
     }
   }
 }
-
-// Storage for OpenAI API key
-export const openaiApiKeyStorage = {
-  get: async (): Promise<string | null> => {
-    try {
-      const result = await chrome.storage.local.get('openaiApiKey');
-      return result.openaiApiKey || null;
-    } catch (error) {
-      console.error('Error getting OpenAI API key:', error);
-      return null;
-    }
-  },
-
-  set: async (apiKey: string): Promise<void> => {
-    try {
-      await chrome.storage.local.set({ openaiApiKey: apiKey });
-    } catch (error) {
-      console.error('Error setting OpenAI API key:', error);
-      throw error;
-    }
-  },
-
-  clear: async (): Promise<void> => {
-    try {
-      await chrome.storage.local.remove('openaiApiKey');
-    } catch (error) {
-      console.error('Error clearing OpenAI API key:', error);
-      throw error;
-    }
-  },
-};
-
-// Storage for language preference
-export const languagePreferenceStorage = {
-  get: async (): Promise<string | null> => {
-    try {
-      const result = await chrome.storage.local.get('languagePreference');
-      return result.languagePreference || null;
-    } catch (error) {
-      console.error('Error getting language preference:', error);
-      return null;
-    }
-  },
-
-  set: async (language: string): Promise<void> => {
-    try {
-      await chrome.storage.local.set({ languagePreference: language });
-    } catch (error) {
-      console.error('Error setting language preference:', error);
-      throw error;
-    }
-  },
-
-  clear: async (): Promise<void> => {
-    try {
-      await chrome.storage.local.remove('languagePreference');
-    } catch (error) {
-      console.error('Error clearing language preference:', error);
-      throw error;
-    }
-  },
-};
-
-// Storage for OpenAI API endpoint
-export const openaiApiEndpointStorage = {
-  get: async (): Promise<string | null> => {
-    try {
-      const result = await chrome.storage.local.get('openaiApiEndpoint');
-      return result.openaiApiEndpoint || null;
-    } catch (error) {
-      console.error('Error getting OpenAI API endpoint:', error);
-      return null;
-    }
-  },
-
-  set: async (endpoint: string): Promise<void> => {
-    try {
-      await chrome.storage.local.set({ openaiApiEndpoint: endpoint });
-    } catch (error) {
-      console.error('Error setting OpenAI API endpoint:', error);
-      throw error;
-    }
-  },
-
-  clear: async (): Promise<void> => {
-    try {
-      await chrome.storage.local.remove('openaiApiEndpoint');
-    } catch (error) {
-      console.error('Error clearing OpenAI API endpoint:', error);
-      throw error;
-    }
-  },
-};
 
 // Create and export OpenAI client instance
 export const createOpenAIClient = async (): Promise<OpenAIClient> => {

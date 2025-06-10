@@ -55,6 +55,13 @@ echo 'VITE_GEMINI_API_ENDPOINT=https://generativelanguage.googleapis.com/v1beta/
 echo 'VITE_GITHUB_API_DOMAIN=https://api.github.com' >> pages/side-panel/.env
 ```
 
+### OpenAI Compatibility
+OpenAI API互換性のため、以下の環境変数を設定可能です。
+
+```sh
+echo 'VITE_OPENAI_API_ENDPOINT=https://example.com' >> pages/side-panel/.env
+```
+
 ## ディレクトリ構成
 
 - `chrome-extension/` ... 拡張機能本体

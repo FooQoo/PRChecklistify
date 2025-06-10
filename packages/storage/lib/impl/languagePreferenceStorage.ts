@@ -4,6 +4,8 @@ import { createStorage, StorageEnum } from '../base/index.js';
 // Define the supported languages
 export type Language = 'en' | 'ja' | 'ko' | 'zh';
 
+export const defaultLanguage: Language = 'ja';
+
 export const getLanguageLabel = (lang: Language): string => {
   switch (lang) {
     case 'en':
@@ -42,7 +44,7 @@ type LanguagePreferenceStorage = BaseStorage<Language> & {
 };
 
 // Create the base storage with 'en' as the default value
-const storage = createStorage<Language>('language-preference', 'en', {
+const storage = createStorage<Language>('language-preference', defaultLanguage, {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
 });

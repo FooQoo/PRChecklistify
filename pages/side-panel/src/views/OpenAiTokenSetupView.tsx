@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
+import { isGeminiApiEnabled } from '../utils/envUtils';
 
 const PROVIDERS = [
   {
@@ -12,20 +13,11 @@ const PROVIDERS = [
     placeholder: 'sk-...',
     link: 'https://platform.openai.com/account/api-keys',
     linkText: 'Get your OpenAI API key →',
-    validate: (key: string) => key.trim().startsWith('sk-'),
+    validate: (key: string) => key.trim().length > 0,
     invalidMsg: t('invalidApiKeyFormat'),
     desc: 'To use PR Checklistify, you need to provide your OpenAI API key.',
   },
-  {
-    id: 'gemini',
-    name: 'Gemini',
-    placeholder: 'AIza...',
-    link: 'https://aistudio.google.com/app/apikey',
-    linkText: 'Get your Gemini API key →',
-    validate: (key: string) => key.trim().length > 10 && key.startsWith('AIza'),
-    invalidMsg: 'Invalid Gemini API Key',
-    desc: 'To use PR Checklistify with Gemini, provide your Gemini API key.',
-  },
+  // Gemini providerは後で条件付きで追加
 ];
 
 const OpenAiTokenSetupView: React.FC = () => {
@@ -38,7 +30,7 @@ const OpenAiTokenSetupView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentProvider = PROVIDERS.find(p => p.id === provider)!;
+  const geminiEnabled = isGeminiApiEnabled();
 
   // プロバイダー初期値をストレージから取得
   useEffect(() => {
@@ -55,6 +47,7 @@ const OpenAiTokenSetupView: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const currentProvider = providerOptions.find(p => p.id === provider)!;
     if (!currentProvider.validate(apiKey)) {
       setError(currentProvider.invalidMsg);
       return;
@@ -81,6 +74,26 @@ const OpenAiTokenSetupView: React.FC = () => {
     return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
   };
 
+  // プロバイダーリストを動的に生成
+  const providerOptions = [
+    PROVIDERS[0],
+    ...(geminiEnabled
+      ? [
+          {
+            id: 'gemini',
+            name: 'Gemini',
+            placeholder: 'AIza...',
+            link: 'https://aistudio.google.com/app/apikey',
+            linkText: 'Get your Gemini API key →',
+            validate: (key: string) => key.trim().length > 10 && key.startsWith('AIza'),
+            invalidMsg: 'Invalid Gemini API Key',
+            desc: 'To use PR Checklistify with Gemini, provide your Gemini API key.',
+          },
+        ]
+      : []),
+  ];
+  const currentProvider = providerOptions.find(p => p.id === provider)!;
+
   return (
     <div className="flex items-center justify-center h-screen p-6 bg-gray-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
@@ -94,7 +107,7 @@ const OpenAiTokenSetupView: React.FC = () => {
             value={provider}
             onChange={handleProviderChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
-            {PROVIDERS.map(p => (
+            {providerOptions.map(p => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>

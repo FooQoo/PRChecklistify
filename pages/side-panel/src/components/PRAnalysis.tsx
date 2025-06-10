@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import type { ChecklistItemStatus, Checklist, PRAnalysisResult, PRData } from '../types';
 import type { Language } from '@extension/storage';
-import { languagePreferenceStorage } from '@extension/storage';
+import { defaultLanguage, languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
@@ -27,7 +27,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   const [, setGenerating] = useAtom(generatingAtom);
   // summaryのgenerateを管理
   const [summaryGenerating, setSummaryGenerating] = useState(false);
-  const [language, setLanguage] = useState<Language>('en'); // デフォルト言語を設定
+  const [language, setLanguage] = useState<Language>(defaultLanguage); // デフォルト言語を設定
   const [error, setError] = useState<string | null>(null);
   const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
   const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
