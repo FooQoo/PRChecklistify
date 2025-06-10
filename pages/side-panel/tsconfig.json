@@ -4,8 +4,7 @@
     "baseUrl": ".",
     "paths": {
       "@src/*": ["src/*"]
-    },
-    "types": ["chrome", "node", "vite/client"]
+    }
   },
   "include": ["src", "vite.config.mts"]
 }

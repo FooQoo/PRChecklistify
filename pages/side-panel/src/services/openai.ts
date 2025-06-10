@@ -2,7 +2,7 @@
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { OpenAI } from 'openai';
 import type { ModelClient } from './modelClient';
-import type { Language } from '@extension/storage';
+import { geminiApiKeyStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
 
 export interface OpenAIConfig {
@@ -201,6 +201,18 @@ export const createOpenAIClient = async (): Promise<OpenAIClient> => {
     apiKey,
     model: 'gpt-4o',
     apiEndpoint: import.meta.env.VITE_OPENAI_API_ENDPOINT,
+  });
+};
+
+export const createGeminiClient = async (): Promise<OpenAIClient> => {
+  const apiKey = await geminiApiKeyStorage.get();
+  if (!apiKey) {
+    throw new Error('Gemini API key not found');
+  }
+  return new OpenAIClient({
+    apiKey,
+    model: 'gemini-1.5-pro',
+    apiEndpoint: import.meta.env.VITE_GEMINI_API_ENDPOINT,
   });
 };
 

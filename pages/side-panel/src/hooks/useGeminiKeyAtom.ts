@@ -1,6 +1,6 @@
+import { geminiApiKeyStorage } from '@extension/storage';
 import { atom, useAtom } from 'jotai';
 import { useEffect } from 'react';
-import { geminiApiKeyStorage } from '../services/gemini';
 
 // jotai atom: 初期値はundefined、ロード時にstorageから取得
 export const geminiKeyAtom = atom<string | undefined>(undefined);

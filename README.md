@@ -51,6 +51,7 @@ PR Checklistifyは、Pull Requestのレビューを効率化するためのChrom
 
 ```sh
 echo 'VITE_OPENAI_API_ENDPOINT=https://api.openai.com/v1' > pages/side-panel/.env
+echo 'VITE_GEMINI_API_ENDPOINT=https://generativelanguage.googleapis.com/v1beta/openai/' >> pages/side-panel/.env
 echo 'VITE_GITHUB_API_DOMAIN=https://api.github.com' >> pages/side-panel/.env
 ```
 

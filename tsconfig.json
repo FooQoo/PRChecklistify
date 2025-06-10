@@ -7,5 +7,6 @@
     "noEmit": false,
     "target": "ESNext"
   },
+  "types": ["chrome", "node", "vite/client"],
   "include": ["eslint.config.ts"]
 }

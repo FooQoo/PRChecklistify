@@ -1,5 +1,8 @@
 // Common interface for LLM clients (OpenAI, Gemini, etc.)
 import type { Checklist, PRData, PRFile } from '@src/types';
+import { createGeminiClient, createOpenAIClient } from './openai';
+import type { Language } from '@extension/storage';
+import { getLanguageLabel } from '@extension/storage';
 
 // ModelClientType for selecting the appropriate LLM service
 export enum ModelClientType {
@@ -18,10 +21,6 @@ export interface ModelClient {
 }
 
 // Factory function to create appropriate client
-import { createOpenAIClient } from './openai';
-import { createGeminiClient } from './gemini';
-import type { Language } from '@extension/storage';
-import { getLanguageLabel } from '@extension/storage';
 
 // Storage for model client type preference
 export const modelClientTypeStorage = {
