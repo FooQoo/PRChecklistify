@@ -3,7 +3,6 @@
   "ui": "tui",
   "globalEnv": ["CEB_*", "CLI_CEB_*"],
   "globalDependencies": [".env"],
-  "daemon": false,
   "tasks": {
     "ready": {
       "dependsOn": ["^ready"],
