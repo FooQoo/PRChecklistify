@@ -11,7 +11,8 @@
     "clean": "pnpm clean:turbo && pnpm clean:node_modules",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
-    "build": "tsc"
+    "build": "tsc",
+    "fetch-prs": "tsx src/fetch-prs.ts fetch-prs"
   },
   "dependencies": {
     "express": "^4.19.2"

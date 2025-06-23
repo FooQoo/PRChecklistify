@@ -38,11 +38,6 @@ export class GithubClient {
     return this.octokit.repos.getContent({ owner, repo, path });
   }
 
-  async fetchPullRequestReviews(identifier: PRIdentifier) {
-    const { owner, repo, prNumber } = identifier;
-    return this.octokit.pulls.listReviews({ owner, repo, pull_number: Number(prNumber) });
-  }
-
   /**
    * mainブランチから .github/copilot-instructions.md の内容を取得する
    * @param owner リポジトリオーナー
