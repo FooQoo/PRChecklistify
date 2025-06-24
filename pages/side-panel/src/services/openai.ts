@@ -1,6 +1,7 @@
 // OpenAI API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
-import { OpenAI } from 'openai';
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateText, streamText } from 'ai';
 import type { ModelClient } from './modelClient';
 import { geminiApiKeyStorage, openaiApiKeyStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
@@ -12,16 +13,16 @@ export interface OpenAIConfig {
 }
 
 class OpenAIClient implements ModelClient {
-  private client: OpenAI;
+  private client: ReturnType<typeof createOpenAI>;
   private model: string;
 
   constructor(config: OpenAIConfig) {
-    this.client = new OpenAI({
+    this.client = createOpenAI({
       apiKey: config.apiKey,
-      baseURL: config.apiEndpoint,
-      dangerouslyAllowBrowser: true, // Add this flag to allow browser usage
+      baseURL: config.apiEndpoint || '',
+      compatibility: 'strict',
     });
-    this.model = config.model || 'gpt-4-turbo';
+    this.model = config.model;
   }
 
   /**
@@ -30,21 +31,9 @@ class OpenAIClient implements ModelClient {
   async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<Checklist> {
     try {
       const prompt = buildPRAnalysisPrompt(prData, file, language);
-      const response = await this.callOpenAI(prompt);
-      return JSON.parse(response) as Checklist;
-    } catch (error) {
-      console.error('Error analyzing PR with OpenAI:', error);
-      throw new Error('Failed to analyze PR with OpenAI');
-    }
-  }
-
-  /**
-   * Make the API call to OpenAI
-   */
-  private async callOpenAI(prompt: string): Promise<string> {
-    try {
-      const response = await this.client.chat.completions.create({
-        model: this.model,
+      const model = this.client.languageModel(this.model as string);
+      const response = await generateText({
+        model,
         messages: [
           {
             role: 'system',
@@ -57,13 +46,11 @@ class OpenAIClient implements ModelClient {
           },
         ],
         temperature: 0.3,
-        response_format: { type: 'json_object' },
       });
-
-      return response.choices[0].message.content || '';
+      return JSON.parse(response.text) as Checklist;
     } catch (error) {
-      console.error('Error calling OpenAI API:', error);
-      throw error;
+      console.error('Error analyzing PR with OpenAI:', error);
+      throw new Error('Failed to analyze PR with OpenAI');
     }
   }
 
@@ -73,21 +60,15 @@ class OpenAIClient implements ModelClient {
   async streamChatCompletion(
     messages: { role: 'user' | 'system' | 'assistant'; content: string }[],
     onToken: (token: string) => void,
-    options?: { signal?: AbortSignal },
   ): Promise<void> {
     try {
-      const response = await this.client.chat.completions.create(
-        {
-          model: this.model,
-          messages,
-          temperature: 0.3,
-          stream: true,
-          response_format: { type: 'text' }, // JSONでなくtextで返す
-        },
-        { signal: options?.signal },
-      );
-      for await (const chunk of response) {
-        const delta = chunk.choices?.[0]?.delta?.content;
+      const model = this.client.languageModel(this.model as string);
+      const stream = await streamText({
+        model,
+        messages,
+        temperature: 0.3,
+      });
+      for await (const delta of stream.textStream) {
         if (delta) onToken(delta);
       }
     } catch (error) {
@@ -103,11 +84,10 @@ export const createOpenAIClient = async (): Promise<OpenAIClient> => {
   if (!apiKey) {
     throw new Error('Failed to retrieve OpenAI API key');
   }
-
   return new OpenAIClient({
     apiKey,
     model: 'gpt-4o',
-    apiEndpoint: import.meta.env.VITE_OPENAI_API_ENDPOINT,
+    apiEndpoint: (window as unknown as { VITE_OPENAI_API_ENDPOINT?: string }).VITE_OPENAI_API_ENDPOINT || '',
   });
 };
 
@@ -119,7 +99,7 @@ export const createGeminiClient = async (): Promise<OpenAIClient> => {
   return new OpenAIClient({
     apiKey,
     model: 'gemini-1.5-pro',
-    apiEndpoint: import.meta.env.VITE_GEMINI_API_ENDPOINT,
+    apiEndpoint: (window as unknown as { VITE_GEMINI_API_ENDPOINT?: string }).VITE_GEMINI_API_ENDPOINT || '',
   });
 };
 
