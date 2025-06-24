@@ -87,7 +87,7 @@ export const createOpenAIClient = async (): Promise<OpenAIClient> => {
   return new OpenAIClient({
     apiKey,
     model: 'gpt-4o',
-    apiEndpoint: (window as unknown as { VITE_OPENAI_API_ENDPOINT?: string }).VITE_OPENAI_API_ENDPOINT || '',
+    apiEndpoint: 'https://api.openai.com/v1',
   });
 };
 
@@ -99,7 +99,7 @@ export const createGeminiClient = async (): Promise<OpenAIClient> => {
   return new OpenAIClient({
     apiKey,
     model: 'gemini-1.5-pro',
-    apiEndpoint: (window as unknown as { VITE_GEMINI_API_ENDPOINT?: string }).VITE_GEMINI_API_ENDPOINT || '',
+    apiEndpoint: 'https://generativelanguage.googleapis.com/v1beta',
   });
 };
 

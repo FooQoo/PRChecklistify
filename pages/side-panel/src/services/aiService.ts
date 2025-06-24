@@ -119,7 +119,7 @@ export const fetchers = {
         },
         {
           role: 'user',
-          content: `Summarize the content of this pull request concisely from the following five perspectives: Background, Problem, Solution, Implementation, and Review Comments.\n\nFor the 'Review Comments' section, output a "Review Highlight Timeline".\n- Instead of listing every event, summarize the review activity for each day.\n- For each day, provide a brief summary of the main review points, status changes, and any important feedback.\n- Clearly indicate the current review status (e.g., "in review", "changes requested", "approved", etc.).\n- If possible, infer the overall review progress and any blockers.\n- Output should be easy to read as a daily timeline for the team to quickly grasp the review situation.`,
+          content: `Summarize the content of this pull request concisely from the following five perspectives: Background & Problem, Solution & Implementation, and Review Comments.\n\nFor the 'Review Comments' section, output a "Review Highlight Timeline".\n- Instead of listing every event, summarize the review activity for each day.\n- For each day, provide a brief summary of the main review points, status changes, and any important feedback.\n- Clearly indicate the current review status (e.g., "in review", "changes requested", "approved", etc.).\n- If possible, infer the overall review progress and any blockers.\n- Output should be easy to read as a daily timeline for the team to quickly grasp the review situation.`,
         },
       ];
       await client.streamChatCompletion(messages, onToken, options);
