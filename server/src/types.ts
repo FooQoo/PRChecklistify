@@ -36,3 +36,21 @@ export interface PrData {
   embedding: number[];
   text: string;
 }
+
+export interface PRResponse {
+  prs: {
+    domain: string;
+    org: string;
+    repo: string;
+    pr_id: number;
+    title: string;
+    body: string;
+    author: string | null;
+    created_at: string;
+    merged: boolean;
+    merged_at: string | null;
+    state: string;
+    comments: PrComment[];
+    files: PrFileDiff[];
+  }[];
+}

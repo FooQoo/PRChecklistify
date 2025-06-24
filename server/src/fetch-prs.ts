@@ -28,10 +28,6 @@ program
     const outputPath = opts.output;
     const maxPR: number = opts.maxPr;
 
-    console.info(`Fetching PRs from ${opts.url}`);
-    console.info(`Output will be saved to: ${outputPath}`);
-    console.info(`Maximum PRs to fetch: ${maxPR}`);
-
     const parsed = extractOrgRepoFromUrl(opts.url);
     if (!parsed) {
       throw new Error('Invalid GitHub repository URL');

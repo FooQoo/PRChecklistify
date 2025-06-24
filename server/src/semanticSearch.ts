@@ -1,7 +1,12 @@
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import type { PrData } from './types.js';
 
 // embedding生成用モデル初期化
+
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+});
+
 const embeddingModel = google.textEmbeddingModel('text-embedding-004', {
   outputDimensionality: 512,
   taskType: 'SEMANTIC_SIMILARITY',

@@ -40,6 +40,7 @@
     "@modelcontextprotocol/sdk": "^1.13.0",
     "@octokit/rest": "^21.1.1",
     "console-log-level": "^1.4.1",
+    "fastmcp": "^3.5.0",
     "jotai": "^2.12.3",
     "openai": "^4.28.0",
     "react": "19.0.0",
