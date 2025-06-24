@@ -203,6 +203,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                             aiMsg += token;
                             if (streamOpts?.onToken) streamOpts.onToken(token);
                           },
+                          language,
                           { signal: streamOpts?.signal },
                           context?.allDiffs,
                         );

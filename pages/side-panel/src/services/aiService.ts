@@ -36,6 +36,7 @@ export const fetchers = {
     file: PRFile,
     chatHistory: { sender: string; message: string }[],
     onToken: (token: string) => void,
+    _language: Language,
     options?: { signal?: AbortSignal },
     allDiffs?: Record<string, string>,
   ) => {
@@ -64,7 +65,7 @@ export const fetchers = {
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       {
         role: 'system',
-        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}${readme}${commentsText}`,
+        content: `You are a senior software developer conducting a thorough code review in ${getLanguageLabel(_language)}.. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}${readme}${commentsText}`,
       },
       ...chatHistory.map((msg): { role: 'user' | 'assistant'; content: string } => ({
         role: msg.sender === 'You' ? 'user' : 'assistant',

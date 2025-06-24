@@ -1,16 +1,40 @@
 // OpenAI API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { createOpenAI } from '@ai-sdk/openai';
-import { generateText, streamText } from 'ai';
+import { generateObject, streamText } from 'ai';
 import type { ModelClient } from './modelClient';
 import { geminiApiKeyStorage, openaiApiKeyStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
+import { z } from 'zod';
 
 export interface OpenAIConfig {
   apiKey: string;
   model: string;
   apiEndpoint?: string;
 }
+
+// チェックリストアイテムのステータス
+export const ChecklistItemStatusSchema = z
+  .union([z.literal('OK'), z.literal('NG'), z.literal('PENDING')])
+  .describe('チェックリストアイテムの状態（OK, NG, PENDING のいずれか）');
+
+// チェックリストアイテム
+export const ChecklistItemSchema = z
+  .object({
+    id: z.string().describe('チェックリストアイテムの一意なID'),
+    description: z.string().describe('チェックリストアイテムの説明文'),
+    status: ChecklistItemStatusSchema,
+  })
+  .describe('チェックリストアイテム（ID・説明・状態）');
+
+// ファイル単位のチェックリスト（説明＋アイテム配列）
+export const ChecklistSchema = z
+  .object({
+    filename: z.string().describe('対象ファイル名'),
+    explanation: z.string().describe('ファイル全体に対する説明'),
+    checklistItems: z.array(ChecklistItemSchema).describe('このファイルに対するチェックリストアイテムの配列'),
+  })
+  .describe('ファイル単位のチェックリスト（説明＋アイテム配列）');
 
 class OpenAIClient implements ModelClient {
   private client: ReturnType<typeof createOpenAI>;
@@ -32,8 +56,9 @@ class OpenAIClient implements ModelClient {
     try {
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const model = this.client.languageModel(this.model as string);
-      const response = await generateText({
+      const response = await generateObject({
         model,
+        schema: ChecklistSchema,
         messages: [
           {
             role: 'system',
@@ -47,7 +72,7 @@ class OpenAIClient implements ModelClient {
         ],
         temperature: 0.3,
       });
-      return JSON.parse(response.text) as Checklist;
+      return response.object as Checklist;
     } catch (error) {
       console.error('Error analyzing PR with OpenAI:', error);
       throw new Error('Failed to analyze PR with OpenAI');
