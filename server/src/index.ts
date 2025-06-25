@@ -65,22 +65,19 @@ server.addTool({
     } catch (err) {
       return `Failed to generate embedding: ${err}`;
     }
-    const top3 = semanticSearch(prs, queryEmbedding, domain, org, repo, 3);
-    return JSON.stringify(
-      top3.map(pr => ({
-        url: `https://${pr.domain}/${pr.org}/${pr.repo}/pull/${pr.pr_id}`,
-        title: pr.title,
-        body: pr.body,
-        comments: pr.comments.map(c => ({
-          body: c.body,
-          author: c.author,
-          created_at: c.created_at,
-          filename: c.filename,
-        })),
+    const top3 = semanticSearch(prs, queryEmbedding, domain, org, repo, 3).map(pr => ({
+      url: `https://${pr.domain}/${pr.org}/${pr.repo}/pull/${pr.pr_id}`,
+      title: pr.title,
+      body: pr.body,
+      comments: pr.comments.map(c => ({
+        body: c.body,
+        author: c.author,
+        created_at: c.created_at,
+        filename: c.filename,
       })),
-      null,
-      2,
-    );
+    }));
+    console.log(`Found ${top3.length} similar PRs for query: ${title}`);
+    return JSON.stringify(top3, null, 2);
   },
 });
 

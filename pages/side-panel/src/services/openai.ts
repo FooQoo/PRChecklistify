@@ -1,7 +1,7 @@
 // OpenAI API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { createOpenAI } from '@ai-sdk/openai';
-import { generateObject, streamText } from 'ai';
+import { streamText, generateText, Output } from 'ai';
 import type { ModelClient } from './modelClient';
 import { geminiApiKeyStorage, openaiApiKeyStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
@@ -9,8 +9,8 @@ import { z } from 'zod';
 
 export interface OpenAIConfig {
   apiKey: string;
+  endpoint?: string;
   model: string;
-  apiEndpoint?: string;
 }
 
 // チェックリストアイテムのステータス
@@ -43,7 +43,7 @@ class OpenAIClient implements ModelClient {
   constructor(config: OpenAIConfig) {
     this.client = createOpenAI({
       apiKey: config.apiKey,
-      baseURL: config.apiEndpoint || '',
+      baseURL: config.endpoint || '',
       compatibility: 'strict',
     });
     this.model = config.model;
@@ -56,14 +56,16 @@ class OpenAIClient implements ModelClient {
     try {
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const model = this.client.languageModel(this.model as string);
-      const response = await generateObject({
+      const response = await generateText({
         model,
-        schema: ChecklistSchema,
+        experimental_output: Output.object({
+          schema: ChecklistSchema,
+        }),
         messages: [
           {
             role: 'system',
             content:
-              'You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback in JSON format as requested.',
+              'You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback in JSON format as requested. ',
           },
           {
             role: 'user',
@@ -72,7 +74,7 @@ class OpenAIClient implements ModelClient {
         ],
         temperature: 0.3,
       });
-      return response.object as Checklist;
+      return response.experimental_output as Checklist;
     } catch (error) {
       console.error('Error analyzing PR with OpenAI:', error);
       throw new Error('Failed to analyze PR with OpenAI');
@@ -112,7 +114,7 @@ export const createOpenAIClient = async (): Promise<OpenAIClient> => {
   return new OpenAIClient({
     apiKey,
     model: 'gpt-4o',
-    apiEndpoint: 'https://api.openai.com/v1',
+    endpoint: 'https://api.openai.com/v1',
   });
 };
 
@@ -124,7 +126,7 @@ export const createGeminiClient = async (): Promise<OpenAIClient> => {
   return new OpenAIClient({
     apiKey,
     model: 'gemini-1.5-pro',
-    apiEndpoint: 'https://generativelanguage.googleapis.com/v1beta',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta',
   });
 };
 
