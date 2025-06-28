@@ -1,4 +1,3 @@
-import type { SessionOptions } from 'iron-session';
 import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
 
@@ -11,13 +10,16 @@ export interface SessionData {
   };
 }
 
-export const sessionOptions: SessionOptions = {
-  password: process.env.IRON_SESSION_PASSWORD as string,
-  cookieName: 'prchecklistify-session',
+const sessionOptions = {
+  password: process.env.IRON_SESSION_PASSWORD!,
+  cookieName: 'prchecklistify_session',
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',
   },
 };
+
 export async function getSession() {
-  return await getIronSession<SessionData>(await cookies(), sessionOptions);
+  const cookieStore = await cookies();
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
+  return session;
 }

@@ -1,12 +1,35 @@
+'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { cookies } from 'next/headers';
-import { getSession } from 'src/lib/session';
 import Logo from './Logo';
+import { useState, useRef, useEffect } from 'react';
 
-export default async function Header() {
-  const session = await getSession({ cookies: cookies() });
-  const user = session.githubUser;
+interface User {
+  login: string;
+  name: string;
+  avatar_url: string;
+}
+
+interface HeaderProps {
+  user?: User;
+}
+
+const Header: React.FC<HeaderProps> = ({ user }) => {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // ドロップダウン外クリックで閉じる
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
   return (
     <header className="flex items-center justify-between p-4 border-b">
       <div className="flex items-center gap-2">
@@ -14,7 +37,7 @@ export default async function Header() {
         <span className="text-lg font-semibold">PR Checklistfy</span>
       </div>
       <nav>
-        <ul className="flex gap-4 text-sm text-gray-600">
+        <ul className="flex gap-4 text-sm text-gray-600 items-center">
           <li>
             <Link href="#" className="hover:text-gray-900">
               機能
@@ -31,14 +54,27 @@ export default async function Header() {
             </Link>
           </li>
           {user ? (
-            <li className="flex items-center gap-2">
-              <Image src={user.avatar_url} alt="avatar" width={24} height={24} className="rounded-full" />
-              <form action="/api/auth/logout" method="post">
-                <button className="hover:text-gray-900" type="submit">
-                  Logout
-                </button>
-              </form>
-            </li>
+            <div className="relative" ref={menuRef}>
+              <button
+                className="flex items-center focus:outline-none"
+                onClick={() => setOpen(v => !v)}
+                aria-label="ユーザー設定">
+                <Image src={user.avatar_url} alt="avatar" width={32} height={32} className="rounded-full border" />
+              </button>
+              {open && (
+                <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50 animate-fadeInUp">
+                  <div className="px-4 py-2 border-b">
+                    <div className="font-medium text-sm">{user.name}</div>
+                    <div className="text-xs text-gray-500">{user.login}</div>
+                  </div>
+                  <form action="/api/auth/logout" method="post">
+                    <button type="submit" className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 text-sm">
+                      ログアウト
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           ) : (
             <li>
               <Link href="/api/auth/login-start" className="hover:text-gray-900">
@@ -50,4 +86,6 @@ export default async function Header() {
       </nav>
     </header>
   );
-}
+};
+
+export default Header;

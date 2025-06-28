@@ -2,11 +2,17 @@ import Header from '../components/Header';
 import FeatureIntro from '../components/FeatureIntro';
 import DemoPlaceholder from '../components/DemoPlaceholder';
 import Footer from '../components/Footer';
+import { getSession } from 'src/lib/session';
 
-export default function Home() {
+export default async function Home() {
+  const session = await getSession();
+  const user = session.githubUser;
+
+  console.log('User session:', user);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Header user={user} />
       <main className="flex-grow">
         <FeatureIntro />
         <DemoPlaceholder />

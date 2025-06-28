@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { AuthorizationCode } from 'simple-oauth2';
 import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
-
-// セッションに格納するデータ型を定義
+import { baseUrl } from 'src/utils/env';
 interface SessionData {
   accessToken?: string;
   githubUser?: {
@@ -40,7 +39,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect('/');
   }
 
-  // cookies()はPromiseなのでawait
   const cookieStore = await cookies();
   const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
 
@@ -64,9 +62,9 @@ export async function GET(request: Request) {
       avatar_url: user.avatar_url,
     };
     await session.save();
-    return NextResponse.redirect('http://localhost:3000'); // リダイレクト先を適宜変更
+    return NextResponse.redirect(`${baseUrl}/`);
   } catch (e) {
     console.error(e);
-    return NextResponse.redirect('http://localhost:3000');
+    return NextResponse.redirect(`${baseUrl}/`);
   }
 }

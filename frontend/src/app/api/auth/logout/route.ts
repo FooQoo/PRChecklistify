@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getSession } from 'src/lib/session';
+import { baseUrl } from 'src/utils/env';
 
-export async function POST(request: Request) {
-  const res = new NextResponse();
-  const session = await getSession(request, res);
+export async function POST() {
+  const session = await getSession();
   await session.destroy();
-  res.headers.set('Location', '/');
-  res.status = 302;
-  return res;
+  return NextResponse.redirect(`${baseUrl}/`, { status: 303 });
 }
