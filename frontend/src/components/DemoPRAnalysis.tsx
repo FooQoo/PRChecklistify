@@ -35,8 +35,19 @@ const DemoPRAnalysis: React.FC<DemoPRAnalysisProps> = ({ prData }) => {
   };
 
   const handleChecklistChange = (filename: string, items: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
-    // In a real application, you would save this to a database or other persistent storage.
-    console.log('Checklist changed for file:', filename, items);
+    setChecklistAnalysis(prev => {
+      if (!prev) return null;
+      const newAnalysis = [...prev];
+      const fileIndex = newAnalysis.findIndex(fa => fa.filename === filename);
+      if (fileIndex > -1) {
+        const newChecklistItems = newAnalysis[fileIndex].checklistItems.map((item, index) => ({
+          ...item,
+          status: items[item.id || `item_${index}`] || item.status,
+        }));
+        newAnalysis[fileIndex] = { ...newAnalysis[fileIndex], checklistItems: newChecklistItems };
+      }
+      return newAnalysis;
+    });
   };
 
   const handleChecklistUpdate = (checklist: Checklist) => {

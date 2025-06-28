@@ -1,6 +1,6 @@
 import { generateText, streamText, Output } from 'ai';
 import { z } from 'zod';
-import type { PRData, PRFile, Checklist } from '../types';
+import type { PRData, PRFile, Checklist } from '@extension/shared';
 import { createModelClient } from './modelClient';
 
 // --- Schemas for Checklist ---
@@ -118,7 +118,7 @@ export async function generateChecklist(prData: PRData, file: PRFile, language: 
  */
 export async function generateSummaryStream(prData: PRData, language: string) {
   const model = createModelClient();
-  const diff = prData.files.map(file => `--- ${file.filename} ---\n${file.patch || ''}`).join('\n\n');
+  const diff = prData.files.map((file: PRFile) => `--- ${file.filename} ---\n${file.patch || ''}`).join('\n\n');
   const mergeStatus = prData.merged_at ? 'merged' : prData.closed_at ? 'closed' : 'open';
 
   const systemPrompt = `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${language}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\nPR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nPR Merge Status: ${mergeStatus}`;
@@ -130,6 +130,37 @@ export async function generateSummaryStream(prData: PRData, language: string) {
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
     ],
+    temperature: 0.3,
+  });
+}
+
+/**
+ * Generates an AI response for a chat conversation and streams the response.
+ */
+export async function getAiResponseStream(
+  messages: { role: 'user' | 'assistant'; content: string }[],
+  prData: PRData,
+  file: PRFile,
+  language: string,
+) {
+  const model = createModelClient();
+  const systemPrompt = `You are a senior software developer conducting a thorough code review. The user is asking for feedback on the file "${file.filename}".
+
+File content:
+\`\`\`
+${file.patch || 'No patch available'}
+\`\`\`
+
+PR Title: ${prData.title}
+PR Description: ${prData.body}
+
+Provide your response in ${language}. Be concise and helpful.`;
+
+  const history = messages.map(m => ({ role: m.role, content: m.content }));
+
+  return streamText({
+    model,
+    messages: [{ role: 'system', content: systemPrompt }, ...history],
     temperature: 0.3,
   });
 }

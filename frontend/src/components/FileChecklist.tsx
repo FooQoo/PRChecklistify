@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PRData, Checklist, PRAnalysisResult } from '@extension/shared';
 import MarkdownRenderer from './MarkdownRenderer';
+import FileChatModal from './FileChatModal';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
   prData: PRData;
   analysisResult: PRAnalysisResult | undefined;
-  onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
+  onChecklistChange: (filename: string, items: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
   onChecklistUpdate: (checklist: Checklist) => void;
-  onOpenChat?: () => void;
 }
 
 // チェックリスト項目コンポーネント
@@ -67,16 +67,10 @@ const BLOCK_COLS = 10;
 const BLOCK_ROWS = 3;
 const BLOCK_TOTAL = BLOCK_COLS * BLOCK_ROWS;
 
-const FileChecklist = ({
-  file,
-  prData,
-  analysisResult,
-  onChecklistChange,
-  onChecklistUpdate,
-  onOpenChat,
-}: FileChecklistProps) => {
+const FileChecklist = ({ file, prData, analysisResult, onChecklistChange, onChecklistUpdate }: FileChecklistProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [blockActive, setBlockActive] = useState(0);
   const blockTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -475,34 +469,33 @@ const FileChecklist = ({
 
             {!isGenerating && aiGeneratedChecklist && (
               <div className="flex justify-center items-center mt-4">
-                {onOpenChat && (
-                  <button
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
-                    onClick={e => {
-                      e.stopPropagation();
-                      onOpenChat();
-                    }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                      />
-                    </svg>
-                    AIレビュー チャットを開く
-                  </button>
-                )}
+                <button
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setIsChatOpen(true);
+                  }}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                  AIレビュー チャットを開く
+                </button>
               </div>
             )}
           </div>
         </div>
       )}
+      <FileChatModal open={isChatOpen} onClose={() => setIsChatOpen(false)} file={file} prData={prData} />
     </div>
   );
 };
