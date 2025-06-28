@@ -3,7 +3,6 @@ import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
 import GeminiKeySettings from '../components/GeminiKeySettings';
-import McpJsonSettings from '../components/McpJsonSettings';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import type { Language } from '@extension/storage';
 import { defaultLanguage, languagePreferenceStorage } from '@extension/storage';
@@ -163,10 +162,6 @@ const SettingsView: React.FC = () => {
               <GeminiKeySettings onToast={showToast} />
             </>
           )}
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <McpJsonSettings onToast={showToast} />
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
