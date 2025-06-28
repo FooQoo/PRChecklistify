@@ -272,9 +272,15 @@ importers:
         specifier: ^3.25.67
         version: 3.25.67
     devDependencies:
+      '@extension/tailwindcss-config':
+        specifier: workspace:*
+        version: link:../packages/tailwind-config
       '@extension/tsconfig':
         specifier: workspace:*
         version: link:../packages/tsconfig
+      '@extension/vite-config':
+        specifier: workspace:*
+        version: link:../packages/vite-config
       typescript:
         specifier: ^5
         version: 5.8.3

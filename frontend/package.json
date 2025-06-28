@@ -25,6 +25,8 @@
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@extension/vite-config": "workspace:*",
+    "@extension/tailwindcss-config": "workspace:*"
   }
 }

@@ -1,25 +1,27 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { PRAnalysisResult, ChecklistItemStatus, PRFile } from '@extension/shared';
-import { MarkdownRenderer } from './MarkdownRenderer';
+import type { PRData, Checklist, PRAnalysisResult } from '@extension/shared';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface FileChecklistProps {
-  file: PRFile;
-  onChecklistChange: (filename: string, checklistItems: Record<string, ChecklistItemStatus>) => void;
+  file: PRData['files'][0];
+  prData: PRData;
   analysisResult: PRAnalysisResult | undefined;
+  onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
+  onChecklistUpdate: (checklist: Checklist) => void;
   onOpenChat?: () => void;
-  generateChecklist: () => Promise<void>;
 }
 
 // チェックリスト項目コンポーネント
 interface ChecklistItemProps {
   label: string;
-  status: ChecklistItemStatus;
+  status: 'PENDING' | 'OK' | 'NG';
   onToggle: () => void;
   className?: string;
 }
 
 const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistItemProps) => {
-  const getButtonStyle = (state: ChecklistItemStatus) => {
+  // Get the appropriate button style based on current state
+  const getButtonStyle = (state: 'PENDING' | 'OK' | 'NG') => {
     switch (state) {
       case 'OK':
         return 'bg-green-500 hover:bg-green-600 text-white';
@@ -31,17 +33,17 @@ const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistIte
     }
   };
 
-  const renderButtonContent = (state: ChecklistItemStatus) => {
+  // Render the button content
+  const renderButtonContent = (state: 'PENDING' | 'OK' | 'NG') => {
     if (state === 'PENDING') {
       return 'PENDING';
     }
     return state;
   };
 
-  const getButtonClasses = (state: ChecklistItemStatus) => {
-    return `px-3 py-1 rounded-md text-sm font-medium transition-colors min-w-[90px] text-center ${getButtonStyle(
-      state,
-    )}`;
+  // Get button class with fixed width
+  const getButtonClasses = (state: 'PENDING' | 'OK' | 'NG') => {
+    return `px-3 py-1 rounded-md text-sm font-medium transition-colors min-w-[90px] text-center ${getButtonStyle(state)}`;
   };
 
   return (
@@ -65,13 +67,14 @@ const BLOCK_COLS = 10;
 const BLOCK_ROWS = 3;
 const BLOCK_TOTAL = BLOCK_COLS * BLOCK_ROWS;
 
-export function FileChecklist({
+const FileChecklist = ({
   file,
-  onChecklistChange,
+  prData,
   analysisResult,
+  onChecklistChange,
+  onChecklistUpdate,
   onOpenChat,
-  generateChecklist,
-}: FileChecklistProps) {
+}: FileChecklistProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blockActive, setBlockActive] = useState(0);
@@ -81,18 +84,22 @@ export function FileChecklist({
     return analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
   }, [analysisResult, file.filename]);
 
+  // AI生成されたチェックリストに基づいて動的オブジェクトを準備
   const initializeChecklistItems = useCallback(() => {
     if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
-      const items: Record<string, ChecklistItemStatus> = {};
+      const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
       aiGeneratedChecklist.checklistItems.forEach((item, index) => {
-        items[`item_${index}`] = item.status;
+        items[`item_${index}`] = ['PENDING', 'OK', 'NG'].includes(item.status)
+          ? (item.status as 'PENDING' | 'OK' | 'NG')
+          : 'PENDING';
       });
       return items;
     }
-    return {} as Record<string, ChecklistItemStatus>;
+    return {} as Record<string, 'PENDING' | 'OK' | 'NG'>;
   }, [aiGeneratedChecklist]);
 
-  const [checklistItems, setChecklistItems] = useState<Record<string, ChecklistItemStatus>>(initializeChecklistItems());
+  const [checklistItems, setChecklistItems] =
+    useState<Record<string, 'PENDING' | 'OK' | 'NG'>>(initializeChecklistItems());
 
   useEffect(() => {
     setChecklistItems(initializeChecklistItems());
@@ -113,32 +120,18 @@ export function FileChecklist({
     }
     const allOK = Object.values(checklistItems).every(item => item === 'OK');
     const anyReviewed = Object.values(checklistItems).some(item => item !== 'PENDING');
-    if (allOK) {
-      return 'approved';
-    } else if (anyReviewed) {
-      return 'reviewing';
-    } else {
-      return 'not-reviewed';
-    }
+    if (allOK) return 'approved';
+    if (anyReviewed) return 'reviewing';
+    return 'not-reviewed';
   };
 
   const getCalculatedExpandedState = (): boolean => {
-    if (expandOverride !== null) {
-      return expandOverride;
-    }
-    if (!checklistItems || Object.keys(checklistItems).length === 0) {
-      return true;
-    }
+    if (expandOverride !== null) return expandOverride;
+    if (!checklistItems || Object.keys(checklistItems).length === 0) return true;
     const allOK = Object.values(checklistItems).every(item => item === 'OK');
-    if (allOK && allItemsJustChecked) {
-      return false;
-    }
-    if (getReviewStatus() === 'not-reviewed') {
-      return true;
-    }
-    if (getReviewStatus() === 'reviewing') {
-      return true;
-    }
+    if (allOK && allItemsJustChecked) return false;
+    if (getReviewStatus() === 'not-reviewed') return true;
+    if (getReviewStatus() === 'reviewing') return true;
     return false;
   };
 
@@ -159,20 +152,11 @@ export function FileChecklist({
   const toggleReviewState = (item: string) => {
     if (!checklistItems) return;
     const currentState = checklistItems[item];
-    let nextState: ChecklistItemStatus;
-    if (currentState === 'PENDING') {
-      nextState = 'NG';
-    } else if (currentState === 'NG') {
-      nextState = 'OK';
-    } else if (currentState === 'OK') {
-      nextState = 'NG';
-    } else {
-      nextState = 'NG';
-    }
-    const newChecklistItems = {
-      ...checklistItems,
-      [item]: nextState,
-    };
+    let nextState: 'PENDING' | 'OK' | 'NG';
+    if (currentState === 'PENDING') nextState = 'NG';
+    else if (currentState === 'NG') nextState = 'OK';
+    else nextState = 'NG';
+    const newChecklistItems = { ...checklistItems, [item]: nextState };
     setChecklistItems(newChecklistItems);
     onChecklistChange(file.filename, newChecklistItems);
   };
@@ -180,7 +164,7 @@ export function FileChecklist({
   const toggleExpanded = () => {
     if (expanded) {
       if (checklistItems && Object.keys(checklistItems).length > 0) {
-        const allOKItems: Record<string, ChecklistItemStatus> = {};
+        const allOKItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
         Object.keys(checklistItems).forEach(key => {
           allOKItems[key] = 'OK';
         });
@@ -200,7 +184,6 @@ export function FileChecklist({
         return { label: '✓ Approved', class: 'bg-green-500 text-white' };
       case 'reviewing':
         return { label: '⚠ Reviewing', class: 'bg-yellow-500 text-white' };
-      case 'not-reviewed':
       default:
         return { label: '⊘ Not Reviewed', class: 'bg-gray-500 text-white' };
     }
@@ -298,15 +281,24 @@ export function FileChecklist({
     );
   };
 
-  const handleGenerateClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
+  const generateChecklist = async () => {
     if (isGenerating) return;
     setIsGenerating(true);
     setError(null);
     try {
-      await generateChecklist();
+      const response = await fetch('/api/checklist-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prData, file, language: 'ja' }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Failed to fetch checklist analysis for file.');
+      }
+      const result: { fileAnalysis: Checklist } = await response.json();
+      onChecklistUpdate(result.fileAnalysis);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
     } finally {
       setIsGenerating(false);
     }
@@ -384,7 +376,10 @@ export function FileChecklist({
                 <button
                   className="px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded text-xs"
                   disabled={isGenerating}
-                  onClick={handleGenerateClick}>
+                  onClick={e => {
+                    e.stopPropagation();
+                    generateChecklist();
+                  }}>
                   Regenerate
                 </button>
               </div>
@@ -422,7 +417,10 @@ export function FileChecklist({
                 <button
                   className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
                   disabled={isGenerating}
-                  onClick={handleGenerateClick}>
+                  onClick={e => {
+                    e.stopPropagation();
+                    generateChecklist();
+                  }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 mr-2"
@@ -475,29 +473,31 @@ export function FileChecklist({
               </div>
             )}
 
-            {!isGenerating && aiGeneratedChecklist && onOpenChat && (
+            {!isGenerating && aiGeneratedChecklist && (
               <div className="flex justify-center items-center mt-4">
-                <button
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
-                  onClick={e => {
-                    e.stopPropagation();
-                    onOpenChat();
-                  }}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                    />
-                  </svg>
-                  AIレビュー チャットを開く
-                </button>
+                {onOpenChat && (
+                  <button
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onOpenChat();
+                    }}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                    AIレビュー チャットを開く
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -505,4 +505,6 @@ export function FileChecklist({
       )}
     </div>
   );
-}
+};
+
+export default FileChecklist;
