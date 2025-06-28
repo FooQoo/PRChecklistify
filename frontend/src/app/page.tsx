@@ -8,8 +8,6 @@ export default async function Home() {
   const session = await getSession();
   const user = session.githubUser;
 
-  console.log('User session:', user);
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header user={user} />
