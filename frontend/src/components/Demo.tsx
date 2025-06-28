@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import DemoPRAnalysis from './DemoPRAnalysis';
+import type { PRData } from '@extension/shared';
 
 // GitHubのPRページかどうかを判定する簡易的な関数
 const isGitHubPRPage = (url: string) => {
@@ -16,29 +17,45 @@ const isGitHubPRPage = (url: string) => {
 const Demo = () => {
   const [prUrl, setPrUrl] = useState('');
   const [isValid, setIsValid] = useState(false);
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [prData, setPrData] = useState<PRData | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // URL入力の検証
   const validateUrl = (url: string) => {
     const isValid = isGitHubPRPage(url);
     setIsValid(isValid);
     return isValid;
   };
 
-  // URL入力ハンドラー
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setPrUrl(newUrl);
     validateUrl(newUrl);
-    setShowAnalysis(false); // 新しいURLが入力されたら分析結果を非表示に
+    setPrData(null); // 新しいURLが入力されたら分析結果を非表示に
+    setError(null);
   };
 
-  // PRナビゲーションハンドラー
-  const handleGoToPR = () => {
+  const handleFetchPR = async () => {
     if (!isValid) return;
-    // ここでPR分析画面に遷移するロジックを実装
-    console.log('Navigating to PR:', prUrl);
-    setShowAnalysis(true);
+    setIsFetching(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/fetch-pr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prUrl }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || 'Failed to fetch PR data.');
+      }
+      const prData = await response.json();
+      setPrData(prData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   return (
@@ -65,17 +82,18 @@ const Demo = () => {
               }`}
             />
             <button
-              onClick={handleGoToPR}
-              disabled={!isValid}
+              onClick={handleFetchPR}
+              disabled={!isValid || isFetching}
               className={`px-4 py-2 rounded-r-md ${
                 isValid ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}>
-              Go
+              } disabled:bg-gray-400`}>
+              {isFetching ? 'Fetching...' : 'Fetch'}
             </button>
           </div>
           {prUrl && !isValid && <p className="mt-1 text-sm text-red-500">Please enter a valid GitHub PR URL</p>}
         </div>
-        {showAnalysis && <DemoPRAnalysis />}
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {prData && <DemoPRAnalysis prData={prData} />}
       </div>
     </div>
   );

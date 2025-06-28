@@ -9,7 +9,7 @@
     "dist/**",
     "dist/global.css"
   ],
-  "types": "dist/index.d.ts",
+  "types": "index.ts",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "scripts": {
@@ -24,6 +24,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "@extension/storage": "workspace:*",
     "@extension/shared": "workspace:*",
     "clsx": "^2.1.1",

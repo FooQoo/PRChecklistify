@@ -1,18 +1,18 @@
 import { Octokit } from '@octokit/rest';
-import { githubTokenStorage } from '@extension/storage';
-import type { PRIdentifier } from '../types';
+
+export interface PRIdentifier {
+  owner: string;
+  repo: string;
+  prNumber: number;
+}
 
 export class GithubClient {
   private octokit: Octokit;
 
-  private constructor(octokit: Octokit) {
-    this.octokit = octokit;
-  }
-
-  static async create() {
-    const token = await githubTokenStorage.get();
-    const octokit = new Octokit({
-      auth: token || undefined,
+  constructor(authToken: string) {
+    this.octokit = new Octokit({
+      auth: authToken,
+      baseUrl: process.env.GITHUB_API_DOMAIN || 'https://api.github.com',
       log: {
         debug: () => {},
         info: () => {},
@@ -20,7 +20,6 @@ export class GithubClient {
         error: () => {},
       },
     });
-    return new GithubClient(octokit);
   }
 
   async fetchPullRequest(identifier: PRIdentifier) {
@@ -100,12 +99,3 @@ export class GithubClient {
     });
   }
 }
-
-let githubClientSingleton: GithubClient | null = null;
-
-export const getGithubClient = async (): Promise<GithubClient> => {
-  if (!githubClientSingleton) {
-    githubClientSingleton = await GithubClient.create();
-  }
-  return githubClientSingleton;
-};

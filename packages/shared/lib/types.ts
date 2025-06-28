@@ -85,7 +85,7 @@ export interface CurrentPage {
 }
 
 // チェックリストアイテムのステータス
-export type ChecklistItemStatus = 'OK' | 'WARNING' | 'ERROR' | 'PENDING';
+export type ChecklistItemStatus = 'OK' | 'NG' | 'PENDING';
 
 // チェックリストアイテムの型
 export interface ChecklistItem {
@@ -106,3 +106,6 @@ export interface PRAnalysisResult {
   summary: string;
   fileAnalysis: Checklist[];
 }
+
+// i18n
+export type Language = 'en' | 'ja' | 'ko' | 'zh';

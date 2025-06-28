@@ -1,6 +1,6 @@
-import type { PRData, PRFile } from '@src/types';
+import type { PRData, PRFile, Language } from '@extension/shared';
 import { createModelClient } from './modelClient';
-import { getLanguageLabel, type Language } from '@extension/storage';
+import { getLanguageLabel } from '@extension/storage';
 
 // Add SWR fetchers for use with useSWR
 
