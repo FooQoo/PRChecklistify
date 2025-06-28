@@ -38,7 +38,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({ open, onClose, file, prDa
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-opacity-40">
       <div className="bg-white rounded-lg shadow-xl w-full h-full max-w-2xl max-h-none flex flex-col border border-gray-200 overflow-hidden">
         <div className="flex justify-between items-center p-3 bg-gray-100 border-b border-gray-200">
           <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">ファイルレビュー: {file.filename}</h2>
