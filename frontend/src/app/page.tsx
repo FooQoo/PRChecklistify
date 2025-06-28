@@ -1,6 +1,6 @@
 import Header from '../components/Header';
 import FeatureIntro from '../components/FeatureIntro';
-import DemoPlaceholder from '../components/DemoPlaceholder';
+import Demo from '../components/Demo';
 import Footer from '../components/Footer';
 import { getSession } from 'src/lib/session';
 
@@ -13,7 +13,7 @@ export default async function Home() {
       <Header user={user} />
       <main className="flex-grow">
         <FeatureIntro />
-        <DemoPlaceholder />
+        <Demo />
       </main>
       <Footer />
     </div>

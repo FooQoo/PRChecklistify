@@ -12,6 +12,8 @@
     "@types/simple-oauth2": "^5.0.7",
     "iron-session": "^8.0.4",
     "next": "15.3.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "simple-oauth2": "^5.1.0"
   },
   "devDependencies": {
