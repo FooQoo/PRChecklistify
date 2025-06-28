@@ -8,43 +8,60 @@ class PRDataStorage {
   private readonly STORAGE_KEY = 'pr_data_cache';
   private readonly MAX_CACHE_SIZE = 20; // 最大キャッシュ数
 
-  // PRデータを保存
-  async saveToStorage(prKey: string, prData: PRData, analysisResult?: PRAnalysisResult): Promise<void> {
+  // PRデータのみを保存
+  async savePRDataToStorage(prKey: string, prData: PRData): Promise<void> {
     try {
-      // 現在のキャッシュを取得
       const savedData = await this.getAllFromStorage();
-
-      // 新しいPRデータを作成
-      const newPRData: SavedPRData = {
-        key: prKey, // キーを追加
-        data: prData,
-        timestamp: Date.now(),
-        analysisResult,
-      };
-
-      // 既存のデータがあれば更新、なければ追加 (キーで検索)
       const existingIndex = savedData.findIndex(item => item.key === prKey);
-
+      let analysisResult = undefined;
       if (existingIndex >= 0) {
-        savedData[existingIndex] = newPRData;
+        analysisResult = savedData[existingIndex].analysisResult;
+        savedData[existingIndex] = {
+          key: prKey,
+          data: prData,
+          timestamp: Date.now(),
+          analysisResult,
+        };
       } else {
         // キャッシュサイズが最大に達していれば、最も古いものを削除
         if (savedData.length >= this.MAX_CACHE_SIZE) {
-          // タイムスタンプで並べ替えて古いものを削除
           savedData.sort((a, b) => b.timestamp - a.timestamp);
           savedData.pop();
         }
-
-        savedData.push(newPRData);
+        savedData.push({
+          key: prKey,
+          data: prData,
+          timestamp: Date.now(),
+          analysisResult: undefined,
+        });
       }
-
-      // ストレージに保存
       await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
-
-      // 最近表示したPRの履歴も更新
       await this.updateRecentPRs(prData.title, prKey);
     } catch (error) {
       console.error('Error saving PR data to storage:', error);
+      throw error;
+    }
+  }
+
+  // analysisResultのみを保存
+  async saveAnalysisResultToStorage(prKey: string, analysisResult: PRAnalysisResult): Promise<void> {
+    try {
+      const savedData = await this.getAllFromStorage();
+      const existingIndex = savedData.findIndex(item => item.key === prKey);
+      if (existingIndex >= 0) {
+        const prev = savedData[existingIndex];
+        savedData[existingIndex] = {
+          ...prev,
+          analysisResult,
+          timestamp: Date.now(),
+        };
+        await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
+      } else {
+        // データがなければ何もしない
+        console.warn('No PR data found for key:', prKey);
+      }
+    } catch (error) {
+      console.error('Error saving analysis result to storage:', error);
       throw error;
     }
   }

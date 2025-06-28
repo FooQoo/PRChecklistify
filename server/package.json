@@ -1,0 +1,26 @@
+{
+  "name": "@extension/server",
+  "version": "0.1.0",
+  "description": "API server for PRChecklistify (Express)",
+  "type": "module",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "clean:node_modules": "pnpx rimraf node_modules",
+    "clean:turbo": "rimraf .turbo",
+    "clean": "pnpm clean:turbo && pnpm clean:node_modules",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "fetch-prs": "tsx src/fetch-prs.ts fetch-prs"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.5",
+    "@extension/tsconfig": "workspace:*"
+  }
+}

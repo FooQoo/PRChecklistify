@@ -36,6 +36,7 @@ export const fetchers = {
     file: PRFile,
     chatHistory: { sender: string; message: string }[],
     onToken: (token: string) => void,
+    _language: Language,
     options?: { signal?: AbortSignal },
     allDiffs?: Record<string, string>,
   ) => {
@@ -64,7 +65,7 @@ export const fetchers = {
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       {
         role: 'system',
-        content: `You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}${readme}${commentsText}`,
+        content: `You are a senior software developer conducting a thorough code review in ${getLanguageLabel(_language)}.. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}${readme}${commentsText}`,
       },
       ...chatHistory.map((msg): { role: 'user' | 'assistant'; content: string } => ({
         role: msg.sender === 'You' ? 'user' : 'assistant',
@@ -119,7 +120,7 @@ export const fetchers = {
         },
         {
           role: 'user',
-          content: `Summarize the content of this pull request concisely from the following five perspectives: Background, Problem, Solution, Implementation, and Review Comments.\n\nFor the 'Review Comments' section, output a "Review Highlight Timeline".\n- Instead of listing every event, summarize the review activity for each day.\n- For each day, provide a brief summary of the main review points, status changes, and any important feedback.\n- Clearly indicate the current review status (e.g., "in review", "changes requested", "approved", etc.).\n- If possible, infer the overall review progress and any blockers.\n- Output should be easy to read as a daily timeline for the team to quickly grasp the review situation.`,
+          content: `Summarize the content of this pull request concisely from the following five perspectives: Background & Problem, Solution & Implementation, and Review Comments.\n\nFor the 'Review Comments' section, output a "Review Highlight Timeline".\n- Instead of listing every event, summarize the review activity for each day.\n- For each day, provide a brief summary of the main review points, status changes, and any important feedback.\n- Clearly indicate the current review status (e.g., "in review", "changes requested", "approved", etc.).\n- If possible, infer the overall review progress and any blockers.\n- Output should be easy to read as a daily timeline for the team to quickly grasp the review situation.`,
         },
       ];
       await client.streamChatCompletion(messages, onToken, options);

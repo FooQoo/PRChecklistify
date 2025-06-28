@@ -25,7 +25,7 @@ export const loadPRDataFromAnySource = async (
       const newData = await fetchPRData(identifier);
       if (newData) {
         setPRData(newData);
-        await prDataStorage.saveToStorage(prKey, newData);
+        await prDataStorage.savePRDataToStorage(prKey, newData);
         setAnalysisResult(undefined);
       } else {
         setError('Failed to load PR data');
@@ -42,7 +42,6 @@ export const fetchAndSetPRData = async (
   setPRData: (data: PRData | null) => void,
   setError: (err: string | null) => void,
   setIsLoading: (b: boolean) => void,
-  analysisResult: PRAnalysisResult | undefined,
 ) => {
   const identifier = extractPRInfoFromKey(prKey);
   if (!identifier) return;
@@ -52,7 +51,7 @@ export const fetchAndSetPRData = async (
     const newData = await fetchPRData(identifier);
     if (newData) {
       setPRData(newData);
-      await prDataStorage.saveToStorage(prKey, newData, analysisResult || undefined);
+      await prDataStorage.savePRDataToStorage(prKey, newData);
     } else {
       setError('Failed to refresh PR data');
     }

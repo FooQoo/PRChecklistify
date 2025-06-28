@@ -32,54 +32,47 @@ export function usePRData(prKey: string) {
   const saveAnalysisResultSummary = async (summary: string) => {
     if (!prData || !prKey) return;
 
-    const newResult = {
-      ...analysisResult,
-      summary,
-    } as PRAnalysisResult;
-
-    setAnalysisResult(newResult);
-
-    try {
-      await prDataStorage.saveToStorage(prKey, prData, newResult);
-    } catch (err) {
-      console.error('Error saving analysis result:', err);
-    }
+    setAnalysisResult(prev => {
+      const newResult = {
+        ...prev,
+        summary,
+      } as PRAnalysisResult;
+      // ストレージ保存もこの中で
+      prDataStorage.saveAnalysisResultToStorage(prKey, newResult).catch(err => {
+        console.error('Error saving analysis result:', err);
+      });
+      return newResult;
+    });
   };
 
   const saveAnalysisResultChecklist = async (fileChecklist: Checklist) => {
     if (!prData || !prKey) return;
 
-    let newFileAnalysis: Checklist[];
-
-    // すでに分析結果にchecklistと同じファイル名が存在する場合は更新
-    if (analysisResult?.fileAnalysis?.some(item => item.filename === fileChecklist.filename)) {
-      newFileAnalysis = analysisResult.fileAnalysis.map(item =>
-        item.filename === fileChecklist.filename ? fileChecklist : item,
-      );
-    } else {
-      // 含まれない場合は新しいチェックリストを追加
-      newFileAnalysis = (analysisResult?.fileAnalysis || []).concat(fileChecklist);
-    }
-
-    const newResult = {
-      ...analysisResult,
-      fileAnalysis: newFileAnalysis,
-    } as PRAnalysisResult;
-
-    setAnalysisResult(newResult);
-
-    try {
-      await prDataStorage.saveToStorage(prKey, prData, newResult);
-    } catch (err) {
-      console.error('Error saving analysis result:', err);
-    }
+    setAnalysisResult(prev => {
+      let newFileAnalysis: Checklist[];
+      if (prev?.fileAnalysis?.some(item => item.filename === fileChecklist.filename)) {
+        newFileAnalysis = prev.fileAnalysis.map(item =>
+          item.filename === fileChecklist.filename ? fileChecklist : item,
+        );
+      } else {
+        newFileAnalysis = (prev?.fileAnalysis || []).concat(fileChecklist);
+      }
+      const newResult = {
+        ...prev,
+        fileAnalysis: newFileAnalysis,
+      } as PRAnalysisResult;
+      prDataStorage.saveAnalysisResultToStorage(prKey, newResult).catch(err => {
+        console.error('Error saving analysis result:', err);
+      });
+      return newResult;
+    });
   };
 
   // データを強制的に再読み込みする関数
   const refreshData = async () => {
     if (!prKey) return;
 
-    await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading, analysisResult);
+    await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading);
   };
 
   // PRデータをAPIから再取得して状態を更新する関数
@@ -88,7 +81,7 @@ export function usePRData(prKey: string) {
     setIsLoading(true);
     setError(null);
     try {
-      await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading, analysisResult);
+      await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading);
       return prData;
     } catch {
       setError('Failed to reload PR data');
