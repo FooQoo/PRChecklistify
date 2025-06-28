@@ -1,63 +1,43 @@
 'use client';
 
 import { useState } from 'react';
-import type { PRAnalysisResult } from '../types';
-// import MarkdownRenderer from './MarkdownRenderer';
-// TODO: DemoFileChecklist を作成する
+import type { PRAnalysisResult, PRFile } from '../types';
+import MarkdownRenderer from './MarkdownRenderer';
 import DemoFileChecklist from './DemoFileChecklist';
-
-// ダミーデータとダミー関数
-const dummyPRFiles = [
-  {
-    filename: 'src/components/feature.tsx',
-    status: 'modified',
-    additions: 1,
-    deletions: 1,
-    patch: '@@ -1,1 +1,1 @@\n-Hello\n+Hello World',
-    contents_url: '',
-  },
-  {
-    filename: 'src/styles/main.css',
-    status: 'added',
-    additions: 1,
-    deletions: 0,
-    patch: '@@ -0,0 +1,1 @@\n+body { color: red; }',
-    contents_url: '',
-  },
-];
-
-const dummyAnalysisResult: PRAnalysisResult = {
-  summary: 'This PR introduces a new feature and updates styles. The changes seem reasonable.',
-  fileAnalysis: [
-    {
-      filename: 'src/components/feature.tsx',
-      explanation: '',
-      checklistItems: [
-        { id: '1', description: 'Component logic is clear', status: 'PENDING' },
-        { id: '2', description: 'Props are well-defined', status: 'PENDING' },
-      ],
-    },
-    {
-      filename: 'src/styles/main.css',
-      explanation: '',
-      checklistItems: [{ id: '3', description: 'Styles follow the design system', status: 'PENDING' }],
-    },
-  ],
-};
 
 const DemoPRAnalysis: React.FC = () => {
   const [summaryGenerating, setSummaryGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | null>(null);
 
+  // APIから分析結果を取得する関数
   const generateSummary = async () => {
     if (summaryGenerating) return;
     setError(null);
     setSummaryGenerating(true);
-    // ダミーの待機時間
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setAnalysisResult(dummyAnalysisResult);
-    setSummaryGenerating(false);
+
+    try {
+      const response = await fetch('/api/analyze-pr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // ボディは空でもOK（API側でダミーデータを使うため）
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch analysis.');
+      }
+
+      const result: PRAnalysisResult = await response.json();
+      setAnalysisResult(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+    } finally {
+      setSummaryGenerating(false);
+    }
   };
 
   return (
@@ -88,8 +68,7 @@ const DemoPRAnalysis: React.FC = () => {
         {analysisResult?.summary ? (
           <div className="pr-summary mb-4">
             <div className="bg-gray-50 p-3 rounded-md text-left text-sm whitespace-pre-line">
-              {/* <MarkdownRenderer content={analysisResult.summary} /> */}
-              <p>{analysisResult.summary}</p>
+              <MarkdownRenderer content={analysisResult.summary} />
             </div>
           </div>
         ) : (
@@ -107,8 +86,12 @@ const DemoPRAnalysis: React.FC = () => {
               <h3 className="text-lg font-bold">Changed Files</h3>
             </div>
             <div className="detailed-checklists">
-              {dummyPRFiles.map(file => (
-                <DemoFileChecklist key={file.filename} file={file} analysisResult={analysisResult} />
+              {analysisResult.fileAnalysis.map(fileAnalysis => (
+                <DemoFileChecklist
+                  key={fileAnalysis.filename}
+                  file={{ filename: fileAnalysis.filename } as PRFile}
+                  analysisResult={analysisResult}
+                />
               ))}
             </div>
           </div>

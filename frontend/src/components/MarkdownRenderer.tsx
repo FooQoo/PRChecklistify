@@ -12,7 +12,7 @@ interface MarkdownRendererProps {
  * @param content - レンダリングするマークダウン文字列
  * @param className - 追加のCSSクラス（オプション）
  */
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '' }) => {
+export default function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
   return (
     <div className={`markdown-body ${className}`}>
       <ReactMarkdown
@@ -80,6 +80,4 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
       </ReactMarkdown>
     </div>
   );
-};
-
-export default MarkdownRenderer;
+}
