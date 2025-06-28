@@ -232,6 +232,9 @@ importers:
 
   frontend:
     dependencies:
+      '@types/simple-oauth2':
+        specifier: ^5.0.7
+        version: 5.0.7
       iron-session:
         specifier: ^8.0.4
         version: 8.0.4
@@ -2033,6 +2036,9 @@ packages:
 
   '@types/serve-static@1.15.8':
     resolution: {integrity: sha512-roei0UY3LhpOJvjbIP6ZZFngyLKl5dskOtDhxY5THRSpO+ZI+nzJ+m5yUMzGrp89YRa7lvknKkMYjqQFGwA7Sg==}
+
+  '@types/simple-oauth2@5.0.7':
+    resolution: {integrity: sha512-8JbWVJbiTSBQP/7eiyGKyXWAqp3dKQZpaA+pdW16FCi32ujkzRMG8JfjoAzdWt6W8U591ZNdHcPtP2D7ILTKuA==}
 
   '@types/sinonjs__fake-timers@8.1.5':
     resolution: {integrity: sha512-mQkU2jY8jJEF7YHjHvsQO8+3ughTL1mcnn96igfhONmR+fUPSKIkefQYpSe8bsly2Ep7oQbn/6VG5/9/0qcArQ==}
@@ -7904,6 +7910,8 @@ snapshots:
       '@types/http-errors': 2.0.5
       '@types/node': 22.7.4
       '@types/send': 0.17.5
+
+  '@types/simple-oauth2@5.0.7': {}
 
   '@types/sinonjs__fake-timers@8.1.5': {}
 

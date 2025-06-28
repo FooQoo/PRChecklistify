@@ -9,12 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.3.4",
+    "@types/simple-oauth2": "^5.0.7",
     "iron-session": "^8.0.4",
+    "next": "15.3.4",
     "simple-oauth2": "^5.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@extension/tsconfig": "workspace:*"
+    "@extension/tsconfig": "workspace:*",
+    "typescript": "^5"
   }
 }

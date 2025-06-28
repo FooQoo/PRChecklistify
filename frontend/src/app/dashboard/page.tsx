@@ -1,10 +1,28 @@
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { getSession } from 'src/lib/session';
+import { getIronSession } from 'iron-session';
+
+interface SessionData {
+  accessToken?: string;
+  githubUser?: {
+    login: string;
+    name: string;
+    avatar_url: string;
+  };
+}
+
+const sessionOptions = {
+  password: process.env.IRON_SESSION_PASSWORD!,
+  cookieName: 'prchecklistify_session',
+  cookieOptions: {
+    secure: process.env.NODE_ENV === 'production',
+  },
+};
 
 export default async function Dashboard() {
-  const session = await getSession({ cookies: cookies() });
+  const cookieStore = await cookies();
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
 
   if (!session.githubUser) {
     redirect('/');
