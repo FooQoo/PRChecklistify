@@ -87,7 +87,7 @@ const OpenAiTokenSetupView: React.FC = () => {
             linkText: 'Get your Gemini API key →',
             validate: (key: string) => key.trim().length > 10 && key.startsWith('AIza'),
             invalidMsg: 'Invalid Gemini API Key',
-            desc: 'To use PR Checklistify with Gemini, provide your Gemini API key.',
+            desc: t('geminiDesc'),
           },
         ]
       : []),

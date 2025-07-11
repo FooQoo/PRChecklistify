@@ -188,6 +188,9 @@
     "message": "无法加载保存的设置"
   },
   "openaiApiDesc": {
-    "message": "要使用 PR Checklistify，您需要提供您的 OpenAI API 密钥。"
+    "message": "要使用 PR Checklistify，您需要提供 OpenAI API 密钥。"
+  },
+  "geminiDesc": {
+    "message": "要在 PR Checklistify 中使用 Gemini，请提供您的 Gemini API 密钥。"
   }
 }

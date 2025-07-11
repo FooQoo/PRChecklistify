@@ -306,5 +306,8 @@
   },
   "openaiApiDesc": {
     "message": "To use PR Checklistify, you need to provide your OpenAI API key."
+  },
+  "geminiDesc": {
+    "message": "To use PR Checklistify with Gemini, provide your Gemini API key."
   }
 }
