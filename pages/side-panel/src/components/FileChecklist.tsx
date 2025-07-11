@@ -24,18 +24,28 @@ interface ChecklistItemProps {
   isChecked: boolean;
   onToggle: () => void;
   onCopy: () => Promise<boolean>;
+  onPaste: () => Promise<boolean>;
   className?: string;
 }
 
 const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: ChecklistItemProps) => {
-  const [showCopy, setShowCopy] = useState(false);
+  const [tooltip, setTooltip] = useState<string | null>(null);
 
   const handleCopyClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     const success = await onCopy();
     if (success) {
-      setShowCopy(true);
-      setTimeout(() => setShowCopy(false), 1500);
+      setTooltip('copy');
+      setTimeout(() => setTooltip(null), 1500);
+    }
+  };
+
+  const handlePasteClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const success = await onPaste();
+    if (success) {
+      setTooltip('paste');
+      setTimeout(() => setTooltip(null), 1500);
     }
   };
 
@@ -63,10 +73,10 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
       <span className="text-sm">
         <MarkdownRenderer content={label} />
       </span>
-      <div className="relative ml-1">
-        {showCopy && (
+      <div className="relative ml-1 flex items-center gap-1">
+        {tooltip && (
           <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-1 py-px rounded shadow pointer-events-none">
-            copy
+            {tooltip}
           </span>
         )}
         <button
@@ -83,6 +93,21 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
             strokeWidth="2">
             <path d="M8 2a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V8l-6-6H8z" />
             <path d="M15 2v6h6" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={handlePasteClick}
+          className="text-white hover:text-gray-200"
+          aria-label={t('paste')}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2">
+            <path d="M19 11h-6v-6m6 0L10 14l-3-3-4 4" />
           </svg>
         </button>
       </div>
@@ -111,6 +136,14 @@ const FileChecklist = ({
   const handleCopy = async (text: string): Promise<boolean> => {
     try {
       await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const handlePaste = async (): Promise<boolean> => {
+    try {
+      await navigator.clipboard.readText();
       return true;
     } catch {
       return false;
@@ -587,6 +620,7 @@ const FileChecklist = ({
                           toggleReviewState(itemKey);
                         }}
                         onCopy={() => handleCopy(item.description)}
+                        onPaste={handlePaste}
                       />
                     ))}
                   </div>

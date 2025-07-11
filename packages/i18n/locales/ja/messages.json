@@ -307,11 +307,20 @@
   "copy": {
     "message": "コピー"
   },
+  "paste": {
+    "message": "ペースト"
+  },
   "copied": {
     "message": "クリップボードにコピーしました"
   },
+  "pasted": {
+    "message": "クリップボードから貼り付けました"
+  },
   "copyFailed": {
     "message": "コピーに失敗しました"
+  },
+  "pasteFailed": {
+    "message": "貼り付けに失敗しました"
   },
   "openaiApiDesc": {
     "message": "PR Checklistifyを利用するには、OpenAI APIキーの提供が必要です。"

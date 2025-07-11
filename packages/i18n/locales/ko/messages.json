@@ -189,11 +189,20 @@
   "copy": {
     "message": "복사"
   },
+  "paste": {
+    "message": "붙여넣기"
+  },
   "copied": {
     "message": "클립보드에 복사되었습니다"
   },
+  "pasted": {
+    "message": "클립보드에서 붙여넣었습니다"
+  },
   "copyFailed": {
     "message": "복사에 실패했습니다"
+  },
+  "pasteFailed": {
+    "message": "붙여넣기에 실패했습니다"
   },
   "openaiApiDesc": {
     "message": "PR Checklistify를 사용하려면 OpenAI API 키를 제공해야 합니다."

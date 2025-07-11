@@ -190,11 +190,20 @@
   "copy": {
     "message": "复制"
   },
+  "paste": {
+    "message": "粘贴"
+  },
   "copied": {
     "message": "已复制到剪贴板"
   },
+  "pasted": {
+    "message": "已从剪贴板粘贴"
+  },
   "copyFailed": {
     "message": "复制失败"
+  },
+  "pasteFailed": {
+    "message": "粘贴失败"
   },
   "openaiApiDesc": {
     "message": "要使用 PR Checklistify，您需要提供您的 OpenAI API 密钥。"
