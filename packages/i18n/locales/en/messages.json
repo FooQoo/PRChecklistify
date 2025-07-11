@@ -13,6 +13,9 @@
   "loading": {
     "message": "Loading..."
   },
+  "error": {
+    "message": "Error!"
+  },
   "greeting": {
     "description": "Greeting message",
     "message": "Hello, my name is $NAME$",

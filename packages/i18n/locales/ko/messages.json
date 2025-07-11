@@ -13,6 +13,9 @@
   "loading": {
     "message": "로딩 중..."
   },
+  "error": {
+    "message": "오류!"
+  },
   "greeting": {
     "description": "인사 메시지",
     "message": "안녕하세요, 제 이름은 $NAME$입니다.",

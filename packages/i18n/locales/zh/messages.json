@@ -13,6 +13,9 @@
   "loading": {
     "message": "加载中..."
   },
+  "error": {
+    "message": "错误！"
+  },
   "greeting": {
     "description": "问候消息",
     "message": "你好，我叫$NAME$",
