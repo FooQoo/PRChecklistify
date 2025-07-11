@@ -189,6 +189,9 @@
   "failedToLoadSettings": {
     "message": "저장된 설정을 불러오는데 실패했습니다"
   },
+  "enterPrUrlPrompt": {
+    "message": "AI 기반 검토 체크리스트를 생성하려면 GitHub Pull Request URL을 입력하세요."
+  },
   "openaiApiDesc": {
     "message": "PR Checklistify를 사용하려면 OpenAI API 키를 입력해야 합니다."
   },

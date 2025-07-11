@@ -307,6 +307,9 @@
   "generatingChecklistError": {
     "message": "チェックリスト生成中にエラーが発生しました。"
   },
+  "enterPrUrlPrompt": {
+    "message": "AIによるレビュー チェックリストを生成するには、GitHubのPull Request URLを入力してください。"
+  },
   "openaiApiDesc": {
     "message": "PR Checklistifyを利用するには、OpenAI APIキーの提供が必要です。"
   },
