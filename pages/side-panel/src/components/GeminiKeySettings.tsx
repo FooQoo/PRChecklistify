@@ -1,12 +1,13 @@
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useState } from 'react';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 interface GeminiKeySettingsProps {
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
+  const { t } = useI18n();
   const { geminiKey, setKeyAndStorage, clearKey } = useGeminiKeyAtom();
 
   // Gemini APIキーの状態

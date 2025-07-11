@@ -4,8 +4,12 @@ import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { useAtom } from 'jotai';
 import AppRouter from './routes/AppRoutes';
 import { currentPageAtom } from './atoms/currentPageAtom';
+import { useI18n } from '@extension/i18n';
 
 const SidePanel = () => {
+  // Initialize i18n
+  useI18n();
+
   const [loading, setLoading] = useState(true);
 
   // Set up the atom for current page to be used by the hook

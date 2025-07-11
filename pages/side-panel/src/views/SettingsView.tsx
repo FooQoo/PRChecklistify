@@ -5,14 +5,13 @@ import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
 import GeminiKeySettings from '../components/GeminiKeySettings';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import type { Language } from '@extension/storage';
-import { defaultLanguage, languagePreferenceStorage } from '@extension/storage';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 import Toast from '../components/Toast';
 import { isGeminiApiEnabled } from '../utils/envUtils';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
-  const [language, setLanguage] = useState(defaultLanguage);
+  const { language, setLanguage, t } = useI18n();
   const [, setOpenaiApiEndpoint] = useState('');
   const [, setHasCustomOpenaiEndpoint] = useState(false);
   const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
@@ -34,10 +33,6 @@ const SettingsView: React.FC = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        // Load language preference
-        const savedLanguage = await languagePreferenceStorage.get();
-        setLanguage(savedLanguage);
-
         // Load OpenAI API endpoint
         const result = await chrome.storage.local.get('openaiApiEndpoint');
         if (result.openaiApiEndpoint) {
@@ -76,26 +71,8 @@ const SettingsView: React.FC = () => {
 
   const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLanguage = e.target.value as Language;
-    setLanguage(newLanguage);
-
-    try {
-      // Save language preference to storage
-      await languagePreferenceStorage.set(newLanguage);
-
-      // Save to chrome.storage.local for i18n to access
-      await chrome.storage.local.set({ languagePreference: newLanguage });
-
-      // For development environment, store the preference to be used on next reload
-      if (process.env.NODE_ENV === 'development') {
-        localStorage.setItem('CEB_DEV_LOCALE', newLanguage);
-      }
-
-      // Show success toast
-      showToast(t('settingsSavedSuccess'), 'success');
-    } catch (err) {
-      console.error('Error saving language preference:', err);
-      showToast('Failed to save language preference', 'error');
-    }
+    await setLanguage(newLanguage);
+    showToast(t('settingsSavedSuccess'), 'success');
   };
 
   // handleModelClientTypeChangeをhooks経由に

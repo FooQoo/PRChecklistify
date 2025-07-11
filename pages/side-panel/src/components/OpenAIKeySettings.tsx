@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
 
-// props
-interface OpenAIKeySettingsProps {
+type OpenAIKeySettingsProps = {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
-}
+};
 
-const OpenAIKeySettings = ({ onToast }: OpenAIKeySettingsProps) => {
-  // useOpenaiKeyAtomでOpenAIキーを管理
+const OpenAIKeySettings: React.FC<OpenAIKeySettingsProps> = ({ onToast }) => {
+  const { t } = useI18n();
   const { openaiKey, setKeyAndStorage, clearKey } = useOpenaiKeyAtom();
 
   // APIキー入力関連のstate

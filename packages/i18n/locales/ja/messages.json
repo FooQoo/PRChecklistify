@@ -186,5 +186,8 @@
   },
   "failedToLoadSettings": {
     "message": "設定の読み込みに失敗しました"
+  },
+  "openaiApiDesc": {
+    "message": "PR Checklistifyを利用するには、OpenAI APIキーの提供が必要です。"
   }
 }

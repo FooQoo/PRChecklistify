@@ -278,6 +278,12 @@ importers:
       '@extension/env':
         specifier: workspace:*
         version: link:../env
+      '@extension/storage':
+        specifier: workspace:*
+        version: link:../storage
+      jotai:
+        specifier: ^2.9.0
+        version: 2.12.5(@types/react@19.1.8)(react@19.0.0)
     devDependencies:
       '@extension/tsconfig':
         specifier: workspace:*

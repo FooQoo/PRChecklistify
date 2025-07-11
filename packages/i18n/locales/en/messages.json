@@ -186,5 +186,8 @@
   },
   "failedToLoadSettings": {
     "message": "Failed to load saved settings"
+  },
+  "openaiApiDesc": {
+    "message": "To use PR Checklistify, you need to provide your OpenAI API key."
   }
 }

@@ -22,7 +22,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@extension/env": "workspace:*"
+    "@extension/env": "workspace:*",
+    "@extension/storage": "workspace:*",
+    "jotai": "^2.9.0"
   },
   "devDependencies": {
     "@extension/tsconfig": "workspace:*"
