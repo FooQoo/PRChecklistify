@@ -148,6 +148,42 @@
   "setCustomEndpointNotice": {
     "message": "Set a custom API endpoint if you are using a self-hosted instance of OpenAI."
   },
+  "geminiIntegration": {
+    "message": "Gemini Integration"
+  },
+  "geminiApiKey": {
+    "message": "Gemini API Key"
+  },
+  "pleaseEnterValidGeminiApiKey": {
+    "message": "Please enter a valid Gemini API key"
+  },
+  "invalidGeminiApiKeyFormat": {
+    "message": "Invalid Gemini API key format"
+  },
+  "geminiApiKeySavedSuccess": {
+    "message": "Gemini API key saved"
+  },
+  "geminiApiKeyIsSet": {
+    "message": "Gemini API key is set"
+  },
+  "failedToSaveGeminiApiKey": {
+    "message": "Failed to save Gemini API key"
+  },
+  "geminiApiKeyCleared": {
+    "message": "Gemini API key cleared"
+  },
+  "failedToClearGeminiApiKey": {
+    "message": "Failed to clear Gemini API key"
+  },
+  "geminiKeyStorageNotice": {
+    "message": "Your Gemini API key is stored locally and only used by the extension."
+  },
+  "enterGeminiApiKey": {
+    "message": "Enter your Gemini API key"
+  },
+  "getGeminiKey": {
+    "message": "Get your Gemini API key"
+  },
   "failedToLoadSettings": {
     "message": "Failed to load saved settings"
   }

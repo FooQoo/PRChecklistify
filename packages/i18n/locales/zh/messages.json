@@ -148,6 +148,42 @@
   "setCustomEndpointNotice": {
     "message": "如果您使用的是自托管的OpenAI实例，请设置自定义API端点。"
   },
+  "geminiIntegration": {
+    "message": "Gemini 集成"
+  },
+  "geminiApiKey": {
+    "message": "Gemini API 密钥"
+  },
+  "pleaseEnterValidGeminiApiKey": {
+    "message": "请输入有效的 Gemini API 密钥"
+  },
+  "invalidGeminiApiKeyFormat": {
+    "message": "Gemini API 密钥格式无效"
+  },
+  "geminiApiKeySavedSuccess": {
+    "message": "Gemini API 密钥已保存"
+  },
+  "geminiApiKeyIsSet": {
+    "message": "Gemini API 密钥已设置"
+  },
+  "failedToSaveGeminiApiKey": {
+    "message": "保存 Gemini API 密钥失败"
+  },
+  "geminiApiKeyCleared": {
+    "message": "Gemini API 密钥已清除"
+  },
+  "failedToClearGeminiApiKey": {
+    "message": "清除 Gemini API 密钥失败"
+  },
+  "geminiKeyStorageNotice": {
+    "message": "Gemini API 密钥保存在本地，仅在扩展中使用。"
+  },
+  "enterGeminiApiKey": {
+    "message": "输入您的 Gemini API 密钥"
+  },
+  "getGeminiKey": {
+    "message": "获取 Gemini API 密钥"
+  },
   "failedToLoadSettings": {
     "message": "加载已保存的设置失败"
   }

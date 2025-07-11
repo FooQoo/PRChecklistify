@@ -168,7 +168,7 @@ const SettingsView: React.FC = () => {
           )}
           {modelClientType === 'gemini' && geminiEnabled && (
             <>
-              <h2 className="text-lg font-semibold mb-4">Gemini Integration</h2>
+              <h2 className="text-lg font-semibold mb-4">{t('geminiIntegration')}</h2>
               <GeminiKeySettings onToast={showToast} />
             </>
           )}
