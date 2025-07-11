@@ -438,8 +438,10 @@ const FileChecklist = ({
 
   return (
     <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
-      <button
+      <div
         className="flex items-center justify-between p-3 cursor-pointer bg-gray-50 w-full"
+        role="button"
+        tabIndex={0}
         onClick={toggleExpanded}
         onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -482,7 +484,7 @@ const FileChecklist = ({
             )}
           </span>
         </div>
-      </button>
+      </div>
 
       {expanded && (
         <div className="p-4 border-t border-gray-200">
