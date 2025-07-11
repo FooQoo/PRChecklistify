@@ -186,5 +186,122 @@
   },
   "failedToLoadSettings": {
     "message": "設定の読み込みに失敗しました"
+  },
+  "statusApproved": {
+    "message": "✓ 承認済み"
+  },
+  "statusReviewing": {
+    "message": "⚠ レビュー中"
+  },
+  "statusNotReviewed": {
+    "message": "⊘ 未レビュー"
+  },
+  "aiGeneratedChecklistTitle": {
+    "message": "AI生成チェックリスト"
+  },
+  "regenerate": {
+    "message": "再生成"
+  },
+  "generatingChecklist": {
+    "message": "チェックリストを生成中..."
+  },
+  "aiChecklistNotGenerated": {
+    "message": "このファイルのAIチェックリストはまだ生成されていません。"
+  },
+  "generateChecklist": {
+    "message": "チェックリストを生成"
+  },
+  "fileSummary": {
+    "message": "ファイルの要約"
+  },
+  "checklistItemsTitle": {
+    "message": "チェック項目"
+  },
+  "codeChanges": {
+    "message": "コード変更"
+  },
+  "openAiReviewChat": {
+    "message": "AIレビュー チャットを開く"
+  },
+  "fileReview": {
+    "message": "ファイルレビュー"
+  },
+  "reviewDiscussion": {
+    "message": "レビューディスカッション"
+  },
+  "reset": {
+    "message": "リセット"
+  },
+  "askAiPrompt": {
+    "message": "AI に質問したりフィードバックを送ってみましょう"
+  },
+  "you": {
+    "message": "あなた"
+  },
+  "aiReviewer": {
+    "message": "AI レビュアー"
+  },
+  "reviewComplete": {
+    "message": "ファイルレビューが完了しました！"
+  },
+  "allChecklistDone": {
+    "message": "チェックリストが全てOKになりました。チャット画面を閉じて次のファイルに進みましょう。"
+  },
+  "closeChat": {
+    "message": "チャット画面を閉じる"
+  },
+  "enterMessage": {
+    "message": "メッセージを入力してください..."
+  },
+  "prAnalysisTitle": {
+    "message": "PR分析"
+  },
+  "generateSummary": {
+    "message": "サマリー生成"
+  },
+  "syncLatestCommit": {
+    "message": "最新コミットを同期"
+  },
+  "analyzingPr": {
+    "message": "PRを解析中です。しばらくお待ちください..."
+  },
+  "clickGenerateSummary": {
+    "message": "➡ 'サマリー生成' ボタンをクリックしてAIによる要約を取得してください。"
+  },
+  "changedFiles": {
+    "message": "変更されたファイル"
+  },
+  "storageManagement": {
+    "message": "ストレージ管理"
+  },
+  "noPrDataSaved": {
+    "message": "保存されたPRデータはありません。"
+  },
+  "prDataSaved": {
+    "message": "保存されたPRデータがあります。"
+  },
+  "clearing": {
+    "message": "削除中..."
+  },
+  "clearAllPrData": {
+    "message": "すべてのPRデータを削除"
+  },
+  "deletePrDataConfirm": {
+    "message": "保存されたPRデータをすべて削除しますか？この操作は取り消せません。"
+  },
+  "noPrDataFound": {
+    "message": "削除するPRデータがありません"
+  },
+  "prDataCleared": {
+    "message": "PRデータを削除しました"
+  },
+  "failedToClearPrData": {
+    "message": "PRデータの削除に失敗しました"
+  },
+  "deletePrDataNotice": {
+    "message": "この操作はチェックリストやAI解析結果を含むすべてのPRデータを削除します。"
+  },
+  "generatingChecklistError": {
+    "message": "チェックリスト生成中にエラーが発生しました。"
   }
 }

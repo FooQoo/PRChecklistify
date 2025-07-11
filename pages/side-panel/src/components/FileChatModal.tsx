@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { PRFile, PRAnalysisResult } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { t } from '@extension/i18n';
 
 interface FileChatModalProps {
   open: boolean;
@@ -124,7 +125,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            ファイルレビュー: {file.filename}
+            {t('fileReview')}: {file.filename}
           </h2>
           <button
             className="text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
@@ -159,13 +160,13 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                   />
                 </svg>
-                レビューディスカッション
+                {t('reviewDiscussion')}
               </div>
               {chatHistory.length > 0 && (
                 <button
                   onClick={handleResetChat}
                   className="text-xs bg-gray-200 text-gray-700 hover:bg-gray-300 rounded px-2 py-1 flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500"
-                  title="ディスカッションをリセット">
+                  title={t('reset')}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-3.5 w-3.5 mr-1"
@@ -179,7 +180,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                     />
                   </svg>
-                  リセット
+                  {t('reset')}
                 </button>
               )}
             </div>
@@ -200,7 +201,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                     />
                   </svg>
-                  <p className="text-sm">AI に質問したりフィードバックを送ってみましょう</p>
+                  <p className="text-sm">{t('askAiPrompt')}</p>
                 </div>
               ) : (
                 chatHistory.map((chat, idx) => (
@@ -210,7 +211,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                         chat.sender === 'You' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'
                       }`}>
                       <div className="font-semibold text-xs mb-1">
-                        {chat.sender === 'You' ? 'あなた' : 'AI レビュアー'}
+                        {chat.sender === 'You' ? t('you') : t('aiReviewer')}
                       </div>
                       {chat.sender === 'You' ? (
                         <div className="text-left whitespace-pre-wrap">{chat.message}</div>
@@ -224,7 +225,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
               {streaming && (
                 <div className="mb-3">
                   <div className="inline-block max-w-[85%] rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800">
-                    <div className="font-semibold text-xs mb-1">AI レビュアー</div>
+                    <div className="font-semibold text-xs mb-1">{t('aiReviewer')}</div>
                     <div className="relative">
                       <MarkdownRenderer content={streamedMessage} />
                       <div className="mt-1">
@@ -323,17 +324,15 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold mb-2 text-gray-800">ファイルレビューが完了しました！</h3>
-                <p className="mb-6 text-gray-600 text-sm text-center">
-                  チェックリストが全てOKになりました。チャット画面を閉じて次のファイルに進みましょう。
-                </p>
+                <h3 className="text-lg font-bold mb-2 text-gray-800">{t('reviewComplete')}</h3>
+                <p className="mb-6 text-gray-600 text-sm text-center">{t('allChecklistDone')}</p>
                 <button
                   className="text-sm bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   onClick={() => {
                     setShowCompleteModal(false);
                     onClose();
                   }}>
-                  チャット画面を閉じる
+                  {t('closeChat')}
                 </button>
               </div>
             </div>
@@ -391,7 +390,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     // 何もしない（デフォルトのテキストエリアの動作を許可）
                   }
                 }}
-                placeholder="メッセージを入力してください..."
+                placeholder={t('enterMessage')}
                 disabled={streaming}
               />
               <div className="px-2 py-1 flex justify-end items-center">

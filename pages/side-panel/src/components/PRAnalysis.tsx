@@ -8,6 +8,7 @@ import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { t } from '@extension/i18n';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -119,7 +120,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
     <>
       <div className="pr-analysis p-4 border border-gray-300 rounded-md mb-4 bg-white shadow-sm">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-bold">PR Analysis</h3>
+          <h3 className="text-lg font-bold">{t('prAnalysisTitle')}</h3>
           {summaryGenerating ? (
             <div className="flex items-center justify-center h-8 w-8">
               <svg
@@ -135,7 +136,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
             <button
               onClick={generateSummary}
               className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm">
-              {analysisResult?.summary || streamedSummary ? 'Sync latest commit' : 'Generate Summary'}
+              {analysisResult?.summary || streamedSummary ? t('syncLatestCommit') : t('generateSummary')}
             </button>
           )}
         </div>
@@ -148,9 +149,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
           </div>
         ) : (
           <div className="bg-gray-50 p-4 rounded-md text-gray-500 text-center">
-            {summaryGenerating || isStreaming
-              ? 'Analyzing your PR. This may take a moment...'
-              : "Click 'Generate Summary' to get AI-powered summary about this PR."}
+            {summaryGenerating || isStreaming ? t('analyzingPr') : t('clickGenerateSummary')}
           </div>
         )}
       </div>
@@ -158,7 +157,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
       <div className="grid grid-cols-1 gap-2 mt-4">
         <div className="changed-files p-4 border border-gray-300 rounded-md mb-4 bg-white shadow-sm w-full text-left">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-bold">Changed Files</h3>
+            <h3 className="text-lg font-bold">{t('changedFiles')}</h3>
           </div>
           <div className="detailed-checklists">
             {prData.files.map((file, index) => {

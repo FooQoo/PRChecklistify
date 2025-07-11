@@ -5,6 +5,7 @@ import { generatingAtom } from '@src/atoms/generatingAtom';
 import { fetchers } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { t } from '@extension/i18n';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
@@ -235,12 +236,12 @@ const FileChecklist = ({
 
     switch (currentStatus) {
       case 'approved':
-        return { label: '✓ Approved', class: 'bg-green-500 text-white' };
+        return { label: t('statusApproved'), class: 'bg-green-500 text-white' };
       case 'reviewing':
-        return { label: '⚠ Reviewing', class: 'bg-yellow-500 text-white' };
+        return { label: t('statusReviewing'), class: 'bg-yellow-500 text-white' };
       case 'not-reviewed':
       default:
-        return { label: '⊘ Not Reviewed', class: 'bg-gray-500 text-white' };
+        return { label: t('statusNotReviewed'), class: 'bg-gray-500 text-white' };
     }
   };
 
@@ -369,7 +370,7 @@ const FileChecklist = ({
       const checklist = await fetchers.generateChecklist(prData, file, language);
       await saveAnalysisResultChecklist(checklist);
     } catch (error) {
-      setError('チェックリスト生成中にエラーが発生しました。');
+      setError(t('generatingChecklistError'));
       console.error('Checklist generation error:', error);
     } finally {
       setGenerating(false);
@@ -448,7 +449,7 @@ const FileChecklist = ({
           <div className="flex flex-col gap-3">
             {aiGeneratedChecklist && (
               <div className="flex justify-between items-center">
-                <h4 className="text-sm font-semibold mb-2">AI-Generated Checklist</h4>
+                <h4 className="text-sm font-semibold mb-2">{t('aiGeneratedChecklistTitle')}</h4>
                 <button
                   className="px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded text-xs"
                   disabled={generating}
@@ -456,7 +457,7 @@ const FileChecklist = ({
                     e.stopPropagation(); // 親要素へのイベント伝播を防止
                     generateChecklist();
                   }}>
-                  Regenerate
+                  {t('regenerate')}
                 </button>
               </div>
             )}
@@ -467,7 +468,7 @@ const FileChecklist = ({
 
             {generating && (
               <div className="flex flex-col items-center justify-center py-6 w-full text-gray-600">
-                <div>チェックリストを生成中...</div>
+                <div>{t('generatingChecklist')}</div>
                 <div className="w-full flex justify-center mt-4">
                   <div
                     className="grid gap-1 w-full"
@@ -489,7 +490,7 @@ const FileChecklist = ({
 
             {!generating && !aiGeneratedChecklist && (
               <div className="flex flex-col items-center justify-center py-10">
-                <p className="text-sm text-gray-500 mb-4">このファイルのAIチェックリストはまだ生成されていません。</p>
+                <p className="text-sm text-gray-500 mb-4">{t('aiChecklistNotGenerated')}</p>
                 <button
                   className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md text-sm font-medium flex items-center shadow-sm transition-all duration-200 hover:shadow"
                   disabled={generating}
@@ -510,14 +511,14 @@ const FileChecklist = ({
                       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                     />
                   </svg>
-                  チェックリストを生成
+                  {t('generateChecklist')}
                 </button>
               </div>
             )}
 
             {!generating && aiGeneratedChecklist?.explanation && (
               <div className="mb-2">
-                <h4 className="text-sm font-semibold mb-2">ファイルの要約</h4>
+                <h4 className="text-sm font-semibold mb-2">{t('fileSummary')}</h4>
                 <p className="text-xs text-gray-500">
                   <MarkdownRenderer content={aiGeneratedChecklist?.explanation} />
                 </p>
@@ -528,7 +529,7 @@ const FileChecklist = ({
 
               {!generating && aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold mb-2">チェック項目</h4>
+                  <h4 className="text-sm font-semibold mb-2">{t('checklistItemsTitle')}</h4>
                   {aiGeneratedChecklist.checklistItems.map((item, index) => (
                     <ChecklistItem
                       key={item.id}
@@ -546,7 +547,7 @@ const FileChecklist = ({
 
             {!generating && aiGeneratedChecklist && file.patch && (
               <div>
-                <h4 className="text-sm font-semibold mb-2">Code Changes</h4>
+                <h4 className="text-sm font-semibold mb-2">{t('codeChanges')}</h4>
                 {renderGitHubStyleDiff(file.patch)}
               </div>
             )}
@@ -574,7 +575,7 @@ const FileChecklist = ({
                         d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                       />
                     </svg>
-                    AIレビュー チャットを開く
+                    {t('openAiReviewChat')}
                   </button>
                 )}
               </div>
