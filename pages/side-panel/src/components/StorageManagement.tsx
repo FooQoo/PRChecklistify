@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { t } from '@extension/i18n';
 
 // Component for storage management (clear PR data)
 const StorageManagement = () => {
@@ -27,7 +28,7 @@ const StorageManagement = () => {
 
   // Clear all PR data from storage
   const handleClearAllPRData = async () => {
-    if (!window.confirm('Are you sure you want to delete all saved PR data? This action cannot be undone.')) {
+    if (!window.confirm(t('deletePrDataConfirm'))) {
       return;
     }
 
@@ -40,7 +41,7 @@ const StorageManagement = () => {
       const prStorage = result.pr || {};
 
       if (Object.keys(prStorage).length === 0) {
-        setMessage({ text: 'No PR data found to clear', type: 'info' });
+        setMessage({ text: t('noPrDataFound'), type: 'info' });
         setIsClearing(false);
         return;
       }
@@ -48,11 +49,11 @@ const StorageManagement = () => {
       // Clear the entire 'pr' object
       await chrome.storage.local.remove('pr_data_cache');
 
-      setMessage({ text: `Successfully cleared  PR data items`, type: 'success' });
+      setMessage({ text: t('prDataCleared'), type: 'success' });
       setHasPRData(false);
     } catch (error) {
       console.error('Error clearing PR data:', error);
-      setMessage({ text: 'Failed to clear PR data', type: 'error' });
+      setMessage({ text: t('failedToClearPrData'), type: 'error' });
     } finally {
       setIsClearing(false);
     }
@@ -60,24 +61,20 @@ const StorageManagement = () => {
 
   return (
     <div className="border border-gray-300 rounded p-4 w-full mt-4">
-      <h3 className="text-lg font-bold mb-3">Storage Management</h3>
+      <h3 className="text-lg font-bold mb-3">{t('storageManagement')}</h3>
 
       <div className="mb-4">
-        <p className="text-sm mb-2">
-          {hasPrData ? 'No PR data currently saved in storage.' : `You have PR(s) saved in storage.`}
-        </p>
+        <p className="text-sm mb-2">{hasPrData ? t('noPrDataSaved') : t('prDataSaved')}</p>
 
         <div className="mt-4">
           <button
             onClick={handleClearAllPRData}
             disabled={isClearing || !hasPrData}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
-            {isClearing ? 'Clearing...' : 'Clear All PR Data'}
+            {isClearing ? t('clearing') : t('clearAllPrData')}
           </button>
 
-          <p className="text-xs text-gray-600 mt-2">
-            This will delete all saved PR data, including checklist statuses and AI analysis results.
-          </p>
+          <p className="text-xs text-gray-600 mt-2">{t('deletePrDataNotice')}</p>
         </div>
 
         {message.text && (

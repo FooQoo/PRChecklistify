@@ -187,6 +187,123 @@
   "failedToLoadSettings": {
     "message": "Failed to load saved settings"
   },
+  "statusApproved": {
+    "message": "✓ Approved"
+  },
+  "statusReviewing": {
+    "message": "⚠ Reviewing"
+  },
+  "statusNotReviewed": {
+    "message": "⊘ Not Reviewed"
+  },
+  "aiGeneratedChecklistTitle": {
+    "message": "AI-Generated Checklist"
+  },
+  "regenerate": {
+    "message": "Regenerate"
+  },
+  "generatingChecklist": {
+    "message": "Generating checklist..."
+  },
+  "aiChecklistNotGenerated": {
+    "message": "AI checklist not generated yet for this file."
+  },
+  "generateChecklist": {
+    "message": "Generate Checklist"
+  },
+  "fileSummary": {
+    "message": "File Summary"
+  },
+  "checklistItemsTitle": {
+    "message": "Checklist Items"
+  },
+  "codeChanges": {
+    "message": "Code Changes"
+  },
+  "openAiReviewChat": {
+    "message": "Open AI Review Chat"
+  },
+  "fileReview": {
+    "message": "File Review"
+  },
+  "reviewDiscussion": {
+    "message": "Review Discussion"
+  },
+  "reset": {
+    "message": "Reset"
+  },
+  "askAiPrompt": {
+    "message": "Ask AI a question or provide feedback"
+  },
+  "you": {
+    "message": "You"
+  },
+  "aiReviewer": {
+    "message": "AI Reviewer"
+  },
+  "reviewComplete": {
+    "message": "File review completed!"
+  },
+  "allChecklistDone": {
+    "message": "All checklist items are OK. Close the chat to continue."
+  },
+  "closeChat": {
+    "message": "Close chat window"
+  },
+  "enterMessage": {
+    "message": "Enter your message..."
+  },
+  "prAnalysisTitle": {
+    "message": "PR Analysis"
+  },
+  "generateSummary": {
+    "message": "Generate Summary"
+  },
+  "syncLatestCommit": {
+    "message": "Sync latest commit"
+  },
+  "analyzingPr": {
+    "message": "Analyzing your PR. This may take a moment..."
+  },
+  "clickGenerateSummary": {
+    "message": "Click 'Generate Summary' to get AI-powered summary about this PR."
+  },
+  "changedFiles": {
+    "message": "Changed Files"
+  },
+  "storageManagement": {
+    "message": "Storage Management"
+  },
+  "noPrDataSaved": {
+    "message": "No PR data currently saved in storage."
+  },
+  "prDataSaved": {
+    "message": "You have PR(s) saved in storage."
+  },
+  "clearing": {
+    "message": "Clearing..."
+  },
+  "clearAllPrData": {
+    "message": "Clear All PR Data"
+  },
+  "deletePrDataConfirm": {
+    "message": "Are you sure you want to delete all saved PR data? This action cannot be undone."
+  },
+  "noPrDataFound": {
+    "message": "No PR data found to clear"
+  },
+  "prDataCleared": {
+    "message": "Successfully cleared PR data items"
+  },
+  "failedToClearPrData": {
+    "message": "Failed to clear PR data"
+  },
+  "deletePrDataNotice": {
+    "message": "This will delete all saved PR data, including checklist statuses and AI analysis results."
+  },
+  "generatingChecklistError": {
+    "message": "Error occurred while generating the checklist."
+  },
   "openaiApiDesc": {
     "message": "To use PR Checklistify, you need to provide your OpenAI API key."
   }
