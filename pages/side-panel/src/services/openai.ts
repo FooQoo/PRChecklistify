@@ -13,19 +13,14 @@ export interface OpenAIConfig {
   model: string;
 }
 
-// チェックリストアイテムのステータス
-export const ChecklistItemStatusSchema = z
-  .union([z.literal('OK'), z.literal('NG'), z.literal('PENDING')])
-  .describe('チェックリストアイテムの状態（OK, NG, PENDING のいずれか）');
-
 // チェックリストアイテム
 export const ChecklistItemSchema = z
   .object({
     id: z.string().describe('チェックリストアイテムの一意なID'),
     description: z.string().describe('チェックリストアイテムの説明文'),
-    status: ChecklistItemStatusSchema,
+    isChecked: z.boolean().describe('レビューが完了したかどうか'),
   })
-  .describe('チェックリストアイテム（ID・説明・状態）');
+  .describe('チェックリストアイテム（ID・説明・チェック状態）');
 
 // ファイル単位のチェックリスト（説明＋アイテム配列）
 export const ChecklistSchema = z

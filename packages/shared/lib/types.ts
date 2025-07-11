@@ -84,14 +84,14 @@ export interface CurrentPage {
   isPRPage?: boolean;
 }
 
-// チェックリストアイテムのステータス
-export type ChecklistItemStatus = 'OK' | 'NG' | 'PENDING';
-
 // チェックリストアイテムの型
 export interface ChecklistItem {
   id: string;
   description: string;
-  status: ChecklistItemStatus;
+  /**
+   * Whether this item has been reviewed and approved.
+   */
+  isChecked: boolean;
 }
 
 // ファイルチェックリストの型

@@ -8,7 +8,7 @@ import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
-  onChecklistChange: (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
+  onChecklistChange: (filename: string, checklistItems: Record<string, boolean>) => void;
   analysisResult: PRAnalysisResult | undefined;
   onOpenChat?: () => void;
   prData: PRData;
@@ -19,48 +19,33 @@ interface FileChecklistProps {
 // チェックリスト項目コンポーネント
 interface ChecklistItemProps {
   label: string;
-  status: 'PENDING' | 'OK' | 'NG';
+  isChecked: boolean;
   onToggle: () => void;
   className?: string;
 }
 
-const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistItemProps) => {
-  // Get the appropriate button style based on current state
-  const getButtonStyle = (state: 'PENDING' | 'OK' | 'NG') => {
-    switch (state) {
-      case 'OK':
-        return 'bg-green-500 hover:bg-green-600 text-white';
-      case 'NG':
-        return 'bg-red-500 hover:bg-red-600 text-white';
-      case 'PENDING':
-      default:
-        return 'bg-gray-200 hover:bg-gray-300 text-gray-700';
-    }
-  };
-
-  // Render the button content
-  const renderButtonContent = (state: 'PENDING' | 'OK' | 'NG') => {
-    if (state === 'PENDING') {
-      return 'PENDING';
-    }
-    return state;
-  };
-
-  // Get button class with fixed width
-  const getButtonClasses = (state: 'PENDING' | 'OK' | 'NG') => {
-    return `px-3 py-1 rounded-md text-sm font-medium transition-colors min-w-[90px] text-center ${getButtonStyle(state)}`;
-  };
-
+const ChecklistItem = ({ label, isChecked, onToggle, className = '' }: ChecklistItemProps) => {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <button
-        onClick={e => {
-          e.stopPropagation(); // Prevent event propagation to parent elements
+    <div
+      role="button"
+      tabIndex={0}
+      className={`flex items-center gap-2 cursor-pointer select-none ${className}`}
+      onClick={e => {
+        e.stopPropagation();
+        onToggle();
+      }}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
           onToggle();
-        }}
-        className={getButtonClasses(status)}>
-        {renderButtonContent(status)}
-      </button>
+        }
+      }}>
+      <input
+        type="checkbox"
+        checked={isChecked}
+        onChange={onToggle}
+        className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+      />
       <span className="text-sm">
         <MarkdownRenderer content={label} />
       </span>
@@ -95,23 +80,19 @@ const FileChecklist = ({
   const initializeChecklistItems = useCallback(() => {
     // AIによって生成されたチェックリストが利用可能な場合、そのアイテムを含むオブジェクトを作成
     if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
-      const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+      const items: Record<string, boolean> = {};
       aiGeneratedChecklist.checklistItems.forEach((item, index) => {
-        // AIチェックリストのステータスを初期値として使用
-        items[`item_${index}`] = ['PENDING', 'OK', 'NG'].includes(item.status)
-          ? (item.status as 'PENDING' | 'OK' | 'NG')
-          : 'PENDING';
+        items[`item_${index}`] = !!item.isChecked;
       });
       return items;
     }
 
-    // AI生成チェックリストがない場合はプレースホルダーとして1つの'OK'ステータスのアイテムを作成
-    return {} as Record<string, 'PENDING' | 'OK' | 'NG'>;
+    // AI生成チェックリストがない場合
+    return {} as Record<string, boolean>;
   }, [aiGeneratedChecklist]);
 
   // State to track checklist items - Initialize from saved data if available
-  const [checklistItems, setChecklistItems] =
-    useState<Record<string, 'PENDING' | 'OK' | 'NG'>>(initializeChecklistItems());
+  const [checklistItems, setChecklistItems] = useState<Record<string, boolean>>(initializeChecklistItems());
 
   // aiGeneratedChecklistが変更されたときだけ状態を更新
   useEffect(() => {
@@ -127,7 +108,7 @@ const FileChecklist = ({
   // Initialize the allItemsJustChecked state based on initial checklist items
   useEffect(() => {
     const initialItems = initializeChecklistItems();
-    const allInitialItemsOK = Object.values(initialItems).every(item => item === 'OK');
+    const allInitialItemsOK = Object.values(initialItems).every(item => item);
     setAllItemsJustChecked(allInitialItemsOK);
   }, [initializeChecklistItems]);
 
@@ -137,8 +118,8 @@ const FileChecklist = ({
       return 'not-reviewed';
     }
 
-    const allOK = Object.values(checklistItems).every(item => item === 'OK');
-    const anyReviewed = Object.values(checklistItems).some(item => item !== 'PENDING');
+    const allOK = Object.values(checklistItems).every(item => item);
+    const anyReviewed = Object.values(checklistItems).some(item => item);
 
     if (allOK) {
       return 'approved';
@@ -161,7 +142,7 @@ const FileChecklist = ({
       return true;
     }
 
-    const allOK = Object.values(checklistItems).every(item => item === 'OK');
+    const allOK = Object.values(checklistItems).every(item => item);
 
     // If all checks are OK, collapse it
     if (allOK && allItemsJustChecked) {
@@ -190,7 +171,7 @@ const FileChecklist = ({
     // checklistItemsがローカルで変更されたときだけ実行
     if (checklistItems && Object.keys(checklistItems).length > 0) {
       // Check if all items just became OK
-      const allOK = Object.values(checklistItems).every(item => item === 'OK');
+      const allOK = Object.values(checklistItems).every(item => item);
       if (allOK && !allItemsJustChecked) {
         setAllItemsJustChecked(true);
         // Reset the override when items are all OK
@@ -201,23 +182,12 @@ const FileChecklist = ({
     }
   }, [checklistItems, file.filename, allItemsJustChecked]);
 
-  // Toggle through the review states: PENDING -> NG -> OK -> NG
+  // Toggle checklist item state
   const toggleReviewState = (item: string) => {
     if (!checklistItems) return;
 
     const currentState = checklistItems[item];
-    let nextState: 'PENDING' | 'OK' | 'NG';
-
-    // PENDING -> NG -> OK -> NG cycle
-    if (currentState === 'PENDING') {
-      nextState = 'NG';
-    } else if (currentState === 'NG') {
-      nextState = 'OK';
-    } else if (currentState === 'OK') {
-      nextState = 'NG';
-    } else {
-      nextState = 'NG'; // fallback case, though it shouldn't happen
-    }
+    const nextState = !currentState;
 
     const newChecklistItems = {
       ...checklistItems,
@@ -237,11 +207,11 @@ const FileChecklist = ({
     if (expanded) {
       // If we have checklist items, set them all to OK
       if (checklistItems && Object.keys(checklistItems).length > 0) {
-        const allOKItems: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+        const allOKItems: Record<string, boolean> = {};
 
-        // Set all items to OK
+        // Set all items to checked
         Object.keys(checklistItems).forEach(key => {
-          allOKItems[key] = 'OK';
+          allOKItems[key] = true;
         });
 
         // チェックリストを全てOKに変更
@@ -561,9 +531,8 @@ const FileChecklist = ({
                     <ChecklistItem
                       key={item.id}
                       label={item.description}
-                      status={checklistItems[`item_${index}`] || item.status}
+                      isChecked={checklistItems[`item_${index}`] ?? item.isChecked}
                       onToggle={() => {
-                        // Toggle the status in a circular manner: PENDING -> NG -> OK -> NG
                         const itemKey = `item_${index}`;
                         toggleReviewState(itemKey);
                       }}

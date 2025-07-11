@@ -101,14 +101,14 @@ For each changed file, create a checklist of specific items to review, focusing 
 * Max checklist items per file: 3
 
 * For **core logic files, UI components, specifications, and tests**, generate detailed checklist items with:
-  * description: e.g. "Check that..." 
-  * status: "PENDING".
+  * description: e.g. "Check that..."
+  * isChecked: false
 * For **mock data files, slice files, and type definition files**, generate only one checklist item with:
   * description: e.g. "Low risk - review not required."
-  * status: "OK"
+  * isChecked: true
 * For **dist and other build artifacts**, generate only one checklist item with:
   * description: e.g. "Build artifact - review not required."
-  * status: "OK"
+  * isChecked: true
 * Provide a meaningful explanation for every file, even for mocks and dist files, summarizing why they changed and their role in the PR.
 
 PR Title: ${title}
@@ -125,7 +125,7 @@ Format your response as a JSON object with the following structure:
     {
       "id": "item_0",
       "description": "Check that...",
-      "status": "PENDING"
+      "isChecked": false
     },
     ...more items
   ]

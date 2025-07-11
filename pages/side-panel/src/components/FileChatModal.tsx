@@ -17,7 +17,7 @@ interface FileChatModalProps {
   allDiffs?: Record<string, string>;
   // onChecklistChangeは残す
   analysisResult?: PRAnalysisResult;
-  onChecklistChange: (checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => void;
+  onChecklistChange: (checklistItems: Record<string, boolean>) => void;
 }
 
 const FileChatModal: React.FC<FileChatModalProps> = ({
@@ -43,14 +43,14 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // checklistItems, aiAnalysisの状態をローカルで管理
   const aiAnalysis = analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
-  const [localChecklistItems, setLocalChecklistItems] = useState<Record<string, 'PENDING' | 'OK' | 'NG'>>({});
+  const [localChecklistItems, setLocalChecklistItems] = useState<Record<string, boolean>>({});
 
   // aiAnalysisが変わったらローカル状態を初期化
   useEffect(() => {
     if (aiAnalysis) {
-      const items: Record<string, 'PENDING' | 'OK' | 'NG'> = {};
+      const items: Record<string, boolean> = {};
       aiAnalysis.checklistItems.forEach((item, idx) => {
-        items[item.id || `item_${idx}`] = item.status as 'PENDING' | 'OK' | 'NG';
+        items[item.id || `item_${idx}`] = !!item.isChecked;
       });
       setLocalChecklistItems(items);
     }
@@ -253,37 +253,53 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     {aiAnalysis.checklistItems.map((item, idx) => {
                       // checklistItems propがあればそちらを使う
                       const key = `item_${idx}`;
-                      const status = (localChecklistItems && localChecklistItems[key]) || item.status;
-                      let statusClass = '';
-                      if (status === 'OK') statusClass = 'bg-green-500 text-white border-green-500';
-                      else if (status === 'NG') statusClass = 'bg-red-500 text-white border-red-500';
-                      else statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                      const checked = (localChecklistItems && localChecklistItems[key]) ?? item.isChecked;
+
                       // checklistItemsとonChecklistChangeがあればトグル可能
                       return (
-                        <div key={key} className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className={`px-2 py-1 rounded text-xs font-bold border transition-colors min-w-[90px] ${statusClass}`}
-                            onClick={() => {
-                              // 状態をトグル
-                              let next: 'OK' | 'NG';
-                              if (status === 'NG') {
-                                next = 'OK';
-                              } else {
-                                next = 'NG';
-                              }
-                              const newChecklistItems = { ...localChecklistItems, [key]: next };
+                        <div
+                          key={key}
+                          role="button"
+                          tabIndex={0}
+                          className="flex items-center gap-2 cursor-pointer select-none"
+                          onClick={() => {
+                            const newChecklistItems = { ...localChecklistItems, [key]: !checked };
+                            setLocalChecklistItems(newChecklistItems);
+                            onChecklistChange(newChecklistItems);
+
+                            const allChecked = Object.values(newChecklistItems).every(s => s);
+                            if (allChecked) {
+                              setShowCompleteModal(true);
+                            }
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              const newChecklistItems = { ...localChecklistItems, [key]: !checked };
                               setLocalChecklistItems(newChecklistItems);
                               onChecklistChange(newChecklistItems);
 
-                              // すべてのチェックリストがOKの場合、完了モーダルを表示
-                              const allChecked = Object.values(newChecklistItems).every(s => s === 'OK');
+                              const allChecked = Object.values(newChecklistItems).every(s => s);
                               if (allChecked) {
                                 setShowCompleteModal(true);
                               }
-                            }}>
-                            {status}
-                          </button>
+                            }
+                          }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              const newChecklistItems = { ...localChecklistItems, [key]: !checked };
+                              setLocalChecklistItems(newChecklistItems);
+                              onChecklistChange(newChecklistItems);
+
+                              const allChecked = Object.values(newChecklistItems).every(s => s);
+                              if (allChecked) {
+                                setShowCompleteModal(true);
+                              }
+                            }}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                          />
                           <span className="text-sm">
                             <MarkdownRenderer content={item.description} />
                           </span>
