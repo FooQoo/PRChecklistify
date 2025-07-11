@@ -22,7 +22,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "openai": "^4.28.0"
   },
   "devDependencies": {
     "@extension/storage": "workspace:*",
