@@ -24,6 +24,7 @@ const SettingsView: React.FC = () => {
     message: '',
     type: 'success',
   });
+  const [pendingLanguageToast, setPendingLanguageToast] = useState(false);
   // modelClientTypeのJotai hooksを利用
   const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
   // Geminiエンドポイント有効判定
@@ -69,10 +70,17 @@ const SettingsView: React.FC = () => {
     setToast(prev => ({ ...prev, visible: false }));
   };
 
+  useEffect(() => {
+    if (pendingLanguageToast) {
+      showToast(t('settingsSavedSuccess'), 'success');
+      setPendingLanguageToast(false);
+    }
+  }, [pendingLanguageToast, t]);
+
   const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLanguage = e.target.value as Language;
     await setLanguage(newLanguage);
-    showToast(t('settingsSavedSuccess'), 'success');
+    setPendingLanguageToast(true);
   };
 
   // handleModelClientTypeChangeをhooks経由に
