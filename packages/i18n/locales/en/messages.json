@@ -307,6 +307,9 @@
   "generatingChecklistError": {
     "message": "Error occurred while generating the checklist."
   },
+  "enterPrUrlPrompt": {
+    "message": "Enter a GitHub Pull Request URL to generate an AI-powered review checklist."
+  },
   "openaiApiDesc": {
     "message": "To use PR Checklistify, you need to provide your OpenAI API key."
   },

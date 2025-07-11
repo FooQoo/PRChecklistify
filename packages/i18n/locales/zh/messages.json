@@ -190,6 +190,9 @@
   "failedToLoadSettings": {
     "message": "无法加载保存的设置"
   },
+  "enterPrUrlPrompt": {
+    "message": "输入 GitHub Pull Request URL 以生成 AI 驱动的评审清单。"
+  },
   "openaiApiDesc": {
     "message": "要使用 PR Checklistify，您需要提供 OpenAI API 密钥。"
   },
