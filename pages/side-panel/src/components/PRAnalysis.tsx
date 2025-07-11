@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import type { ChecklistItemStatus, Checklist, PRAnalysisResult, PRData } from '../types';
+import type { Checklist, PRAnalysisResult, PRData } from '../types';
 import type { Language } from '@extension/storage';
 import { defaultLanguage, languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
@@ -93,7 +93,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   };
 
   // チェックリスト変更時のハンドラー
-  const handleChecklistChange = (filename: string, checklistItems: Record<string, 'PENDING' | 'OK' | 'NG'>) => {
+  const handleChecklistChange = (filename: string, checklistItems: Record<string, boolean>) => {
     if (!prData || !analysisResult) return;
 
     // 分析結果のファイルチェックリストを更新する
@@ -103,8 +103,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
         // ステータスマッピングしたチェックリストアイテムを作成
         const updatedItems = checklist.checklistItems.map((item, index) => {
           const key = `item_${index}`;
-          if (checklistItems[key]) {
-            return { ...item, status: checklistItems[key] as ChecklistItemStatus };
+          if (key in checklistItems) {
+            return { ...item, isChecked: checklistItems[key] };
           }
           return item;
         });
