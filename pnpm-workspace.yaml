@@ -4,4 +4,3 @@ packages:
   - 'packages/*'
   - 'tests/*'
   - 'server'
-  - 'frontend'
