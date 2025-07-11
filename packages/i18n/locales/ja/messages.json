@@ -13,6 +13,9 @@
   "loading": {
     "message": "読み込み中..."
   },
+  "error": {
+    "message": "エラー！"
+  },
   "greeting": {
     "description": "挨拶メッセージ",
     "message": "こんにちは、私の名前は$NAME$です",
