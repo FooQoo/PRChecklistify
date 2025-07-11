@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useGithubTokenAtom } from '../hooks/useGithubTokenAtom';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 interface GitHubIntegrationSettingsProps {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ onToast }) => {
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const { githubToken, setTokenAndStorage, clearToken } = useGithubTokenAtom();
   const [inputToken, setInputToken] = useState('');

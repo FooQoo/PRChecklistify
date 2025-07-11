@@ -185,6 +185,9 @@
     "message": "获取 Gemini API 密钥"
   },
   "failedToLoadSettings": {
-    "message": "加载已保存的设置失败"
+    "message": "无法加载保存的设置"
+  },
+  "openaiApiDesc": {
+    "message": "要使用 PR Checklistify，您需要提供您的 OpenAI API 密钥。"
   }
 }

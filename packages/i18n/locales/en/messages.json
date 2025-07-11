@@ -303,5 +303,8 @@
   },
   "generatingChecklistError": {
     "message": "Error occurred while generating the checklist."
+  },
+  "openaiApiDesc": {
+    "message": "To use PR Checklistify, you need to provide your OpenAI API key."
   }
 }

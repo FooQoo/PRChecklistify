@@ -1,26 +1,13 @@
 import { useNavigation } from '../context/NavigationContext';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 import { useState, useEffect } from 'react';
 import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import { isGeminiApiEnabled } from '../utils/envUtils';
 
-const PROVIDERS = [
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    placeholder: 'sk-...',
-    link: 'https://platform.openai.com/account/api-keys',
-    linkText: 'Get your OpenAI API key →',
-    validate: (key: string) => key.trim().length > 0,
-    invalidMsg: t('invalidApiKeyFormat'),
-    desc: 'To use PR Checklistify, you need to provide your OpenAI API key.',
-  },
-  // Gemini providerは後で条件付きで追加
-];
-
 const OpenAiTokenSetupView: React.FC = () => {
+  const { t } = useI18n();
   const { navigateToHome } = useNavigation();
   const { openaiKey, setKeyAndStorage } = useOpenaiKeyAtom();
   const { geminiKey, setKeyAndStorage: setGeminiKeyAndStorage } = useGeminiKeyAtom();
@@ -31,6 +18,19 @@ const OpenAiTokenSetupView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const geminiEnabled = isGeminiApiEnabled();
+
+  const PROVIDERS = [
+    {
+      id: 'openai',
+      name: 'OpenAI',
+      placeholder: 'sk-...',
+      link: 'https://platform.openai.com/account/api-keys',
+      linkText: 'Get your OpenAI API key →',
+      validate: (key: string) => key.trim().length > 0,
+      invalidMsg: t('invalidApiKeyFormat'),
+      desc: t('openaiApiDesc'),
+    },
+  ];
 
   // プロバイダー初期値をストレージから取得
   useEffect(() => {
