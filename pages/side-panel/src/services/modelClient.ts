@@ -110,9 +110,10 @@ For each changed file, create a checklist of specific items to review, focusing 
   * description: e.g. "Build artifact - review not required."
   * isChecked: true
 * Provide a meaningful explanation for every file, even for mocks and dist files, summarizing why they changed and their role in the PR.
+* If there are no items that require review, set the explanation to "No issues found" and return an empty checklistItems array.
 
-PR Title: ${title}
-PR Description: ${body}
+  PR Title: ${title}
+  PR Description: ${body}
 PR Comments: ${commentsText || 'No comments provided.'}
 Repository README: ${prData.readme || 'No README provided.'}
 Repository information: ${prData.copilot_instructions || 'No instructions provided.'}
