@@ -27,3 +27,4 @@ tsconfig.tsbuildinfo
 
 # logs
 *.jsonl
+node-compile-cache/
