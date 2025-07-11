@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import type React from 'react';
 import type { PRData, Checklist, PRAnalysisResult } from '../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
@@ -6,7 +7,6 @@ import { fetchers } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { t } from '@extension/i18n';
-import Toast from './Toast';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
@@ -23,11 +23,22 @@ interface ChecklistItemProps {
   label: string;
   isChecked: boolean;
   onToggle: () => void;
-  onCopy: () => void;
+  onCopy: () => Promise<boolean>;
   className?: string;
 }
 
 const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: ChecklistItemProps) => {
+  const [showCopy, setShowCopy] = useState(false);
+
+  const handleCopyClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const success = await onCopy();
+    if (success) {
+      setShowCopy(true);
+      setTimeout(() => setShowCopy(false), 1500);
+    }
+  };
+
   return (
     <div
       role="button"
@@ -52,19 +63,29 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
       <span className="text-sm">
         <MarkdownRenderer content={label} />
       </span>
-      <button
-        type="button"
-        onClick={e => {
-          e.stopPropagation();
-          onCopy();
-        }}
-        className="text-gray-500 hover:text-gray-700"
-        aria-label={t('copy')}>
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 2a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V8l-6-6H8z" />
-          <path d="M15 2v6h6" />
-        </svg>
-      </button>
+      <div className="relative ml-1">
+        {showCopy && (
+          <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-1 py-px rounded shadow pointer-events-none">
+            copy
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={handleCopyClick}
+          className="text-white hover:text-gray-200"
+          aria-label={t('copy')}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2">
+            <path d="M8 2a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V8l-6-6H8z" />
+            <path d="M15 2v6h6" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };
@@ -87,26 +108,12 @@ const FileChecklist = ({
   const [error, setError] = useState<string | null>(null);
   const [blockActive, setBlockActive] = useState(0);
   const blockTimer = useRef<NodeJS.Timeout | null>(null);
-  const [toast, setToast] = useState<{
-    visible: boolean;
-    message: string;
-    type: 'success' | 'error' | 'info';
-  }>({ visible: false, message: '', type: 'info' });
-
-  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
-    setToast({ visible: true, message, type });
-  };
-
-  const handleCloseToast = () => {
-    setToast(prev => ({ ...prev, visible: false }));
-  };
-
-  const handleCopy = async (text: string) => {
+  const handleCopy = async (text: string): Promise<boolean> => {
     try {
       await navigator.clipboard.writeText(text);
-      showToast(t('copied'), 'success');
+      return true;
     } catch {
-      showToast(t('copyFailed'), 'error');
+      return false;
     }
   };
 
@@ -433,7 +440,6 @@ const FileChecklist = ({
 
   return (
     <>
-      <Toast message={toast.message} type={toast.type} visible={toast.visible} onClose={handleCloseToast} />
       <div className="border border-gray-200 rounded-md mb-3 overflow-hidden">
         <div
           className="flex items-center justify-between p-3 cursor-pointer bg-gray-50 w-full"
