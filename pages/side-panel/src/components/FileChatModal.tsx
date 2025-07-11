@@ -254,21 +254,77 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       // checklistItems propがあればそちらを使う
                       const key = `item_${idx}`;
                       const status = (localChecklistItems && localChecklistItems[key]) || item.status;
-                      let statusClass = '';
-                      if (status === 'OK') statusClass = 'bg-green-500 text-white border-green-500';
-                      else if (status === 'NG') statusClass = 'bg-red-500 text-white border-red-500';
-                      else statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
+                      const renderIcon = (state: 'PENDING' | 'OK' | 'NG') => {
+                        switch (state) {
+                          case 'OK':
+                            return (
+                              <svg className="h-4 w-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            );
+                          case 'NG':
+                            return (
+                              <svg className="h-4 w-4 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                  fillRule="evenodd"
+                                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            );
+                          case 'PENDING':
+                          default:
+                            return (
+                              <svg
+                                className="h-4 w-4 text-gray-400"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor">
+                                <rect x="4" y="4" width="16" height="16" rx="2" ry="2" strokeWidth="2" />
+                              </svg>
+                            );
+                        }
+                      };
+
                       // checklistItemsとonChecklistChangeがあればトグル可能
                       return (
-                        <div key={key} className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className={`px-2 py-1 rounded text-xs font-bold border transition-colors min-w-[90px] ${statusClass}`}
-                            onClick={() => {
-                              // 状態をトグル
+                        <div
+                          key={key}
+                          role="button"
+                          tabIndex={0}
+                          className="flex items-center gap-2 cursor-pointer select-none"
+                          onClick={() => {
+                            // 状態をトグル
+                            let next: 'OK' | 'NG';
+                            if (status === 'NG') {
+                              next = 'OK';
+                            } else if (status === 'OK') {
+                              next = 'NG';
+                            } else {
+                              next = 'NG';
+                            }
+                            const newChecklistItems = { ...localChecklistItems, [key]: next };
+                            setLocalChecklistItems(newChecklistItems);
+                            onChecklistChange(newChecklistItems);
+
+                            // すべてのチェックリストがOKの場合、完了モーダルを表示
+                            const allChecked = Object.values(newChecklistItems).every(s => s === 'OK');
+                            if (allChecked) {
+                              setShowCompleteModal(true);
+                            }
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
                               let next: 'OK' | 'NG';
                               if (status === 'NG') {
                                 next = 'OK';
+                              } else if (status === 'OK') {
+                                next = 'NG';
                               } else {
                                 next = 'NG';
                               }
@@ -276,14 +332,15 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                               setLocalChecklistItems(newChecklistItems);
                               onChecklistChange(newChecklistItems);
 
-                              // すべてのチェックリストがOKの場合、完了モーダルを表示
                               const allChecked = Object.values(newChecklistItems).every(s => s === 'OK');
                               if (allChecked) {
                                 setShowCompleteModal(true);
                               }
-                            }}>
-                            {status}
-                          </button>
+                            }
+                          }}>
+                          <div className="w-5 h-5 flex items-center justify-center border rounded">
+                            {renderIcon(status)}
+                          </div>
                           <span className="text-sm">
                             <MarkdownRenderer content={item.description} />
                           </span>

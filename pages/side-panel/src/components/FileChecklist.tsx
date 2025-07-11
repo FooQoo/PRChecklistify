@@ -25,42 +25,55 @@ interface ChecklistItemProps {
 }
 
 const ChecklistItem = ({ label, status, onToggle, className = '' }: ChecklistItemProps) => {
-  // Get the appropriate button style based on current state
-  const getButtonStyle = (state: 'PENDING' | 'OK' | 'NG') => {
+  // ステータスに応じてアイコンを表示
+  const renderIcon = (state: 'PENDING' | 'OK' | 'NG') => {
     switch (state) {
       case 'OK':
-        return 'bg-green-500 hover:bg-green-600 text-white';
+        return (
+          <svg className="h-4 w-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        );
       case 'NG':
-        return 'bg-red-500 hover:bg-red-600 text-white';
+        return (
+          <svg className="h-4 w-4 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        );
       case 'PENDING':
       default:
-        return 'bg-gray-200 hover:bg-gray-300 text-gray-700';
+        return (
+          <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2" strokeWidth="2" />
+          </svg>
+        );
     }
-  };
-
-  // Render the button content
-  const renderButtonContent = (state: 'PENDING' | 'OK' | 'NG') => {
-    if (state === 'PENDING') {
-      return 'PENDING';
-    }
-    return state;
-  };
-
-  // Get button class with fixed width
-  const getButtonClasses = (state: 'PENDING' | 'OK' | 'NG') => {
-    return `px-3 py-1 rounded-md text-sm font-medium transition-colors min-w-[90px] text-center ${getButtonStyle(state)}`;
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <button
-        onClick={e => {
-          e.stopPropagation(); // Prevent event propagation to parent elements
+    <div
+      role="button"
+      tabIndex={0}
+      className={`flex items-center gap-2 cursor-pointer select-none ${className}`}
+      onClick={e => {
+        e.stopPropagation();
+        onToggle();
+      }}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
           onToggle();
-        }}
-        className={getButtonClasses(status)}>
-        {renderButtonContent(status)}
-      </button>
+        }
+      }}>
+      <div className="w-5 h-5 flex items-center justify-center border rounded">{renderIcon(status)}</div>
       <span className="text-sm">
         <MarkdownRenderer content={label} />
       </span>

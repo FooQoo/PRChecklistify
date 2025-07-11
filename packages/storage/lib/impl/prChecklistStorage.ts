@@ -82,7 +82,8 @@ export const prChecklistStorage: PRChecklistStorage = {
   // Remove a PR from storage
   removePR: async (uniqueId: string) => {
     await storage.set(currentData => {
-      const { [uniqueId]: _, ...rest } = currentData;
+      const { [uniqueId]: removed, ...rest } = currentData;
+      void removed; // satisfy eslint for unused variable
       return rest;
     });
   },
