@@ -187,6 +187,9 @@
   "getGeminiKey": {
     "message": "获取 Gemini API 密钥"
   },
+  "modelClientTypeSaved": {
+    "message": "模型客户端类型已保存"
+  },
   "failedToLoadSettings": {
     "message": "无法加载保存的设置"
   },

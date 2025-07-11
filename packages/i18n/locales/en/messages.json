@@ -187,6 +187,9 @@
   "getGeminiKey": {
     "message": "Get your Gemini API key"
   },
+  "modelClientTypeSaved": {
+    "message": "Model client type saved"
+  },
   "failedToLoadSettings": {
     "message": "Failed to load saved settings"
   },
