@@ -8,7 +8,7 @@
     @apply transition-transform transform;
   }
   button:hover {
-    @apply -translate-y-0.5 shadow-lg;
+    @apply scale-105 shadow-lg;
   }
 }
 
