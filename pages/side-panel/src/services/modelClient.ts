@@ -87,14 +87,41 @@ ${file.patch ? `Patch:\n${file.patch}` : 'No patch available'}
 
 Analyze this pull request file and provide your response in ${getLanguageLabel(language)}.
 
+You are a code review assistant.
+For each changed file in a pull request, generate a checklist of specific review items.
+
+Checklist items must:
+- Be concise and focused on meaningful implementation details such as logic, edge cases, maintainability, or structural impact.
+- Avoid vague or superficial items like “Please ensure the function works correctly” or “Please check naming.”
+
+Organize the checklist into two sections:
+
 For each changed file, create a checklist of specific items to review, focusing on:
-   * Background and problem being solved
-   * Code correctness
-   * Best practices
-   * Potential bugs
-   * Performance concerns
-   * Security implications
-   * Code is well-formatted and consistent with project style
+
+Must:
+* Background and problem being solved
+* Code correctness
+* Best practices
+* Potential bugs
+* Performance concerns
+* Security vulnerabilities.
+* Code is well-formatted and consistent with project style
+* Verify that naming is clear and will not hinder future maintenance.
+
+Want:
+* Look for minor formatting issues such as indentation or spacing.
+* Confirm the implementation style is consistent with existing code.
+* Review comments or documentation for potential improvements.
+* Check that no non-essential features are included at this stage.
+
+**Do not generate checklist items unless there is a specific, meaningful point to review.**  
+Do not include items that merely state obvious or general expectations.  
+Only include items if there is a concrete reason to review that part of the code.
+
+If no valid checklist items are found, output exactly the following:
+No checklist items.
+
+If the implementation is solid and needs no revision, briefly explain why the checklist is 'No checklist items'.
 
 ### Additional instructions for file analysis:
 
