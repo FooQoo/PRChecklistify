@@ -148,6 +148,42 @@
   "setCustomEndpointNotice": {
     "message": "セルフホスト型のOpenAIインスタンスを使用している場合は、カスタムAPIエンドポイントを設定してください。"
   },
+  "geminiIntegration": {
+    "message": "Gemini連携"
+  },
+  "geminiApiKey": {
+    "message": "Gemini APIキー"
+  },
+  "pleaseEnterValidGeminiApiKey": {
+    "message": "有効なGemini APIキーを入力してください"
+  },
+  "invalidGeminiApiKeyFormat": {
+    "message": "Gemini APIキーの形式が正しくありません"
+  },
+  "geminiApiKeySavedSuccess": {
+    "message": "Gemini APIキーが保存されました"
+  },
+  "geminiApiKeyIsSet": {
+    "message": "Gemini APIキーが設定されています"
+  },
+  "failedToSaveGeminiApiKey": {
+    "message": "Gemini APIキーの保存に失敗しました"
+  },
+  "geminiApiKeyCleared": {
+    "message": "Gemini APIキーが削除されました"
+  },
+  "failedToClearGeminiApiKey": {
+    "message": "Gemini APIキーの削除に失敗しました"
+  },
+  "geminiKeyStorageNotice": {
+    "message": "Gemini APIキーはローカルに保存され、拡張機能でのみ使用されます。"
+  },
+  "enterGeminiApiKey": {
+    "message": "Gemini APIキーを入力してください"
+  },
+  "getGeminiKey": {
+    "message": "GeminiのAPIキーを取得する"
+  },
   "failedToLoadSettings": {
     "message": "設定の読み込みに失敗しました"
   }
