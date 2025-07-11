@@ -43,7 +43,6 @@
     "console-log-level": "^1.4.1",
     "fastmcp": "^3.5.0",
     "jotai": "^2.12.3",
-    "openai": "^4.28.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-rewards": "^2.1.0",
