@@ -197,5 +197,122 @@
   },
   "geminiDesc": {
     "message": "Gemini로 PR Checklistify를 사용하려면 Gemini API 키를 입력하세요."
+  },
+  "aiChecklistNotGenerated": {
+    "message": "AI checklist not generated yet for this file."
+  },
+  "aiGeneratedChecklistTitle": {
+    "message": "AI-Generated Checklist"
+  },
+  "aiReviewer": {
+    "message": "AI Reviewer"
+  },
+  "allChecklistDone": {
+    "message": "All checklist items are OK. Close the chat to continue."
+  },
+  "analyzingPr": {
+    "message": "Analyzing your PR. This may take a moment..."
+  },
+  "askAiPrompt": {
+    "message": "Ask AI a question or provide feedback"
+  },
+  "changedFiles": {
+    "message": "Changed Files"
+  },
+  "checklistItemsTitle": {
+    "message": "Checklist Items"
+  },
+  "clearAllPrData": {
+    "message": "Clear All PR Data"
+  },
+  "clearing": {
+    "message": "Clearing..."
+  },
+  "clickGenerateSummary": {
+    "message": "Click 'Generate Summary' to get AI-powered summary about this PR."
+  },
+  "closeChat": {
+    "message": "Close chat window"
+  },
+  "codeChanges": {
+    "message": "Code Changes"
+  },
+  "deletePrDataConfirm": {
+    "message": "Are you sure you want to delete all saved PR data? This action cannot be undone."
+  },
+  "deletePrDataNotice": {
+    "message": "This will delete all saved PR data, including checklist statuses and AI analysis results."
+  },
+  "enterMessage": {
+    "message": "Enter your message..."
+  },
+  "failedToClearPrData": {
+    "message": "Failed to clear PR data"
+  },
+  "fileReview": {
+    "message": "File Review"
+  },
+  "fileSummary": {
+    "message": "File Summary"
+  },
+  "generateChecklist": {
+    "message": "Generate Checklist"
+  },
+  "generateSummary": {
+    "message": "Generate Summary"
+  },
+  "generatingChecklist": {
+    "message": "Generating checklist..."
+  },
+  "generatingChecklistError": {
+    "message": "Error occurred while generating the checklist."
+  },
+  "noPrDataFound": {
+    "message": "No PR data found to clear"
+  },
+  "noPrDataSaved": {
+    "message": "No PR data currently saved in storage."
+  },
+  "openAiReviewChat": {
+    "message": "Open AI Review Chat"
+  },
+  "prAnalysisTitle": {
+    "message": "PR Analysis"
+  },
+  "prDataCleared": {
+    "message": "Successfully cleared PR data items"
+  },
+  "prDataSaved": {
+    "message": "You have PR(s) saved in storage."
+  },
+  "regenerate": {
+    "message": "Regenerate"
+  },
+  "reset": {
+    "message": "Reset"
+  },
+  "reviewComplete": {
+    "message": "File review completed!"
+  },
+  "reviewDiscussion": {
+    "message": "Review Discussion"
+  },
+  "statusApproved": {
+    "message": "✓ Approved"
+  },
+  "statusNotReviewed": {
+    "message": "⊘ Not Reviewed"
+  },
+  "statusReviewing": {
+    "message": "⚠ Reviewing"
+  },
+  "storageManagement": {
+    "message": "Storage Management"
+  },
+  "syncLatestCommit": {
+    "message": "Sync latest commit"
+  },
+  "you": {
+    "message": "You"
   }
 }
