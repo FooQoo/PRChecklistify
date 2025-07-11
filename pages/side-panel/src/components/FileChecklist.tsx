@@ -45,7 +45,7 @@ const ChecklistItem = ({ label, isChecked, onToggle, className = '' }: Checklist
         type="checkbox"
         checked={isChecked}
         onChange={onToggle}
-        className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+        className="w-4 h-4 text-blue-600 border-gray-300 rounded shrink-0"
       />
       <span className="text-sm">
         <MarkdownRenderer content={label} />
