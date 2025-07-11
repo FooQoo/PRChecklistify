@@ -304,6 +304,15 @@
   "generatingChecklistError": {
     "message": "Error occurred while generating the checklist."
   },
+  "copy": {
+    "message": "Copy"
+  },
+  "copied": {
+    "message": "Copied to clipboard"
+  },
+  "copyFailed": {
+    "message": "Failed to copy"
+  },
   "openaiApiDesc": {
     "message": "To use PR Checklistify, you need to provide your OpenAI API key."
   }

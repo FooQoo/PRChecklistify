@@ -186,6 +186,15 @@
   "failedToLoadSettings": {
     "message": "저장된 설정을 불러오는데 실패했습니다"
   },
+  "copy": {
+    "message": "복사"
+  },
+  "copied": {
+    "message": "클립보드에 복사되었습니다"
+  },
+  "copyFailed": {
+    "message": "복사에 실패했습니다"
+  },
   "openaiApiDesc": {
     "message": "PR Checklistify를 사용하려면 OpenAI API 키를 제공해야 합니다."
   }

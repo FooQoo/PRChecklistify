@@ -187,6 +187,15 @@
   "failedToLoadSettings": {
     "message": "无法加载保存的设置"
   },
+  "copy": {
+    "message": "复制"
+  },
+  "copied": {
+    "message": "已复制到剪贴板"
+  },
+  "copyFailed": {
+    "message": "复制失败"
+  },
   "openaiApiDesc": {
     "message": "要使用 PR Checklistify，您需要提供您的 OpenAI API 密钥。"
   }
