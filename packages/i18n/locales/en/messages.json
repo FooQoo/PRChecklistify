@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "Description of the extension",
-    "message": "Chrome Extension boilerplate created with Vite, React, TypeScript"
+    "message": "PR Checklistfy is a Chrome extension that streamlines Pull Request reviews. It automatically generates checklists of items to verify during review, preventing oversights in the review process."
   },
   "extensionName": {
     "description": "Name of the extension",
-    "message": "Chrome Extension Boilerplate"
+    "message": "PR Checklistfy"
   },
   "toggleTheme": {
     "message": "Toggle theme"
