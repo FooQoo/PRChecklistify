@@ -187,6 +187,9 @@
   "getGeminiKey": {
     "message": "GeminiのAPIキーを取得する"
   },
+  "modelClientTypeSaved": {
+    "message": "LLMモデルが保存されました"
+  },
   "failedToLoadSettings": {
     "message": "設定の読み込みに失敗しました"
   },

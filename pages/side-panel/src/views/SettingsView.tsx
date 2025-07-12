@@ -88,7 +88,7 @@ const SettingsView: React.FC = () => {
     const newType = e.target.value as typeof modelClientType;
     await setTypeAndStorage(newType);
     // Jotai atomの値はhooksで自動的に反映される
-    showToast('Model client type saved', 'success');
+    showToast(t('modelClientTypeSaved'), 'success');
   };
 
   return (
