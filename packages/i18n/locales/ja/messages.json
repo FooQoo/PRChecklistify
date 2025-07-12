@@ -187,6 +187,39 @@
   "getGeminiKey": {
     "message": "GeminiのAPIキーを取得する"
   },
+  "claudeIntegration": {
+    "message": "Claude連携"
+  },
+  "claudeApiKey": {
+    "message": "Claude APIキー"
+  },
+  "pleaseEnterValidClaudeApiKey": {
+    "message": "有効なClaude APIキーを入力してください"
+  },
+  "claudeApiKeySavedSuccess": {
+    "message": "Claude APIキーが保存されました"
+  },
+  "claudeApiKeyIsSet": {
+    "message": "Claude APIキーが設定されています"
+  },
+  "failedToSaveClaudeApiKey": {
+    "message": "Claude APIキーの保存に失敗しました"
+  },
+  "claudeApiKeyCleared": {
+    "message": "Claude APIキーが削除されました"
+  },
+  "failedToClearClaudeApiKey": {
+    "message": "Claude APIキーの削除に失敗しました"
+  },
+  "claudeKeyStorageNotice": {
+    "message": "Claude APIキーはローカルに保存され、拡張機能でのみ使用されます。"
+  },
+  "enterClaudeApiKey": {
+    "message": "Claude APIキーを入力してください"
+  },
+  "modelVersion": {
+    "message": "モデルバージョン"
+  },
   "failedToLoadSettings": {
     "message": "設定の読み込みに失敗しました"
   },

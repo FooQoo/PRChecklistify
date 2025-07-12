@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useI18n } from '@extension/i18n';
 import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
+import { useOpenaiModelAtom } from '../hooks/useOpenaiModelAtom';
 
 type OpenAIKeySettingsProps = {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -9,6 +10,7 @@ type OpenAIKeySettingsProps = {
 const OpenAIKeySettings: React.FC<OpenAIKeySettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
   const { openaiKey, setKeyAndStorage, clearKey } = useOpenaiKeyAtom();
+  const { openaiModel, setModelAndStorage } = useOpenaiModelAtom();
 
   // APIキー入力関連のstate
   const [apiKey, setApiKey] = useState('');
@@ -90,6 +92,20 @@ const OpenAIKeySettings: React.FC<OpenAIKeySettingsProps> = ({ onToast }) => {
               </button>
             </div>
           )}
+          <div className="mt-4">
+            <label htmlFor="openai-model" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('modelVersion')}
+            </label>
+            <select
+              id="openai-model"
+              value={openaiModel}
+              onChange={e => setModelAndStorage(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="gpt-4o">gpt-4o</option>
+              <option value="gpt-4-turbo">gpt-4-turbo</option>
+              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+            </select>
+          </div>
         </div>
 
         <div className="text-xs text-gray-500 mt-2">

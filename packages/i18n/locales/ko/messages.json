@@ -186,6 +186,39 @@
   "getGeminiKey": {
     "message": "Gemini API 키 받기"
   },
+  "claudeIntegration": {
+    "message": "Claude 연동"
+  },
+  "claudeApiKey": {
+    "message": "Claude API 키"
+  },
+  "pleaseEnterValidClaudeApiKey": {
+    "message": "유효한 Claude API 키를 입력하세요"
+  },
+  "claudeApiKeySavedSuccess": {
+    "message": "Claude API 키가 저장되었습니다"
+  },
+  "claudeApiKeyIsSet": {
+    "message": "Claude API 키가 설정되어 있습니다"
+  },
+  "failedToSaveClaudeApiKey": {
+    "message": "Claude API 키 저장에 실패했습니다"
+  },
+  "claudeApiKeyCleared": {
+    "message": "Claude API 키가 삭제되었습니다"
+  },
+  "failedToClearClaudeApiKey": {
+    "message": "Claude API 키 삭제에 실패했습니다"
+  },
+  "claudeKeyStorageNotice": {
+    "message": "Claude API 키는 로컬에 저장되며 확장 기능에서만 사용됩니다."
+  },
+  "enterClaudeApiKey": {
+    "message": "Claude API 키를 입력하세요"
+  },
+  "modelVersion": {
+    "message": "모델 버전"
+  },
   "failedToLoadSettings": {
     "message": "저장된 설정을 불러오는데 실패했습니다"
   },

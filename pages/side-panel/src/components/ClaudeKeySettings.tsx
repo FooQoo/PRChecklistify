@@ -1,78 +1,70 @@
-import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
-import { useGeminiModelAtom } from '@src/hooks/useGeminiModelAtom';
 import { useState } from 'react';
 import { useI18n } from '@extension/i18n';
+import { useClaudeKeyAtom } from '../hooks/useClaudeKeyAtom';
+import { useClaudeModelAtom } from '../hooks/useClaudeModelAtom';
 
-interface GeminiKeySettingsProps {
+interface ClaudeKeySettingsProps {
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
 }
 
-const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
+const ClaudeKeySettings: React.FC<ClaudeKeySettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
-  const { geminiKey, setKeyAndStorage, clearKey } = useGeminiKeyAtom();
-  const { geminiModel, setModelAndStorage } = useGeminiModelAtom();
+  const { claudeKey, setKeyAndStorage, clearKey } = useClaudeKeyAtom();
+  const { claudeModel, setModelAndStorage } = useClaudeModelAtom();
 
-  // Gemini APIキーの状態
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // 保存処理
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!apiKey.trim()) {
-      onToast(t('pleaseEnterValidGeminiApiKey'), 'error');
+      onToast(t('pleaseEnterValidClaudeApiKey'), 'error');
       return;
     }
     try {
       setIsLoading(true);
-      if (!apiKey.startsWith('AIza')) {
-        onToast(t('invalidGeminiApiKeyFormat'), 'error');
-        return;
-      }
       await setKeyAndStorage(apiKey);
       setApiKey('');
-      onToast(t('geminiApiKeySavedSuccess'), 'success');
+      onToast(t('claudeApiKeySavedSuccess'), 'success');
     } catch {
-      onToast(t('failedToSaveGeminiApiKey'), 'error');
+      onToast(t('failedToSaveClaudeApiKey'), 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 削除処理
   const handleRemoveKey = async () => {
     try {
       setIsLoading(true);
       await clearKey();
       setApiKey('');
-      onToast(t('geminiApiKeyCleared'), 'success');
+      onToast(t('claudeApiKeyCleared'), 'success');
     } catch {
-      onToast(t('failedToClearGeminiApiKey'), 'error');
+      onToast(t('failedToClearClaudeApiKey'), 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // マスク表示（10文字未満は****）
   const getMaskedApiKey = (key: string | undefined): string => {
     if (!key || key.length < 10) return '****';
     return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
   };
 
   return (
-    <div className="gemini-settings">
+    <div className="claude-settings">
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="mb-3">
-          <label htmlFor="gemini-key" className="block text-sm font-medium text-gray-700 mb-1">
-            {t('geminiApiKey')}
+          <label htmlFor="claude-key" className="block text-sm font-medium text-gray-700 mb-1">
+            {t('claudeApiKey')}
           </label>
           <div className="flex">
             <input
               type="password"
-              id="gemini-key"
+              id="claude-key"
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
-              placeholder={geminiKey ? getMaskedApiKey(geminiKey) : t('enterGeminiApiKey')}
+              placeholder={claudeKey ? getMaskedApiKey(claudeKey) : t('enterClaudeApiKey')}
               className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:z-10 focus:ring-blue-500"
             />
             <button
@@ -87,9 +79,9 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
             </button>
           </div>
         </div>
-        {geminiKey && (
+        {claudeKey && (
           <div className="mt-1 flex items-center justify-between">
-            <span className="text-xs text-gray-500">{t('geminiApiKeyIsSet')}</span>
+            <span className="text-xs text-gray-500">{t('claudeApiKeyIsSet')}</span>
             <button
               type="button"
               onClick={handleRemoveKey}
@@ -100,24 +92,24 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
           </div>
         )}
         <div className="mt-4">
-          <label htmlFor="gemini-model" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="claude-model" className="block text-sm font-medium text-gray-700 mb-1">
             {t('modelVersion')}
           </label>
           <select
-            id="gemini-model"
-            value={geminiModel}
+            id="claude-model"
+            value={claudeModel}
             onChange={e => setModelAndStorage(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+            <option value="claude-3-opus-20240229">claude-3-opus-20240229</option>
+            <option value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</option>
           </select>
         </div>
         <div className="text-xs text-gray-500 mt-2">
-          <p>{t('geminiKeyStorageNotice')}</p>
+          <p>{t('claudeKeyStorageNotice')}</p>
         </div>
       </form>
     </div>
   );
 };
 
-export default GeminiKeySettings;
+export default ClaudeKeySettings;

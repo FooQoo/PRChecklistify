@@ -187,6 +187,39 @@
   "getGeminiKey": {
     "message": "Get your Gemini API key"
   },
+  "claudeIntegration": {
+    "message": "Claude Integration"
+  },
+  "claudeApiKey": {
+    "message": "Claude API Key"
+  },
+  "pleaseEnterValidClaudeApiKey": {
+    "message": "Please enter a valid Claude API key"
+  },
+  "claudeApiKeySavedSuccess": {
+    "message": "Claude API key saved"
+  },
+  "claudeApiKeyIsSet": {
+    "message": "Claude API key is set"
+  },
+  "failedToSaveClaudeApiKey": {
+    "message": "Failed to save Claude API key"
+  },
+  "claudeApiKeyCleared": {
+    "message": "Claude API key cleared"
+  },
+  "failedToClearClaudeApiKey": {
+    "message": "Failed to clear Claude API key"
+  },
+  "claudeKeyStorageNotice": {
+    "message": "Your Claude API key is stored locally and only used by the extension."
+  },
+  "enterClaudeApiKey": {
+    "message": "Enter your Claude API key"
+  },
+  "modelVersion": {
+    "message": "Model Version"
+  },
   "failedToLoadSettings": {
     "message": "Failed to load saved settings"
   },
