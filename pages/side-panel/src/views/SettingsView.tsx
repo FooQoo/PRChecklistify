@@ -133,9 +133,9 @@ const SettingsView: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">AI Provider</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('aiProvider')}</h2>
           <label htmlFor="modelClientType" className="block text-sm font-medium text-gray-700 mb-1">
-            Select AI Provider
+            {t('selectAiProvider')}
           </label>
           <select
             id="modelClientType"

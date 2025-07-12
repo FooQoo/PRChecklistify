@@ -55,6 +55,12 @@
   "githubIntegration": {
     "message": "GitHub連携"
   },
+  "aiProvider": {
+    "message": "利用するAI"
+  },
+  "selectAiProvider": {
+    "message": "利用するAIを選択してください。"
+  },
   "settingsSavedSuccess": {
     "message": "設定が正常に保存されました！"
   },

@@ -39,6 +39,12 @@
   "githubIntegration": {
     "message": "GitHub 연동"
   },
+  "aiProvider": {
+    "message": "AI 제공자"
+  },
+  "selectAiProvider": {
+    "message": "AI 제공자를 선택하세요."
+  },
   "settingsSavedSuccess": {
     "message": "설정이 성공적으로 저장되었습니다!"
   },

@@ -55,6 +55,12 @@
   "githubIntegration": {
     "message": "GitHub集成"
   },
+  "aiProvider": {
+    "message": "AI提供者"
+  },
+  "selectAiProvider": {
+    "message": "选择AI提供者"
+  },
   "settingsSavedSuccess": {
     "message": "设置已成功保存！"
   },
