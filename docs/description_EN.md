@@ -20,11 +20,11 @@ PR Checklistify is an intelligent Chrome extension designed for developers. It d
 
 💡 How to Use
 
-Install the extension
-Open a Pull Request page
-Side panel automatically appears and AI analyzes the content
-Review while checking the generated checklist
-Ask AI chat for any questions
+1. Install the extension
+2. Open a Pull Request page
+3. Side panel automatically appears and AI analyzes the content
+4. Review while checking the generated checklist
+5. Ask AI chat for any questions
 
 🔧 Technical Specifications
 
