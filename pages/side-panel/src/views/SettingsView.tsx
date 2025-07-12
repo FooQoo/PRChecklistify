@@ -3,6 +3,7 @@ import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
 import GeminiKeySettings from '../components/GeminiKeySettings';
+import ClaudeKeySettings from '../components/ClaudeKeySettings';
 import InstructionPathSettings from '../components/InstructionPathSettings';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import type { Language } from '@extension/storage';
@@ -145,6 +146,7 @@ const SettingsView: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="openai">OpenAI</option>
             {geminiEnabled && <option value="gemini">Gemini</option>}
+            <option value="claude">Claude</option>
           </select>
           {modelClientType === 'openai' && (
             <>
@@ -156,6 +158,12 @@ const SettingsView: React.FC = () => {
             <>
               <h2 className="text-lg font-semibold mb-4">{t('geminiIntegration')}</h2>
               <GeminiKeySettings onToast={showToast} />
+            </>
+          )}
+          {modelClientType === 'claude' && (
+            <>
+              <h2 className="text-lg font-semibold mb-4">{t('claudeIntegration')}</h2>
+              <ClaudeKeySettings onToast={showToast} />
             </>
           )}
         </div>

@@ -61,6 +61,9 @@
   "selectAiProvider": {
     "message": "利用するAIを選択してください。"
   },
+  "modelVersion": {
+    "message": "モデルバージョン"
+  },
   "settingsSavedSuccess": {
     "message": "設定が正常に保存されました！"
   },
@@ -198,6 +201,27 @@
   },
   "getGeminiKey": {
     "message": "GeminiのAPIキーを取得する"
+  },
+  "claudeIntegration": {
+    "message": "Claude連携"
+  },
+  "claudeApiKey": {
+    "message": "Claude APIキー"
+  },
+  "invalidClaudeApiKeyFormat": {
+    "message": "Claude APIキーの形式が正しくありません"
+  },
+  "claudeApiKeySavedSuccess": {
+    "message": "Claude APIキーが保存されました"
+  },
+  "claudeApiKeyIsSet": {
+    "message": "Claude APIキーが設定されています"
+  },
+  "claudeKeyStorageNotice": {
+    "message": "Claude APIキーはローカルに保存され、拡張機能でのみ使用されます。"
+  },
+  "claudeDesc": {
+    "message": "Claudeを利用するには、ClaudeのAPIキーを入力してください。"
   },
   "modelClientTypeSaved": {
     "message": "LLMモデルが保存されました"

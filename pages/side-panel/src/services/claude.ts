@@ -1,24 +1,24 @@
-// OpenAI API integration for PR checklist generation
+// Claude API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
-import { createOpenAI } from '@ai-sdk/openai';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
-import { openaiApiKeyStorage, openaiModelStorage, type Language } from '@extension/storage';
+import { claudeApiKeyStorage, claudeModelStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelClient';
 
-export interface OpenAIConfig {
+export interface ClaudeConfig {
   apiKey: string;
-  endpoint?: string;
   model: string;
 }
 
-class OpenAIClient implements ModelClient {
-  private client: ReturnType<typeof createOpenAI>;
+class ClaudeClient implements ModelClient {
+  private client: ReturnType<typeof createAnthropic>;
   private model: string;
 
-  constructor(config: OpenAIConfig) {
-    this.client = createOpenAI({
+  constructor(config: ClaudeConfig) {
+    this.client = createAnthropic({
       apiKey: config.apiKey,
+      headers: { 'anthropic-dangerous-direct-browser-access': 'true' },
     });
     this.model = config.model;
   }
@@ -29,7 +29,7 @@ class OpenAIClient implements ModelClient {
   async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<Checklist> {
     try {
       const prompt = buildPRAnalysisPrompt(prData, file, language);
-      const model = this.client.languageModel(this.model);
+      const model = this.client(this.model);
 
       const { object } = await generateObject({
         model,
@@ -49,13 +49,13 @@ class OpenAIClient implements ModelClient {
 
       return object as Checklist;
     } catch (error) {
-      console.error('Error analyzing PR with OpenAI:', error);
-      throw new Error('Failed to analyze PR with OpenAI');
+      console.error('Error analyzing PR with Claude:', error);
+      throw new Error('Failed to analyze PR with Claude');
     }
   }
 
   /**
-   * Stream chat completion from OpenAI (for real-time chat UI)
+   * Stream chat completion from Claude (for real-time chat UI)
    */
   async streamChatCompletion(
     messages: { role: 'user' | 'system' | 'assistant'; content: string }[],
@@ -63,7 +63,8 @@ class OpenAIClient implements ModelClient {
     options?: { signal?: AbortSignal },
   ): Promise<void> {
     try {
-      const model = this.client.languageModel(this.model);
+      const model = this.client(this.model);
+
       const stream = await streamText({
         model,
         messages,
@@ -75,24 +76,24 @@ class OpenAIClient implements ModelClient {
         if (delta) onToken(delta);
       }
     } catch (error) {
-      console.error('Error streaming OpenAI chat completion:', error);
+      console.error('Error streaming Claude chat completion:', error);
       throw error;
     }
   }
 }
 
-// Create and export OpenAI client instance
-export const createOpenAIClient = async (): Promise<OpenAIClient> => {
-  const apiKey = await openaiApiKeyStorage.get();
+// Create and export Claude client instance
+export const createClaudeClient = async (): Promise<ClaudeClient> => {
+  const apiKey = await claudeApiKeyStorage.get();
   if (!apiKey) {
-    throw new Error('Failed to retrieve OpenAI API key');
+    throw new Error('Claude API key not found');
   }
 
-  const model = await openaiModelStorage.get();
-  return new OpenAIClient({
+  const model = await claudeModelStorage.get();
+  return new ClaudeClient({
     apiKey,
     model,
   });
 };
 
-export default OpenAIClient;
+export default ClaudeClient;

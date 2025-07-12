@@ -61,6 +61,9 @@
   "selectAiProvider": {
     "message": "选择AI提供者"
   },
+  "modelVersion": {
+    "message": "模型版本"
+  },
   "settingsSavedSuccess": {
     "message": "设置已成功保存！"
   },
@@ -198,6 +201,27 @@
   },
   "getGeminiKey": {
     "message": "获取 Gemini API 密钥"
+  },
+  "claudeIntegration": {
+    "message": "Claude 集成"
+  },
+  "claudeApiKey": {
+    "message": "Claude API 密钥"
+  },
+  "invalidClaudeApiKeyFormat": {
+    "message": "Claude API 密钥格式无效"
+  },
+  "claudeApiKeySavedSuccess": {
+    "message": "Claude API 密钥已保存"
+  },
+  "claudeApiKeyIsSet": {
+    "message": "Claude API 密钥已设置"
+  },
+  "claudeKeyStorageNotice": {
+    "message": "Claude API 密钥保存在本地，仅在扩展中使用。"
+  },
+  "claudeDesc": {
+    "message": "要使用 Claude，请提供 Claude API 密钥。"
   },
   "modelClientTypeSaved": {
     "message": "LLM 模型已保存"

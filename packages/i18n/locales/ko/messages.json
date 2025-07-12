@@ -45,6 +45,9 @@
   "selectAiProvider": {
     "message": "AI 제공자를 선택하세요."
   },
+  "modelVersion": {
+    "message": "모델 버전"
+  },
   "settingsSavedSuccess": {
     "message": "설정이 성공적으로 저장되었습니다!"
   },
@@ -197,6 +200,27 @@
   },
   "getGeminiKey": {
     "message": "Gemini API 키 받기"
+  },
+  "claudeIntegration": {
+    "message": "Claude 연동"
+  },
+  "claudeApiKey": {
+    "message": "Claude API 키"
+  },
+  "invalidClaudeApiKeyFormat": {
+    "message": "Claude API 키 형식이 올바르지 않습니다"
+  },
+  "claudeApiKeySavedSuccess": {
+    "message": "Claude API 키가 저장되었습니다"
+  },
+  "claudeApiKeyIsSet": {
+    "message": "Claude API 키가 설정되어 있습니다"
+  },
+  "claudeKeyStorageNotice": {
+    "message": "Claude API 키는 로컬에 저장되며 확장 기능에서만 사용됩니다."
+  },
+  "claudeDesc": {
+    "message": "Claude를 사용하려면 Claude API 키를 입력하세요."
   },
   "modelClientTypeSaved": {
     "message": "LLM 모델이 저장되었습니다"

@@ -3,6 +3,7 @@ import { useI18n } from '@extension/i18n';
 import { useState, useEffect } from 'react';
 import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
+import { useClaudeKeyAtom } from '../hooks/useClaudeKeyAtom';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import { isGeminiApiEnabled } from '../utils/envUtils';
 
@@ -11,6 +12,7 @@ const OpenAiTokenSetupView: React.FC = () => {
   const { navigateToHome } = useNavigation();
   const { openaiKey, setKeyAndStorage } = useOpenaiKeyAtom();
   const { geminiKey, setKeyAndStorage: setGeminiKeyAndStorage } = useGeminiKeyAtom();
+  const { claudeKey, setKeyAndStorage: setClaudeKeyAndStorage } = useClaudeKeyAtom();
   const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
   const [provider, setProvider] = useState(modelClientType);
   const [apiKey, setApiKey] = useState('');
@@ -29,6 +31,16 @@ const OpenAiTokenSetupView: React.FC = () => {
       validate: (key: string) => key.trim().length > 0,
       invalidMsg: t('invalidApiKeyFormat'),
       desc: t('openaiApiDesc'),
+    },
+    {
+      id: 'claude',
+      name: 'Claude',
+      placeholder: 'sk-...',
+      link: 'https://console.anthropic.com/account/keys',
+      linkText: 'Get your Claude API key →',
+      validate: (key: string) => key.trim().length > 0,
+      invalidMsg: 'Invalid Claude API Key',
+      desc: t('claudeDesc'),
     },
   ];
 
@@ -58,6 +70,8 @@ const OpenAiTokenSetupView: React.FC = () => {
         await setKeyAndStorage(apiKey);
       } else if (provider === 'gemini') {
         await setGeminiKeyAndStorage(apiKey);
+      } else if (provider === 'claude') {
+        await setClaudeKeyAndStorage(apiKey);
       }
       setApiKey('');
     } catch {
@@ -77,6 +91,7 @@ const OpenAiTokenSetupView: React.FC = () => {
   // プロバイダーリストを動的に生成
   const providerOptions = [
     PROVIDERS[0],
+    PROVIDERS[1],
     ...(geminiEnabled
       ? [
           {
@@ -140,7 +155,9 @@ const OpenAiTokenSetupView: React.FC = () => {
                   ? getMaskedApiKey(openaiKey)
                   : provider === 'gemini' && geminiKey
                     ? getMaskedApiKey(geminiKey)
-                    : currentProvider.placeholder
+                    : provider === 'claude' && claudeKey
+                      ? getMaskedApiKey(claudeKey)
+                      : currentProvider.placeholder
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
