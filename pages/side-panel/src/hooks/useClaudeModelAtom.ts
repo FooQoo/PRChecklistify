@@ -1,8 +1,8 @@
 import { atom, useAtom } from 'jotai';
 import { useEffect } from 'react';
-import { claudeModelStorage } from '@extension/storage';
+import { claudeModelStorage, DEFAULT_CLAUDE_MODEL } from '@extension/storage';
 
-export const claudeModelAtom = atom<string>('claude-3-sonnet-20240229');
+export const claudeModelAtom = atom<string>(DEFAULT_CLAUDE_MODEL);
 const isClaudeModelLoadedAtom = atom<boolean>(false);
 
 export function useClaudeModelAtom() {

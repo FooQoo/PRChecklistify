@@ -2,6 +2,7 @@ import { useI18n } from '@extension/i18n';
 import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
 import { useOpenaiModelAtom } from '../hooks/useOpenaiModelAtom';
 import TextInput from './common/TextInput';
+import { getOpenAIModelOptions } from '@extension/storage';
 
 type OpenAIKeySettingsProps = {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -11,6 +12,7 @@ const OpenAIKeySettings: React.FC<OpenAIKeySettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
   const { openaiKey, setKeyAndStorage, clearKey } = useOpenaiKeyAtom();
   const { openaiModel, setModelAndStorage } = useOpenaiModelAtom();
+  const modelOptions = getOpenAIModelOptions();
 
   // OpenAI APIキーのバリデーション
   const validateOpenAIKey = (key: string): boolean => {
@@ -52,10 +54,11 @@ const OpenAIKeySettings: React.FC<OpenAIKeySettingsProps> = ({ onToast }) => {
           value={openaiModel}
           onChange={e => setModelAndStorage(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="gpt-4o">gpt-4o</option>
-          <option value="o3">o3</option>
-          <option value="o4-mini">o4-mini</option>
-          <option value="gpt-4.1">gpt-4.1</option>
+          {modelOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
       </div>
 

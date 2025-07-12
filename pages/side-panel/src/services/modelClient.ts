@@ -1,8 +1,33 @@
 // Common interface for LLM clients (OpenAI, Gemini, etc.)
 import type { Checklist, PRData, PRFile } from '@src/types';
-import { createGeminiClient, createOpenAIClient, createClaudeClient } from './openai';
+import { createOpenAIClient } from './openai';
+import { createGeminiClient } from './gemini';
+import { createClaudeClient } from './claude';
 import type { Language } from '@extension/storage';
 import { getLanguageLabel } from '@extension/storage';
+import { z } from 'zod';
+
+// 共通のシステムプロンプト
+export const SYSTEM_PROMPT =
+  'You are a senior software developer conducting a thorough code review. You provide detailed, actionable feedback in JSON format as requested.';
+
+// チェックリストアイテム
+export const ChecklistItemSchema = z
+  .object({
+    id: z.string().describe('チェックリストアイテムの一意なID'),
+    description: z.string().describe('チェックリストアイテムの説明文'),
+    isChecked: z.boolean().describe('レビューが完了したかどうか'),
+  })
+  .describe('チェックリストアイテム（ID・説明・チェック状態）');
+
+// ファイル単位のチェックリスト（説明＋アイテム配列）
+export const ChecklistSchema = z
+  .object({
+    filename: z.string().describe('対象ファイル名'),
+    explanation: z.string().describe('ファイル全体に対する説明'),
+    checklistItems: z.array(ChecklistItemSchema).describe('このファイルに対するチェックリストアイテムの配列'),
+  })
+  .describe('ファイル単位のチェックリスト（説明＋アイテム配列）');
 
 // ModelClientType for selecting the appropriate LLM service
 export enum ModelClientType {

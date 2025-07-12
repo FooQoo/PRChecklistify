@@ -2,6 +2,7 @@ import { useClaudeKeyAtom } from '../hooks/useClaudeKeyAtom';
 import { useClaudeModelAtom } from '../hooks/useClaudeModelAtom';
 import { useI18n } from '@extension/i18n';
 import TextInput from './common/TextInput';
+import { getClaudeModelOptions } from '@extension/storage';
 
 interface ClaudeKeySettingsProps {
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
@@ -11,6 +12,7 @@ const ClaudeKeySettings: React.FC<ClaudeKeySettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
   const { claudeKey, setKeyAndStorage, clearKey } = useClaudeKeyAtom();
   const { claudeModel, setModelAndStorage } = useClaudeModelAtom();
+  const modelOptions = getClaudeModelOptions();
 
   const validateClaudeKey = (key: string): boolean => {
     return key.startsWith('sk-');
@@ -50,8 +52,11 @@ const ClaudeKeySettings: React.FC<ClaudeKeySettingsProps> = ({ onToast }) => {
           value={claudeModel}
           onChange={e => setModelAndStorage(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="claude-3-7-sonnet-20250219">claude-3-7-sonnet-20250219</option>
-          <option value="claude-sonnet-4-20250514">claude-sonnet-4-20250514</option>
+          {modelOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
       </div>
 

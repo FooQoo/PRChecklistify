@@ -2,6 +2,7 @@ import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useGeminiModelAtom } from '@src/hooks/useGeminiModelAtom';
 import { useI18n } from '@extension/i18n';
 import TextInput from './common/TextInput';
+import { getGeminiModelOptions } from '@extension/storage';
 
 interface GeminiKeySettingsProps {
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
@@ -11,6 +12,7 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
   const { geminiKey, setKeyAndStorage, clearKey } = useGeminiKeyAtom();
   const { geminiModel, setModelAndStorage } = useGeminiModelAtom();
+  const modelOptions = getGeminiModelOptions();
 
   // Gemini APIキーのバリデーション
   const validateGeminiKey = (key: string): boolean => {
@@ -52,10 +54,11 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
           value={geminiModel}
           onChange={e => setModelAndStorage(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-          <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-          <option value="gemini-1.5-pro">gemini-1.5-pro</option>
-          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+          {modelOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
       </div>
 

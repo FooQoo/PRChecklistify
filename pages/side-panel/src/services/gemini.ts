@@ -1,23 +1,22 @@
-// OpenAI API integration for PR checklist generation
+// Gemini API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
-import { createOpenAI } from '@ai-sdk/openai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
-import { openaiApiKeyStorage, openaiModelStorage, type Language } from '@extension/storage';
+import { geminiApiKeyStorage, geminiModelStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelClient';
 
-export interface OpenAIConfig {
+export interface GeminiConfig {
   apiKey: string;
-  endpoint?: string;
   model: string;
 }
 
-class OpenAIClient implements ModelClient {
-  private client: ReturnType<typeof createOpenAI>;
+class GeminiClient implements ModelClient {
+  private client: ReturnType<typeof createGoogleGenerativeAI>;
   private model: string;
 
-  constructor(config: OpenAIConfig) {
-    this.client = createOpenAI({
+  constructor(config: GeminiConfig) {
+    this.client = createGoogleGenerativeAI({
       apiKey: config.apiKey,
     });
     this.model = config.model;
@@ -29,7 +28,7 @@ class OpenAIClient implements ModelClient {
   async analyzePR(prData: PRData, file: PRFile, language: Language): Promise<Checklist> {
     try {
       const prompt = buildPRAnalysisPrompt(prData, file, language);
-      const model = this.client.languageModel(this.model);
+      const model = this.client(this.model);
 
       const { object } = await generateObject({
         model,
@@ -49,13 +48,13 @@ class OpenAIClient implements ModelClient {
 
       return object as Checklist;
     } catch (error) {
-      console.error('Error analyzing PR with OpenAI:', error);
-      throw new Error('Failed to analyze PR with OpenAI');
+      console.error('Error analyzing PR with Gemini:', error);
+      throw new Error('Failed to analyze PR with Gemini');
     }
   }
 
   /**
-   * Stream chat completion from OpenAI (for real-time chat UI)
+   * Stream chat completion from Gemini (for real-time chat UI)
    */
   async streamChatCompletion(
     messages: { role: 'user' | 'system' | 'assistant'; content: string }[],
@@ -63,7 +62,8 @@ class OpenAIClient implements ModelClient {
     options?: { signal?: AbortSignal },
   ): Promise<void> {
     try {
-      const model = this.client.languageModel(this.model);
+      const model = this.client(this.model);
+
       const stream = await streamText({
         model,
         messages,
@@ -75,24 +75,24 @@ class OpenAIClient implements ModelClient {
         if (delta) onToken(delta);
       }
     } catch (error) {
-      console.error('Error streaming OpenAI chat completion:', error);
+      console.error('Error streaming Gemini chat completion:', error);
       throw error;
     }
   }
 }
 
-// Create and export OpenAI client instance
-export const createOpenAIClient = async (): Promise<OpenAIClient> => {
-  const apiKey = await openaiApiKeyStorage.get();
+// Create and export Gemini client instance
+export const createGeminiClient = async (): Promise<GeminiClient> => {
+  const apiKey = await geminiApiKeyStorage.get();
   if (!apiKey) {
-    throw new Error('Failed to retrieve OpenAI API key');
+    throw new Error('Gemini API key not found');
   }
 
-  const model = await openaiModelStorage.get();
-  return new OpenAIClient({
+  const model = await geminiModelStorage.get();
+  return new GeminiClient({
     apiKey,
     model,
   });
 };
 
-export default OpenAIClient;
+export default GeminiClient;
