@@ -6,7 +6,7 @@ import { fetchers } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import ChecklistComponent from './ChecklistComponent';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
@@ -33,6 +33,7 @@ const FileChecklist = ({
 }: FileChecklistProps) => {
   const [generating, setGenerating] = useState(false);
   const setGlobalGenerating = useSetAtom(generatingAtom);
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [blockActive, setBlockActive] = useState(0);
   const blockTimer = useRef<NodeJS.Timeout | null>(null);

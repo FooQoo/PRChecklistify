@@ -1,6 +1,7 @@
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 const Header = () => {
+  const { t } = useI18n();
   return (
     <div className="flex justify-between items-center p-2 bg-gray-100 border-b border-gray-300 mb-4">
       <div className="cursor-pointer">

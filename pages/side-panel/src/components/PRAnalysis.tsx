@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import type { Checklist, PRAnalysisResult, PRData } from '../types';
-import type { Language } from '@extension/storage';
-import { defaultLanguage, languagePreferenceStorage } from '@extension/storage';
 import { fetchers } from '@src/services/aiService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -28,7 +26,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   const [, setGenerating] = useAtom(generatingAtom);
   // summaryのgenerateを管理
   const [summaryGenerating, setSummaryGenerating] = useState(false);
-  const [language, setLanguage] = useState<Language>(defaultLanguage); // デフォルト言語を設定
+  const { language, t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
   const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
@@ -38,18 +36,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
     }
     return {};
   });
-
-  // 言語設定を読み込む
-  useEffect(() => {
-    const loadLanguage = async () => {
-      const savedLanguage = await languagePreferenceStorage.get();
-      if (savedLanguage) {
-        setLanguage(savedLanguage);
-      }
-    };
-
-    loadLanguage();
-  }, []);
 
   // チャット履歴をローカルストレージに保存
   useEffect(() => {

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 // Component for storage management (clear PR data)
 const StorageManagement = () => {
+  const { t } = useI18n();
   const [isClearing, setIsClearing] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [hasPrData, setHasPRData] = useState(false);

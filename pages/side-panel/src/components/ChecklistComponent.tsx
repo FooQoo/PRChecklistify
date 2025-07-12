@@ -2,7 +2,7 @@ import type React from 'react';
 import { useState } from 'react';
 import type { Checklist } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 interface ChecklistComponentProps {
   checklist: Checklist;
@@ -93,6 +93,7 @@ const ChecklistComponent = ({
   className = '',
   defaultExpanded = true,
 }: ChecklistComponentProps) => {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const handleCopy = async (text: string): Promise<boolean> => {
