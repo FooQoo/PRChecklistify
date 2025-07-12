@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useI18n } from '@extension/i18n';
 import { githubTokenStorage } from '@extension/storage';
 import { useNavigation } from '@src/context/NavigationContext';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 
 const GithubTokenSetupView: React.FC = () => {
   const { navigateToHome, navigateToOpenAiTokenSetup } = useNavigation();
+  const { t } = useI18n();
 
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -81,7 +83,7 @@ const GithubTokenSetupView: React.FC = () => {
               className={`px-4 py-2 rounded-md ${
                 isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
               } text-white`}>
-              {isLoading ? 'Verifying...' : 'Save Token'}
+              {isLoading ? t('verifying') : t('save')}
             </button>
           </div>
         </form>

@@ -4,7 +4,7 @@ import { createStorage, StorageEnum } from '../base/index.js';
 // Define the supported languages
 export type Language = 'en' | 'ja' | 'ko' | 'zh';
 
-export const defaultLanguage: Language = 'ja';
+export const defaultLanguage: Language = 'en';
 
 export const getLanguageLabel = (lang: Language): string => {
   switch (lang) {

@@ -6,9 +6,19 @@ import AppRouter from './routes/AppRoutes';
 import { currentPageAtom } from './atoms/currentPageAtom';
 import { useI18n } from '@extension/i18n';
 
+const Loading = () => {
+  const { t } = useI18n();
+  return <div>{t('loading')}</div>;
+};
+
+const ErrorFallback = () => {
+  const { t } = useI18n();
+  return <div>{t('error')}</div>;
+};
+
 const SidePanel = () => {
   // Initialize i18n
-  useI18n();
+  const { t } = useI18n();
 
   const [loading, setLoading] = useState(true);
 
@@ -57,10 +67,10 @@ const SidePanel = () => {
   }, [setCurrentPageAtom]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>{t('loading')}</div>;
   }
 
   return <AppRouter />;
 };
 
-export default withErrorBoundary(withSuspense(SidePanel, <div>Loading...</div>), <div>Error!</div>);
+export default withErrorBoundary(withSuspense(SidePanel, <Loading />), <ErrorFallback />);

@@ -1,17 +1,20 @@
 {
   "extensionDescription": {
     "description": "扩展描述",
-    "message": "提供AI代理功能以支持PR审核"
+    "message": "PR Checklistfy 是一款用于提升 Pull Request 审核效率的 Chrome 扩展。在 PR 审核时自动生成需要确认的清单，防止审核流程出现遗漏。"
   },
   "extensionName": {
     "description": "PRChecklistfy",
-    "message": "PRChecklistfy"
+    "message": "PR Checklistfy"
   },
   "toggleTheme": {
     "message": "切换主题"
   },
   "loading": {
     "message": "加载中..."
+  },
+  "error": {
+    "message": "错误！"
   },
   "greeting": {
     "description": "问候消息",
@@ -51,6 +54,12 @@
   },
   "githubIntegration": {
     "message": "GitHub集成"
+  },
+  "aiProvider": {
+    "message": "AI提供者"
+  },
+  "selectAiProvider": {
+    "message": "选择AI提供者"
   },
   "settingsSavedSuccess": {
     "message": "设置已成功保存！"
@@ -184,6 +193,9 @@
   "getGeminiKey": {
     "message": "获取 Gemini API 密钥"
   },
+  "modelClientTypeSaved": {
+    "message": "LLM 模型已保存"
+  },
   "failedToLoadSettings": {
     "message": "无法加载保存的设置"
   },
@@ -210,5 +222,131 @@
   },
   "clickToExpand": {
     "message": "点击展开"
+  },
+  "enterPrUrlPrompt": {
+    "message": "输入 GitHub Pull Request URL 以生成 AI 驱动的评审清单。"
+  },
+  "openaiApiDesc": {
+    "message": "要使用 PR Checklistify，您需要提供 OpenAI API 密钥。"
+  },
+  "geminiDesc": {
+    "message": "要在 PR Checklistify 中使用 Gemini，请提供您的 Gemini API 密钥。"
+  },
+  "aiChecklistNotGenerated": {
+    "message": "AI checklist not generated yet for this file."
+  },
+  "aiGeneratedChecklistTitle": {
+    "message": "AI-Generated Checklist"
+  },
+  "aiReviewer": {
+    "message": "AI Reviewer"
+  },
+  "allChecklistDone": {
+    "message": "All checklist items are OK. Close the chat to continue."
+  },
+  "analyzingPr": {
+    "message": "Analyzing your PR. This may take a moment..."
+  },
+  "askAiPrompt": {
+    "message": "Ask AI a question or provide feedback"
+  },
+  "changedFiles": {
+    "message": "Changed Files"
+  },
+  "checklistItemsTitle": {
+    "message": "Checklist Items"
+  },
+  "clearAllPrData": {
+    "message": "Clear All PR Data"
+  },
+  "clearing": {
+    "message": "Clearing..."
+  },
+  "clickGenerateSummary": {
+    "message": "Click 'Generate Summary' to get AI-powered summary about this PR."
+  },
+  "closeChat": {
+    "message": "Close chat window"
+  },
+  "codeChanges": {
+    "message": "Code Changes"
+  },
+  "deletePrDataConfirm": {
+    "message": "Are you sure you want to delete all saved PR data? This action cannot be undone."
+  },
+  "deletePrDataNotice": {
+    "message": "This will delete all saved PR data, including checklist statuses and AI analysis results."
+  },
+  "enterMessage": {
+    "message": "Enter your message..."
+  },
+  "failedToClearPrData": {
+    "message": "Failed to clear PR data"
+  },
+  "fileReview": {
+    "message": "File Review"
+  },
+  "fileSummary": {
+    "message": "File Summary"
+  },
+  "generateChecklist": {
+    "message": "Generate Checklist"
+  },
+  "generateSummary": {
+    "message": "Generate Summary"
+  },
+  "generatingChecklist": {
+    "message": "Generating checklist..."
+  },
+  "generatingChecklistError": {
+    "message": "Error occurred while generating the checklist."
+  },
+  "noPrDataFound": {
+    "message": "No PR data found to clear"
+  },
+  "noPrDataSaved": {
+    "message": "No PR data currently saved in storage."
+  },
+  "openAiReviewChat": {
+    "message": "Open AI Review Chat"
+  },
+  "prAnalysisTitle": {
+    "message": "PR Analysis"
+  },
+  "prDataCleared": {
+    "message": "Successfully cleared PR data items"
+  },
+  "prDataSaved": {
+    "message": "You have PR(s) saved in storage."
+  },
+  "regenerate": {
+    "message": "Regenerate"
+  },
+  "reset": {
+    "message": "Reset"
+  },
+  "reviewComplete": {
+    "message": "File review completed!"
+  },
+  "reviewDiscussion": {
+    "message": "Review Discussion"
+  },
+  "statusApproved": {
+    "message": "✓ Approved"
+  },
+  "statusNotReviewed": {
+    "message": "⊘ Not Reviewed"
+  },
+  "statusReviewing": {
+    "message": "⚠ Reviewing"
+  },
+  "storageManagement": {
+    "message": "Storage Management"
+  },
+  "syncLatestCommit": {
+    "message": "Sync latest commit"
+  },
+  "you": {
+    "message": "You"
   }
 }

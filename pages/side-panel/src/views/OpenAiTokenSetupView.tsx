@@ -87,7 +87,7 @@ const OpenAiTokenSetupView: React.FC = () => {
             linkText: 'Get your Gemini API key →',
             validate: (key: string) => key.trim().length > 10 && key.startsWith('AIza'),
             invalidMsg: 'Invalid Gemini API Key',
-            desc: 'To use PR Checklistify with Gemini, provide your Gemini API key.',
+            desc: t('geminiDesc'),
           },
         ]
       : []),
@@ -153,7 +153,7 @@ const OpenAiTokenSetupView: React.FC = () => {
               className={`px-4 py-2 rounded-md ${
                 isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
               } text-white`}>
-              {isLoading ? 'Verifying...' : 'Save Token'}
+              {isLoading ? t('verifying') : t('save')}
             </button>
           </div>
         </form>

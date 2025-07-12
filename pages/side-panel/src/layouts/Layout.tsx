@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import SettingsButton from '../components/SettingsButton';
 
 const Layout = () => {
@@ -14,6 +15,8 @@ const Layout = () => {
       <main className="content-container">
         <Outlet />
       </main>
+
+      <Footer />
 
       {!isSettingsPage && (
         <div className="fixed bottom-8 right-4 z-50 flex flex-col gap-4">
