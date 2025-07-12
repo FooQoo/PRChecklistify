@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "拡張機能の説明",
-    "message": "PRレビューをサポートするAIエージェント機能を提供します"
+    "message": "PR ChecklistfyはPull Requestのレビューを効率化するためのChrome拡張機能です。PRレビュー時に、確認すべき項目をチェックリストとして自動生成し、レビュープロセスの抜け漏れを防ぎます。"
   },
   "extensionName": {
     "description": "PRChecklistfy",
-    "message": "PRChecklistfy"
+    "message": "PR Checklistfy"
   },
   "toggleTheme": {
     "message": "テーマ切り替え"
@@ -54,6 +54,12 @@
   },
   "githubIntegration": {
     "message": "GitHub連携"
+  },
+  "aiProvider": {
+    "message": "利用するAI"
+  },
+  "selectAiProvider": {
+    "message": "利用するAIを選択してください。"
   },
   "settingsSavedSuccess": {
     "message": "設定が正常に保存されました！"
@@ -187,6 +193,9 @@
   "getGeminiKey": {
     "message": "GeminiのAPIキーを取得する"
   },
+  "modelClientTypeSaved": {
+    "message": "LLMモデルが保存されました"
+  },
   "failedToLoadSettings": {
     "message": "設定の読み込みに失敗しました"
   },
@@ -307,8 +316,32 @@
   "generatingChecklistError": {
     "message": "チェックリスト生成中にエラーが発生しました。"
   },
+  "copy": {
+    "message": "コピー"
+  },
+  "paste": {
+    "message": "ペースト"
+  },
+  "copied": {
+    "message": "クリップボードにコピーしました"
+  },
+  "pasted": {
+    "message": "クリップボードから貼り付けました"
+  },
+  "copyFailed": {
+    "message": "コピーに失敗しました"
+  },
+  "pasteFailed": {
+    "message": "貼り付けに失敗しました"
+  },
   "openaiApiDesc": {
     "message": "PR Checklistifyを利用するには、OpenAI APIキーの提供が必要です。"
+  },
+  "clickToExpand": {
+    "message": "クリックして展開"
+  },
+  "enterPrUrlPrompt": {
+    "message": "AIによるレビュー チェックリストを生成するには、GitHubのPull Request URLを入力してください。"
   },
   "geminiDesc": {
     "message": "PR ChecklistifyでGeminiを利用するには、Gemini APIキーを入力してください。"

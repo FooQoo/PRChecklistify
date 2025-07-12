@@ -71,7 +71,7 @@ const GeminiKeySettings: React.FC<GeminiKeySettingsProps> = ({ onToast }) => {
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
               placeholder={geminiKey ? getMaskedApiKey(geminiKey) : t('enterGeminiApiKey')}
-              className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:z-10 focus:ring-blue-500"
             />
             <button
               type="submit"

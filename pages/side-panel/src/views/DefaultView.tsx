@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useI18n } from '@extension/i18n';
 import { useNavigation } from '../context/NavigationContext';
 import { isGitHubPRPage, extractPRInfoFromKey } from '../utils/prUtils';
 
 const DefaultView: React.FC = () => {
+  const { t } = useI18n();
   const { navigateToPr, navigateToPrFromHistory } = useNavigation();
   const [prUrl, setPrUrl] = useState('');
   const [isValid, setIsValid] = useState(false);
@@ -63,9 +65,7 @@ const DefaultView: React.FC = () => {
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-xl">
         <h1 className="text-2xl font-bold mb-4 text-center">PR Checklistify</h1>
-        <p className="text-sm text-gray-600 mb-6 text-center">
-          Enter a GitHub Pull Request URL to generate an AI-powered review checklist.
-        </p>
+        <p className="text-sm text-gray-600 mb-6 text-center">{t('enterPrUrlPrompt')}</p>
 
         <div className="mb-6">
           <label htmlFor="pr-url" className="block text-sm font-medium text-gray-700 mb-1">
@@ -78,7 +78,7 @@ const DefaultView: React.FC = () => {
               value={prUrl}
               onChange={handleUrlChange}
               placeholder="https://github.com/owner/repo/pull/123"
-              className={`flex-grow px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 ${
+              className={`flex-grow px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:z-10 ${
                 prUrl && !isValid ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />

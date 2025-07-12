@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "Description of the extension",
-    "message": "Chrome Extension boilerplate created with Vite, React, TypeScript"
+    "message": "PR Checklistfy is a Chrome extension that streamlines Pull Request reviews. It automatically generates checklists of items to verify during review, preventing oversights in the review process."
   },
   "extensionName": {
     "description": "Name of the extension",
-    "message": "Chrome Extension Boilerplate"
+    "message": "PR Checklistfy"
   },
   "toggleTheme": {
     "message": "Toggle theme"
@@ -54,6 +54,12 @@
   },
   "githubIntegration": {
     "message": "GitHub Integration"
+  },
+  "aiProvider": {
+    "message": "AI Provider"
+  },
+  "selectAiProvider": {
+    "message": "Select AI Provider"
   },
   "settingsSavedSuccess": {
     "message": "Settings saved successfully!"
@@ -187,6 +193,9 @@
   "getGeminiKey": {
     "message": "Get your Gemini API key"
   },
+  "modelClientTypeSaved": {
+    "message": "Model client type saved"
+  },
   "failedToLoadSettings": {
     "message": "Failed to load saved settings"
   },
@@ -306,6 +315,30 @@
   },
   "generatingChecklistError": {
     "message": "Error occurred while generating the checklist."
+  },
+  "copy": {
+    "message": "Copy"
+  },
+  "paste": {
+    "message": "Paste"
+  },
+  "copied": {
+    "message": "Copied to clipboard"
+  },
+  "pasted": {
+    "message": "Pasted from clipboard"
+  },
+  "copyFailed": {
+    "message": "Failed to copy"
+  },
+  "pasteFailed": {
+    "message": "Failed to paste"
+  },
+  "clickToExpand": {
+    "message": "Click to expand"
+  },
+  "enterPrUrlPrompt": {
+    "message": "Enter a GitHub Pull Request URL to generate an AI-powered review checklist."
   },
   "openaiApiDesc": {
     "message": "To use PR Checklistify, you need to provide your OpenAI API key."

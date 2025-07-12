@@ -10,7 +10,7 @@ const SettingsButton: React.FC<SettingsButtonProps> = ({ className = '' }) => {
   return (
     <button
       onClick={navigateToSettings}
-      className={`text-gray-600 hover:text-gray-800 focus:outline-none ${className}`}
+      className={`text-gray-600 hover:text-gray-200 focus:outline-none ${className}`}
       aria-label="Settings">
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path

@@ -1,7 +1,7 @@
 // OpenAI API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, generateText, Output } from 'ai';
+import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
 import { geminiApiKeyStorage, openaiApiKeyStorage, type Language } from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
@@ -51,11 +51,9 @@ class OpenAIClient implements ModelClient {
     try {
       const prompt = buildPRAnalysisPrompt(prData, file, language);
       const model = this.client.languageModel(this.model as string);
-      const response = await generateText({
+      const { object } = await generateObject({
         model,
-        experimental_output: Output.object({
-          schema: ChecklistSchema,
-        }),
+        schema: ChecklistSchema,
         messages: [
           {
             role: 'system',
@@ -69,7 +67,7 @@ class OpenAIClient implements ModelClient {
         ],
         temperature: 0.3,
       });
-      return response.experimental_output as Checklist;
+      return object;
     } catch (error) {
       console.error('Error analyzing PR with OpenAI:', error);
       throw new Error('Failed to analyze PR with OpenAI');
@@ -82,6 +80,7 @@ class OpenAIClient implements ModelClient {
   async streamChatCompletion(
     messages: { role: 'user' | 'system' | 'assistant'; content: string }[],
     onToken: (token: string) => void,
+    options?: { signal?: AbortSignal },
   ): Promise<void> {
     try {
       const model = this.client.languageModel(this.model as string);
@@ -89,6 +88,7 @@ class OpenAIClient implements ModelClient {
         model,
         messages,
         temperature: 0.3,
+        abortSignal: options?.signal,
       });
       for await (const delta of stream.textStream) {
         if (delta) onToken(delta);

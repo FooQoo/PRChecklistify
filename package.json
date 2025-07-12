@@ -1,7 +1,7 @@
 {
   "name": "pr-checklistfy",
   "version": "0.0.1",
-  "description": "Support for your PR review",
+  "description": "PR Checklistfy is a Chrome extension that streamlines Pull Request reviews. It automatically generates checklists of items to verify during review, preventing oversights in the review process.",
   "license": "MIT",
   "private": true,
   "sideEffects": false,
@@ -43,7 +43,6 @@
     "console-log-level": "^1.4.1",
     "fastmcp": "^3.5.0",
     "jotai": "^2.12.3",
-    "openai": "^4.28.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-rewards": "^2.1.0",
