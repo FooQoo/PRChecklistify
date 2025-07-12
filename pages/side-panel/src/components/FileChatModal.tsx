@@ -259,6 +259,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                         setShowCompleteModal(true);
                       }
                     }}
+                    defaultExpanded={false}
                   />
                 </div>
               )}

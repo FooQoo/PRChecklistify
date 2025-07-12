@@ -8,6 +8,7 @@ interface ChecklistComponentProps {
   checklistItems: Record<string, boolean>;
   onToggle: (itemKey: string) => void;
   className?: string;
+  defaultExpanded?: boolean;
 }
 
 // チェックリスト項目コンポーネント
@@ -84,7 +85,15 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
   );
 };
 
-const ChecklistComponent = ({ checklist, checklistItems, onToggle, className = '' }: ChecklistComponentProps) => {
+const ChecklistComponent = ({
+  checklist,
+  checklistItems,
+  onToggle,
+  className = '',
+  defaultExpanded = true,
+}: ChecklistComponentProps) => {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
   const handleCopy = async (text: string): Promise<boolean> => {
     try {
       await navigator.clipboard.writeText(text);
@@ -94,30 +103,70 @@ const ChecklistComponent = ({ checklist, checklistItems, onToggle, className = '
     }
   };
 
+  const toggleExpanded = () => {
+    setExpanded(!expanded);
+  };
+
   return (
     <div className={`space-y-2 ${className}`}>
-      <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-        <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        {t('checklistItemsTitle')}
-      </h4>
-      <div className="space-y-2">
-        {checklist.checklistItems.map((item, index) => {
-          const itemKey = `item_${index}`;
-          const checked = checklistItems[itemKey] ?? item.isChecked;
-
-          return (
-            <ChecklistItem
-              key={item.id || itemKey}
-              label={item.description}
-              isChecked={checked}
-              onToggle={() => onToggle(itemKey)}
-              onCopy={() => handleCopy(item.description)}
-            />
-          );
-        })}
+      <div
+        className="flex items-center justify-between cursor-pointer select-none"
+        onClick={toggleExpanded}
+        role="button"
+        tabIndex={0}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleExpanded();
+          }
+        }}>
+        <div className="flex items-center justify-between w-full">
+          <h4 className="text-sm font-semibold mb-0 flex items-center gap-2">
+            <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {t('checklistItemsTitle')}
+          </h4>
+          {!expanded && <span className="text-xs text-gray-400 mr-6">クリックして展開</span>}
+        </div>
+        <span className="text-gray-500">
+          {expanded ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </span>
       </div>
+      {expanded && (
+        <div className="space-y-2">
+          {checklist.checklistItems.map((item, index) => {
+            const itemKey = `item_${index}`;
+            const checked = checklistItems[itemKey] ?? item.isChecked;
+
+            return (
+              <ChecklistItem
+                key={item.id || itemKey}
+                label={item.description}
+                isChecked={checked}
+                onToggle={() => onToggle(itemKey)}
+                onCopy={() => handleCopy(item.description)}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
