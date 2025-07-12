@@ -24,7 +24,6 @@ interface ChecklistItemProps {
   isChecked: boolean;
   onToggle: () => void;
   onCopy: () => Promise<boolean>;
-  onPaste: () => Promise<boolean>;
   className?: string;
 }
 
@@ -36,15 +35,6 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
     const success = await onCopy();
     if (success) {
       setTooltip('copy');
-      setTimeout(() => setTooltip(null), 1500);
-    }
-  };
-
-  const handlePasteClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const success = await onPaste();
-    if (success) {
-      setTooltip('paste');
       setTimeout(() => setTooltip(null), 1500);
     }
   };
@@ -73,7 +63,7 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
       <span className="text-sm">
         <MarkdownRenderer content={label} />
       </span>
-      <div className="relative ml-1 flex items-center gap-1">
+      <div className="relative ml-auto flex items-center gap-1">
         {tooltip && (
           <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-1 py-px rounded shadow pointer-events-none">
             {tooltip}
@@ -82,32 +72,15 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
         <button
           type="button"
           onClick={handleCopyClick}
-          className="text-gray-600 hover:text-gray-800"
+          className="text-gray-600 focus:outline-none shadow-none hover:shadow-none focus:shadow-none"
           aria-label={t('copy')}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            stroke="currentColor"
-            strokeWidth="1">
-            <path d="M8 2a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V8l-6-6H8z" />
-            <path d="M15 2v6h6" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          onClick={handlePasteClick}
-          className="text-gray-600 hover:text-gray-800"
-          aria-label={t('paste')}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            stroke="currentColor"
-            strokeWidth="1">
-            <path d="M19 11h-6v-6m6 0L10 14l-3-3-4 4" />
+            className="h-6 w-6 transition-transform duration-150 hover:scale-110 hover:drop-shadow-md hover:text-gray-800"
+            viewBox="0 0 20 20"
+            fill="currentColor">
+            <rect x="7" y="7" width="9" height="9" rx="2" className="fill-gray-300" />
+            <rect x="4" y="4" width="9" height="9" rx="2" className="fill-white stroke-gray-500" strokeWidth="1" />
           </svg>
         </button>
       </div>
@@ -136,14 +109,6 @@ const FileChecklist = ({
   const handleCopy = async (text: string): Promise<boolean> => {
     try {
       await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  const handlePaste = async (): Promise<boolean> => {
-    try {
-      await navigator.clipboard.readText();
       return true;
     } catch {
       return false;
@@ -620,7 +585,6 @@ const FileChecklist = ({
                           toggleReviewState(itemKey);
                         }}
                         onCopy={() => handleCopy(item.description)}
-                        onPaste={handlePaste}
                       />
                     ))}
                   </div>
