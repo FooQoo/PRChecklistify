@@ -29,7 +29,13 @@ const manifest = {
   },
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
-  host_permissions: ['<all_urls>'],
+  host_permissions: [
+    'https://api.github.com/*',
+    'https://github.com/*',
+    'https://api.openai.com/*',
+    'https://generativelanguage.googleapis.com/*',
+    'https://api.anthropic.com/*',
+  ],
   permissions: ['storage', 'tabs', 'sidePanel', 'unlimitedStorage'],
   background: {
     service_worker: 'background.js',
