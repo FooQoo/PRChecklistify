@@ -23,6 +23,7 @@ interface ChecklistItemProps {
 
 const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: ChecklistItemProps) => {
   const [tooltip, setTooltip] = useState<string | null>(null);
+  const { t } = useI18n();
 
   const handleCopyClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();

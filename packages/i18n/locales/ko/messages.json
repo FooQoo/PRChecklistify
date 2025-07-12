@@ -201,6 +201,9 @@
   "getGeminiKey": {
     "message": "Gemini API 키 받기"
   },
+  "getClaudeKey": {
+    "message": "Claude API 키 받기 →"
+  },
   "claudeIntegration": {
     "message": "Claude 연동"
   },

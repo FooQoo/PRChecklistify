@@ -202,6 +202,9 @@
   "getGeminiKey": {
     "message": "获取 Gemini API 密钥"
   },
+  "getClaudeKey": {
+    "message": "获取 Claude API 密钥 →"
+  },
   "claudeIntegration": {
     "message": "Claude 集成"
   },

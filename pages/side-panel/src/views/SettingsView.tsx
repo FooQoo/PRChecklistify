@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
-import OpenAIKeySettings from '../components/OpenAIKeySettings';
+import UnifiedApiKeySetupView from '../components/UnifiedApiKeySetupView';
 import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
-import GeminiKeySettings from '../components/GeminiKeySettings';
-import ClaudeKeySettings from '../components/ClaudeKeySettings';
 import InstructionPathSettings from '../components/InstructionPathSettings';
-import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import type { Language } from '@extension/storage';
 import { useI18n } from '@extension/i18n';
 import Toast from '../components/Toast';
-import { isGeminiApiEnabled } from '../utils/envUtils';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
@@ -27,10 +23,6 @@ const SettingsView: React.FC = () => {
     type: 'success',
   });
   const [pendingLanguageToast, setPendingLanguageToast] = useState(false);
-  // modelClientTypeのJotai hooksを利用
-  const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
-  // Geminiエンドポイント有効判定
-  const geminiEnabled = isGeminiApiEnabled();
 
   // Load settings on mount
   useEffect(() => {
@@ -85,14 +77,6 @@ const SettingsView: React.FC = () => {
     setPendingLanguageToast(true);
   };
 
-  // handleModelClientTypeChangeをhooks経由に
-  const handleModelClientTypeChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newType = e.target.value as typeof modelClientType;
-    await setTypeAndStorage(newType);
-    // Jotai atomの値はhooksで自動的に反映される
-    showToast(t('modelClientTypeSaved'), 'success');
-  };
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Toast notification */}
@@ -136,36 +120,7 @@ const SettingsView: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">{t('aiProvider')}</h2>
-          <label htmlFor="modelClientType" className="block text-sm font-medium text-gray-700 mb-1">
-            {t('selectAiProvider')}
-          </label>
-          <select
-            id="modelClientType"
-            value={modelClientType}
-            onChange={handleModelClientTypeChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="openai">OpenAI</option>
-            {geminiEnabled && <option value="gemini">Gemini</option>}
-            <option value="claude">Claude</option>
-          </select>
-          {modelClientType === 'openai' && (
-            <>
-              <h2 className="text-lg font-semibold mb-4">{t('openaiIntegration')}</h2>
-              <OpenAIKeySettings onToast={showToast} />
-            </>
-          )}
-          {modelClientType === 'gemini' && geminiEnabled && (
-            <>
-              <h2 className="text-lg font-semibold mb-4">{t('geminiIntegration')}</h2>
-              <GeminiKeySettings onToast={showToast} />
-            </>
-          )}
-          {modelClientType === 'claude' && (
-            <>
-              <h2 className="text-lg font-semibold mb-4">{t('claudeIntegration')}</h2>
-              <ClaudeKeySettings onToast={showToast} />
-            </>
-          )}
+          <UnifiedApiKeySetupView mode="settings" onToast={showToast} />
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
