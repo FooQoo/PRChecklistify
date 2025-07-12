@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "拡張機能の説明",
-    "message": "PR ChecklistfyはPull Requestのレビューを効率化するためのChrome拡張機能です。PRレビュー時に、確認すべき項目をチェックリストとして自動生成し、レビュープロセスの抜け漏れを防ぎます。"
+    "message": "PRレビューのチェックリストを自動生成し、見落としを防ぐChrome拡張機能です。"
   },
   "extensionName": {
     "description": "PRChecklistfy",
@@ -110,7 +110,7 @@
     "message": "分析言語"
   },
   "analysisLanguageDescription": {
-    "message": "AI生成PRチェックリストの言語を選択してください。"
+    "message": "利用する言語を選択してください。"
   },
   "openaiApiKey": {
     "message": "OpenAI APIキー"

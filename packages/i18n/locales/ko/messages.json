@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "PR Checklistfy는 Pull Request 리뷰를 효율화하기 위한 Chrome 확장 프로그램입니다. PR 리뷰 시 확인해야 할 항목을 체크리스트로 자동 생성하여 리뷰 과정의 누락을 방지합니다."
+    "message": "PR 리뷰 체크리스트를 자동 생성하여 누락을 방지하는 Chrome 확장 프로그램입니다."
   },
   "extensionName": {
     "description": "Extension name",
@@ -94,7 +94,7 @@
     "message": "분석 언어"
   },
   "analysisLanguageDescription": {
-    "message": "AI 생성 PR 분석 및 체크리스트 항목에 대한 언어를 선택하세요."
+    "message": "사용할 언어를 선택하세요."
   },
   "prChecklist": {
     "message": "PR 체크리스트"

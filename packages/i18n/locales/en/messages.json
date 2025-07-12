@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "Description of the extension",
-    "message": "PR Checklistfy is a Chrome extension that streamlines Pull Request reviews. It automatically generates checklists of items to verify during review, preventing oversights in the review process."
+    "message": "Chrome extension that generates checklists for Pull Request reviews to prevent oversights."
   },
   "extensionName": {
     "description": "Name of the extension",
@@ -110,7 +110,7 @@
     "message": "Analysis Language"
   },
   "analysisLanguageDescription": {
-    "message": "Select the language for AI-generated PR analysis and checklist items."
+    "message": "Select the language to use."
   },
   "openaiApiKey": {
     "message": "OpenAI API Key"
