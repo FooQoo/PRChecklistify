@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "Description of the extension",
-    "message": "Supports your PR reviews with automatic generation of PR summaries, check items, and AI chat."
+    "message": "Automatically analyze Pull Request content and generate checklists. Support code reviews with AI chat."
   },
   "extensionName": {
     "description": "Name of the extension",

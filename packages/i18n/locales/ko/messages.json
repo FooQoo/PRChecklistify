@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "PR 요약, 체크리스트 자동 생성, AI 채팅으로 PR 리뷰를 지원합니다."
+    "message": "Pull Request 내용을 자동으로 분석하여 체크리스트를 생성합니다. AI 채팅으로 코드 리뷰를 지원합니다."
   },
   "extensionName": {
     "description": "Extension name",

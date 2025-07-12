@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "拡張機能の説明",
-    "message": "PRのサマリーやチェック項目の自動生成、AIチャットによってあなたのPRレビューをサポートします。"
+    "message": "Pull Requestの内容を自動解析し、チェックリストを生成。AIチャットでコードレビューをサポート"
   },
   "extensionName": {
     "description": "PRChecklistfy",

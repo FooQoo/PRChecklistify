@@ -107,7 +107,28 @@ const GitHubPRView = () => {
       <header className="App-header text-gray-900 pt-16">
         <div className="w-full max-w-3xl px-4">
           <div className="pr-header mb-2">
-            <h3 className="text-xl font-bold mb-1">{prData.title}</h3>
+            <h3 className="text-xl font-bold mb-1">
+              <a
+                href={prData.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-900 hover:text-gray-700 hover:underline cursor-pointer inline-flex items-center">
+                {prData.title}
+                <svg
+                  className="ml-1 h-4 w-4 text-gray-600 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </a>
+            </h3>
             <div className="flex items-center text-sm mb-1">
               <img src={prData.user.avatar_url} alt="User Avatar" className="w-6 h-6 rounded-full mr-2" />
               <span>{prData.user.login}</span>
