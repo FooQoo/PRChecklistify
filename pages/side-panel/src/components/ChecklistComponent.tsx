@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState } from 'react';
 import type { Checklist } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
@@ -53,7 +54,7 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
         type="checkbox"
         checked={isChecked}
         onChange={onToggle}
-        className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+        className="w-4 h-4 min-w-4 min-h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
       />
       <span className="text-sm">
         <MarkdownRenderer content={label} />
