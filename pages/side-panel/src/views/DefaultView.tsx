@@ -118,15 +118,17 @@ const DefaultView: React.FC = () => {
             {hasMorePRs && !showAllRecent && (
               <button
                 onClick={() => setShowAllRecent(true)}
-                className="mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center">
-                Show All ({recentPRs.length})
+                className="group mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center hover:scale-100 hover:shadow-none">
+                <span className="inline-block transition-transform group-hover:-translate-y-0.5">
+                  Show All ({recentPRs.length})
+                </span>
               </button>
             )}
             {showAllRecent && recentPRs.length > 5 && (
               <button
                 onClick={() => setShowAllRecent(false)}
-                className="mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center">
-                Show Less
+                className="group mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center hover:scale-100 hover:shadow-none">
+                <span className="inline-block transition-transform group-hover:-translate-y-0.5">Show Less</span>
               </button>
             )}
           </div>
