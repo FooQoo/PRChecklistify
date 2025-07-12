@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "扩展描述",
-    "message": "PR Checklistfy 是一款用于提升 Pull Request 审核效率的 Chrome 扩展。在 PR 审核时自动生成需要确认的清单，防止审核流程出现遗漏。"
+    "message": "自动生成 PR 审核清单，防止审核遗漏的 Chrome 扩展。"
   },
   "extensionName": {
     "description": "PRChecklistfy",
