@@ -101,7 +101,7 @@
     "message": "分析言語"
   },
   "analysisLanguageDescription": {
-    "message": "AI生成PRチェックリストの言語を選択してください。"
+    "message": "AIによるPR解析とチェックリスト項目に使用する言語を選択してください。"
   },
   "openaiApiKey": {
     "message": "OpenAI APIキー"
