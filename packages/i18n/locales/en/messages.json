@@ -146,7 +146,7 @@
     "message": "Failed to remove API key"
   },
   "openaiKeyStorageNotice": {
-    "message": "Your OpenAI API key is stored locally and only used to generate PR analysis."
+    "message": "Your OpenAI API key is stored locally and only used by the extension."
   },
   "getOpenAIKey": {
     "message": "Get your API key from OpenAI"

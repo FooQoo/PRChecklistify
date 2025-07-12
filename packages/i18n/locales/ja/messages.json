@@ -146,7 +146,7 @@
     "message": "APIキーの削除に失敗しました"
   },
   "openaiKeyStorageNotice": {
-    "message": "OpenAI APIキーはローカルに保存され、PR分析の生成にのみ使用されます。"
+    "message": "OpenAI APIキーはローカルに保存され、拡張機能でのみ使用されます。"
   },
   "getOpenAIKey": {
     "message": "OpenAIからAPIキーを取得する"

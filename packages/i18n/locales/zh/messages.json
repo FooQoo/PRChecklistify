@@ -146,7 +146,7 @@
     "message": "删除API密钥失败"
   },
   "openaiKeyStorageNotice": {
-    "message": "您的OpenAI API密钥存储在本地，仅用于生成PR分析。"
+    "message": "OpenAI API密钥保存在本地，仅在扩展中使用。"
   },
   "getOpenAIKey": {
     "message": "从OpenAI获取您的API密钥"
