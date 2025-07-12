@@ -10,6 +10,7 @@ import { useClaudeModelAtom } from '../hooks/useClaudeModelAtom';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import { isGeminiApiEnabled } from '../utils/envUtils';
 import TextInput from './common/TextInput';
+import Button from './common/Button';
 import { getOpenAIModelOptions, getGeminiModelOptions, getClaudeModelOptions } from '@extension/storage';
 
 import type { ModelClientType } from '../services/modelClient';
@@ -56,13 +57,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
     return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
   };
 
-  // セットアップ完了時のナビゲーション
-  const handleSetupComplete = () => {
-    if (mode === 'setup') {
-      navigateToHome();
-    }
-  };
-
   // プロバイダーオプションの動的生成
   const getProviderOptions = () => {
     const options = [
@@ -76,6 +70,20 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   };
 
   const providerOptions = getProviderOptions();
+
+  // 現在のプロバイダーのAPIキーが設定されているかどうかを確認
+  const isApiKeySet = () => {
+    switch (provider) {
+      case 'openai':
+        return !!openaiKey;
+      case 'gemini':
+        return !!geminiKey;
+      case 'claude':
+        return !!claudeKey;
+      default:
+        return false;
+    }
+  };
 
   // 設定画面の構造に合わせた統合レイアウト
   const renderContent = () => (
@@ -110,7 +118,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             onSave={async key => {
               await setOpenaiKeyAndStorage(key);
               if (onToast) onToast(t('apiKeySavedSuccess'), 'success');
-              handleSetupComplete();
             }}
             onRemove={clearOpenaiKey}
             validator={validateOpenAIKey}
@@ -165,7 +172,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             onSave={async key => {
               await setGeminiKeyAndStorage(key);
               if (onToast) onToast(t('geminiApiKeySavedSuccess'), 'success');
-              handleSetupComplete();
             }}
             onRemove={clearGeminiKey}
             validator={validateGeminiKey}
@@ -220,7 +226,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             onSave={async key => {
               await setClaudeKeyAndStorage(key);
               if (onToast) onToast(t('claudeApiKeySavedSuccess'), 'success');
-              handleSetupComplete();
             }}
             onRemove={clearClaudeKey}
             validator={validateClaudeKey}
@@ -273,6 +278,11 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
           <h2 className="text-xl font-bold mb-4">API Key Setup</h2>
           {renderContent()}
+          <div className="mt-6 flex justify-end">
+            <Button onClick={navigateToHome} variant="primary" disabled={!isApiKeySet()}>
+              {t('next')}
+            </Button>
+          </div>
         </div>
       </div>
     );
