@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "扩展描述",
-    "message": "提供AI代理功能以支持PR审核"
+    "message": "PR Checklistfy 是一款用于提升 Pull Request 审核效率的 Chrome 扩展。在 PR 审核时自动生成需要确认的清单，防止审核流程出现遗漏。"
   },
   "extensionName": {
     "description": "PRChecklistfy",
-    "message": "PRChecklistfy"
+    "message": "PR Checklistfy"
   },
   "toggleTheme": {
     "message": "切换主题"
@@ -54,6 +54,12 @@
   },
   "githubIntegration": {
     "message": "GitHub集成"
+  },
+  "aiProvider": {
+    "message": "AI提供者"
+  },
+  "selectAiProvider": {
+    "message": "选择AI提供者"
   },
   "settingsSavedSuccess": {
     "message": "设置已成功保存！"
@@ -220,8 +226,35 @@
   "modelVersion": {
     "message": "模型版本"
   },
+  "modelClientTypeSaved": {
+    "message": "LLM 模型已保存"
+  },
   "failedToLoadSettings": {
     "message": "无法加载保存的设置"
+  },
+  "copy": {
+    "message": "复制"
+  },
+  "paste": {
+    "message": "粘贴"
+  },
+  "copied": {
+    "message": "已复制到剪贴板"
+  },
+  "pasted": {
+    "message": "已从剪贴板粘贴"
+  },
+  "copyFailed": {
+    "message": "复制失败"
+  },
+  "pasteFailed": {
+    "message": "粘贴失败"
+  },
+  "openaiApiDesc": {
+    "message": "要使用 PR Checklistify，您需要提供您的 OpenAI API 密钥。"
+  },
+  "clickToExpand": {
+    "message": "点击展开"
   },
   "enterPrUrlPrompt": {
     "message": "输入 GitHub Pull Request URL 以生成 AI 驱动的评审清单。"
