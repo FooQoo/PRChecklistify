@@ -82,15 +82,15 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
         <button
           type="button"
           onClick={handleCopyClick}
-          className="text-white hover:text-gray-200"
+          className="text-gray-600 hover:text-gray-800"
           aria-label={t('copy')}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-4 w-4"
             viewBox="0 0 24 24"
-            fill="none"
+            fill="currentColor"
             stroke="currentColor"
-            strokeWidth="2">
+            strokeWidth="1">
             <path d="M8 2a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V8l-6-6H8z" />
             <path d="M15 2v6h6" />
           </svg>
@@ -98,15 +98,15 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
         <button
           type="button"
           onClick={handlePasteClick}
-          className="text-white hover:text-gray-200"
+          className="text-gray-600 hover:text-gray-800"
           aria-label={t('paste')}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-4 w-4"
             viewBox="0 0 24 24"
-            fill="none"
+            fill="currentColor"
             stroke="currentColor"
-            strokeWidth="2">
+            strokeWidth="1">
             <path d="M19 11h-6v-6m6 0L10 14l-3-3-4 4" />
           </svg>
         </button>
