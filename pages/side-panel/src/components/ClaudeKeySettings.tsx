@@ -50,8 +50,8 @@ const ClaudeKeySettings: React.FC<ClaudeKeySettingsProps> = ({ onToast }) => {
           value={claudeModel}
           onChange={e => setModelAndStorage(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</option>
-          <option value="claude-3-opus-20240229">claude-3-opus-20240229</option>
+          <option value="claude-3-7-sonnet-20250219">claude-3-7-sonnet-20250219</option>
+          <option value="claude-sonnet-4-20250514">claude-sonnet-4-20250514</option>
         </select>
       </div>
 
