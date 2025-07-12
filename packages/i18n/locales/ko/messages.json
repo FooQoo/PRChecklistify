@@ -385,6 +385,6 @@
     "message": "커스텀 지시사항 파일 경로"
   },
   "instructionPathPlaceholder": {
-    "message": "./custom-instructions.md"
+    "message": "CLAUDE.md"
   }
 }

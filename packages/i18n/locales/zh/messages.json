@@ -386,6 +386,6 @@
     "message": "自定义指令文件路径"
   },
   "instructionPathPlaceholder": {
-    "message": "./custom-instructions.md"
+    "message": "CLAUDE.md"
   }
 }

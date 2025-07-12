@@ -333,9 +333,9 @@ const FileChecklist = ({
 
       const checklist = await fetchers.generateChecklist(prData, file, language);
       await saveAnalysisResultChecklist(checklist);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError(t('generatingChecklistError'));
-      console.error('Checklist generation error:', error);
     } finally {
       setGenerating(false);
       setGlobalGenerating(false);

@@ -39,7 +39,6 @@ const SettingsView: React.FC = () => {
           setRecentPRs(sortedPRs);
         }
       } catch {
-        console.error('Error loading settings');
         showToast('Failed to load settings', 'error');
       }
     };

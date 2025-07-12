@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 // Claude API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { createAnthropic } from '@ai-sdk/anthropic';
@@ -48,8 +49,8 @@ class ClaudeClient implements ModelClient {
       });
 
       return object as Checklist;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error analyzing PR with Claude:', error);
       throw new Error('Failed to analyze PR with Claude');
     }
   }
@@ -76,7 +77,6 @@ class ClaudeClient implements ModelClient {
         if (delta) onToken(delta);
       }
     } catch (error) {
-      console.error('Error streaming Claude chat completion:', error);
       throw error;
     }
   }

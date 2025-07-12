@@ -47,8 +47,8 @@ class GeminiClient implements ModelClient {
       });
 
       return object as Checklist;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error analyzing PR with Gemini:', error);
       throw new Error('Failed to analyze PR with Gemini');
     }
   }
@@ -61,6 +61,7 @@ class GeminiClient implements ModelClient {
     onToken: (token: string) => void,
     options?: { signal?: AbortSignal },
   ): Promise<void> {
+    // eslint-disable-next-line no-useless-catch
     try {
       const model = this.client(this.model);
 
@@ -75,7 +76,6 @@ class GeminiClient implements ModelClient {
         if (delta) onToken(delta);
       }
     } catch (error) {
-      console.error('Error streaming Gemini chat completion:', error);
       throw error;
     }
   }

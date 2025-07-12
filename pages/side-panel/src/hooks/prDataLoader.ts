@@ -32,7 +32,6 @@ export const loadPRDataFromAnySource = async (
       }
     }
   } catch {
-    console.error('Error in loadPRData');
     setError('An error occurred while loading PR data');
   }
 };

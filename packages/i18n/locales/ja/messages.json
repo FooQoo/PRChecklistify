@@ -386,6 +386,6 @@
     "message": "カスタムインストラクションファイルのパス"
   },
   "instructionPathPlaceholder": {
-    "message": "./custom-instructions.md"
+    "message": "CLAUDE.md"
   }
 }

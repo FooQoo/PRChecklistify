@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 // Common interface for LLM clients (OpenAI, Gemini, etc.)
 import type { Checklist, PRData, PRFile } from '@src/types';
 import { createOpenAIClient } from './openai';
@@ -54,8 +55,8 @@ export const modelClientTypeStorage = {
     try {
       const result = await chrome.storage.local.get('modelClientType');
       return (result.modelClientType as ModelClientType) || null;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error getting model client type preference:', error);
       return null;
     }
   },
@@ -64,7 +65,6 @@ export const modelClientTypeStorage = {
     try {
       await chrome.storage.local.set({ modelClientType: clientType });
     } catch (error) {
-      console.error('Error setting model client type preference:', error);
       throw error;
     }
   },
@@ -73,7 +73,6 @@ export const modelClientTypeStorage = {
     try {
       await chrome.storage.local.remove('modelClientType');
     } catch (error) {
-      console.error('Error clearing model client type preference:', error);
       throw error;
     }
   },
@@ -91,7 +90,6 @@ export async function createModelClient(): Promise<ModelClient | null> {
     case ModelClientType.Claude:
       return await createClaudeClient();
     default:
-      console.error(`Unknown model client type: ${clientType}`);
       return null;
   }
 }

@@ -100,12 +100,3 @@ export class GithubClient {
     });
   }
 }
-
-let githubClientSingleton: GithubClient | null = null;
-
-export const getGithubClient = async (): Promise<GithubClient> => {
-  if (!githubClientSingleton) {
-    githubClientSingleton = await GithubClient.create();
-  }
-  return githubClientSingleton;
-};

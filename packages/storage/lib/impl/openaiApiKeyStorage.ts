@@ -1,3 +1,5 @@
+/* eslint-disable no-useless-catch */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // import { Runtime } from 'webextension-polyfill';
 
 /**
@@ -9,7 +11,6 @@ export const openaiApiKeyStorage = {
       const result = await chrome.storage.local.get('openaiApiKey');
       return result.openaiApiKey || '';
     } catch (error) {
-      console.error('Error getting OpenAI API key:', error);
       return '';
     }
   },
@@ -18,7 +19,6 @@ export const openaiApiKeyStorage = {
     try {
       await chrome.storage.local.set({ openaiApiKey: apiKey });
     } catch (error) {
-      console.error('Error setting OpenAI API key:', error);
       throw error;
     }
   },
@@ -27,7 +27,6 @@ export const openaiApiKeyStorage = {
     try {
       await chrome.storage.local.remove('openaiApiKey');
     } catch (error) {
-      console.error('Error clearing OpenAI API key:', error);
       throw error;
     }
   },

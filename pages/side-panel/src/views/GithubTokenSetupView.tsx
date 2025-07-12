@@ -26,9 +26,9 @@ const GithubTokenSetupView: React.FC = () => {
       setIsLoading(true);
       // Save the token only if it's verified
       await githubTokenStorage.set(token);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError('Network error. Please check your connection and try again.');
-      console.error('Token verification error:', err);
     } finally {
       setIsLoading(false);
     }

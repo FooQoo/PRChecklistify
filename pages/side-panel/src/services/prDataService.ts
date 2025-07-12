@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-useless-catch */
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
-import { getGithubClient } from './github';
+import { GithubClient } from './github';
 import { instructionPathStorage } from '@extension/storage';
 
 type RecentPR = { title: string; key: string; timestamp: number };
@@ -39,7 +41,6 @@ class PRDataStorage {
       await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
       await this.updateRecentPRs(prData.title, prKey);
     } catch (error) {
-      console.error('Error saving PR data to storage:', error);
       throw error;
     }
   }
@@ -57,12 +58,8 @@ class PRDataStorage {
           timestamp: Date.now(),
         };
         await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
-      } else {
-        // データがなければ何もしない
-        console.warn('No PR data found for key:', prKey);
       }
     } catch (error) {
-      console.error('Error saving analysis result to storage:', error);
       throw error;
     }
   }
@@ -77,7 +74,6 @@ class PRDataStorage {
       const prData = savedData.find(item => item.key === prKey) || null;
       return prData;
     } catch (error) {
-      console.error('Error getting PR data from storage:', error);
       return null;
     }
   }
@@ -88,7 +84,6 @@ class PRDataStorage {
       const result = await chrome.storage.local.get(this.STORAGE_KEY);
       return result[this.STORAGE_KEY] || [];
     } catch (error) {
-      console.error('Error getting all PR data from storage:', error);
       return [];
     }
   }
@@ -101,7 +96,6 @@ class PRDataStorage {
       const filteredData = savedData.filter(item => item.key !== prKey);
       await chrome.storage.local.set({ [this.STORAGE_KEY]: filteredData });
     } catch (error) {
-      console.error('Error removing PR data from storage:', error);
       throw error;
     }
   }
@@ -141,9 +135,8 @@ class PRDataStorage {
       // 最後にタイムスタンプでソートして保存
       recentPRs.sort((a: RecentPR, b: RecentPR) => b.timestamp - a.timestamp);
       await chrome.storage.local.set({ recentPRs });
-    } catch (error) {
-      console.error('Error updating recent PRs:', error);
-    }
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
   }
 }
 
@@ -153,7 +146,7 @@ export const prDataStorage = new PRDataStorage();
 // Service to fetch PR data from GitHub
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
-    const github = await getGithubClient();
+    const github = await GithubClient.create();
     const { owner, repo } = identifier;
 
     // PRデータ取得
@@ -173,11 +166,11 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
               try {
                 decodedContent = await github.fetchBlob(owner, repo, file.sha);
               } catch (e) {
-                console.warn('Failed to get content for file:', file.filename, e);
+                /* empty */
               }
             }
           } catch (e) {
-            console.warn('Failed to fetch or decode file content:', file.filename, e);
+            /* empty */
           }
         }
         return {
@@ -207,12 +200,10 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
         } catch {
           instructions = undefined;
         }
-      } else {
-        instructions = await github.fetchInstructionsFromMain(owner, repo);
       }
       readme = await github.fetchReadmeContent(owner, repo);
     } catch (error) {
-      console.warn('Failed to fetch PR reviews:', error);
+      /* empty */
     }
 
     // PRレビューコメント（pulls.listReviewComments）を取得
@@ -233,7 +224,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
         url: comment.html_url,
       }));
     } catch (e) {
-      console.warn('Failed to fetch review comments:', e);
+      /* empty */
     }
 
     return {
@@ -273,7 +264,6 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       userComments, // ここでレビューコメントを格納
     };
   } catch (error) {
-    console.error('Error fetching PR data:', error);
     return null;
   }
 };

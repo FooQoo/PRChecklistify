@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 // OpenAI API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { createOpenAI } from '@ai-sdk/openai';
@@ -48,8 +49,8 @@ class OpenAIClient implements ModelClient {
       });
 
       return object as Checklist;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error analyzing PR with OpenAI:', error);
       throw new Error('Failed to analyze PR with OpenAI');
     }
   }
@@ -75,7 +76,6 @@ class OpenAIClient implements ModelClient {
         if (delta) onToken(delta);
       }
     } catch (error) {
-      console.error('Error streaming OpenAI chat completion:', error);
       throw error;
     }
   }

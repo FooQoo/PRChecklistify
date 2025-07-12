@@ -64,8 +64,8 @@ const SecretKeyInput: React.FC<SecretKeyInputProps> = ({
       await onSave(inputValue);
       setInputValue('');
       onToast?.(successMessage, 'success');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      console.error('Error saving key:', err);
       onToast?.('Failed to save', 'error');
     } finally {
       setInternalLoading(false);
@@ -80,8 +80,8 @@ const SecretKeyInput: React.FC<SecretKeyInputProps> = ({
       await onRemove();
       setInputValue('');
       onToast?.(removeText, 'success');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      console.error('Error removing key:', err);
       onToast?.('Failed to remove', 'error');
     } finally {
       setInternalLoading(false);

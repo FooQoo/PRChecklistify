@@ -21,8 +21,9 @@ const DefaultView: React.FC = () => {
           const sortedPRs = [...result.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
           setRecentPRs(sortedPRs);
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.error('Error loading recent PRs:', error);
+        /* empty */
       }
     };
 

@@ -19,9 +19,8 @@ const StorageManagement = () => {
         const prDataKeys = Object.keys(items);
 
         setHasPRData(prDataKeys.length > 0);
-      } catch (error) {
-        console.error('Error counting PR data:', error);
-      }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+      } catch (error) {}
     };
 
     countPRData();

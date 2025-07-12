@@ -38,9 +38,7 @@ export function usePRData(prKey: string) {
         summary,
       } as PRAnalysisResult;
       // ストレージ保存もこの中で
-      prDataStorage.saveAnalysisResultToStorage(prKey, newResult).catch(err => {
-        console.error('Error saving analysis result:', err);
-      });
+      prDataStorage.saveAnalysisResultToStorage(prKey, newResult);
       return newResult;
     });
   };
@@ -61,9 +59,7 @@ export function usePRData(prKey: string) {
         ...prev,
         fileAnalysis: newFileAnalysis,
       } as PRAnalysisResult;
-      prDataStorage.saveAnalysisResultToStorage(prKey, newResult).catch(err => {
-        console.error('Error saving analysis result:', err);
-      });
+      prDataStorage.saveAnalysisResultToStorage(prKey, newResult);
       return newResult;
     });
   };

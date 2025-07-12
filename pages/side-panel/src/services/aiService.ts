@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import type { PRData, PRFile, Language } from '@extension/shared';
 import { createModelClient } from './modelClient';
 import { getLanguageLabel } from '@extension/storage';
@@ -25,7 +26,6 @@ export const fetchers = {
 
       return analysisResult;
     } catch (error) {
-      console.error('Error in generateAnalysis fetcher:', error);
       throw error;
     }
   },
@@ -86,7 +86,6 @@ export const fetchers = {
       if (!client) throw new Error('Failed to create model client');
       return await client.analyzePR(prData, file, _language);
     } catch (error) {
-      console.error('Error in generateChecklist fetcher:', error);
       throw error;
     }
   },
@@ -125,7 +124,6 @@ export const fetchers = {
       ];
       await client.streamChatCompletion(messages, onToken, options);
     } catch (error) {
-      console.error('Error in generateSummaryStream fetcher:', error);
       throw error;
     }
   },

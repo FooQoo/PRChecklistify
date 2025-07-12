@@ -35,8 +35,9 @@ const SidePanel = () => {
 
         // Update the atom so our hook can use it
         setCurrentPageAtom({ url: page.url });
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.error('Error getting current page:', error);
+        /* empty */
       } finally {
         setLoading(false);
       }
