@@ -121,11 +121,17 @@
   "invalidApiKeyFormat": {
     "message": "API密钥格式无效。OpenAI API密钥通常以\"sk-\"开头"
   },
+  "invalidPathFormat": {
+    "message": "无效的路径格式"
+  },
   "apiKeySavedSuccess": {
     "message": "API密钥已成功保存！"
   },
   "apiKeyIsSet": {
     "message": "API密钥已设置"
+  },
+  "pathIsSet": {
+    "message": "路径已设置"
   },
   "failedToSaveApiKey": {
     "message": "保存API密钥失败"
@@ -216,9 +222,6 @@
   },
   "pasteFailed": {
     "message": "粘贴失败"
-  },
-  "openaiApiDesc": {
-    "message": "要使用 PR Checklistify，您需要提供您的 OpenAI API 密钥。"
   },
   "clickToExpand": {
     "message": "点击展开"

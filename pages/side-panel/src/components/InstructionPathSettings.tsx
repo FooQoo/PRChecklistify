@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { useI18n } from '@extension/i18n';
 import { useInstructionPathAtom } from '../hooks/useInstructionPathAtom';
+import TextInput from './common/TextInput';
 interface InstructionPathSettingsProps {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
@@ -8,51 +8,39 @@ interface InstructionPathSettingsProps {
 const InstructionPathSettings: React.FC<InstructionPathSettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
   const { path, setPathAndStorage, clearPath } = useInstructionPathAtom();
-  const [inputPath, setInputPath] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputPath.trim()) return;
-    await setPathAndStorage(inputPath.trim());
-    setInputPath('');
-    onToast(t('settingsSavedSuccess'), 'success');
+  // ファイルパスのバリデーション（基本的なチェック）
+  const validatePath = (filePath: string): boolean => {
+    // 空文字は無効
+    if (!filePath.trim()) return false;
+    // 基本的なパス形式をチェック（より厳密なバリデーションが必要な場合は拡張）
+    return true;
   };
 
-  const handleClear = async () => {
-    await clearPath();
-    setInputPath('');
-    onToast(t('remove'), 'success');
+  // パスの表示用（マスクは不要）
+  const getDisplayPath = (filePath: string): string => {
+    return filePath;
   };
 
   return (
-    <div className="mb-4">
-      <label htmlFor="instruction-path" className="block text-sm font-medium text-gray-700 mb-1">
-        {t('instructionPath')}
-      </label>
-      <textarea
-        id="instruction-path"
-        value={inputPath}
-        onChange={e => setInputPath(e.target.value)}
+    <div className="instruction-path-settings">
+      <TextInput
+        label={t('instructionPath')}
+        value={path}
         placeholder={t('instructionPathPlaceholder')}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        type="text"
+        onSave={setPathAndStorage}
+        onRemove={clearPath}
+        validator={validatePath}
+        errorMessage={t('invalidPathFormat')}
+        successMessage={t('settingsSavedSuccess')}
+        removeText={t('remove')}
+        saveText={t('save')}
+        savingText={t('saving')}
+        keySetText={t('pathIsSet')}
+        getMaskedValue={getDisplayPath}
+        onToast={onToast}
       />
-      <div className="flex space-x-2 mt-2">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!inputPath.trim()}
-          className={`px-4 py-2 ${!inputPath.trim() ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'} rounded-md`}>
-          {t('save')}
-        </button>
-        {path && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md">
-            {t('remove')}
-          </button>
-        )}
-      </div>
     </div>
   );
 };

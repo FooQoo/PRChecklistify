@@ -121,11 +121,17 @@
   "invalidApiKeyFormat": {
     "message": "Invalid API key format. OpenAI API keys typically start with \"sk-\""
   },
+  "invalidPathFormat": {
+    "message": "Invalid path format"
+  },
   "apiKeySavedSuccess": {
     "message": "API key saved successfully!"
   },
   "apiKeyIsSet": {
     "message": "API key is set"
+  },
+  "pathIsSet": {
+    "message": "Path is set"
   },
   "failedToSaveApiKey": {
     "message": "Failed to save API key"
