@@ -128,7 +128,7 @@ const ChecklistComponent = ({
             </svg>
             {t('checklistItemsTitle')}
           </h4>
-          {!expanded && <span className="text-xs text-gray-400 mr-6">クリックして展開</span>}
+          {!expanded && <span className="text-xs text-gray-400 mr-6">{t('clickToExpand')}</span>}
         </div>
         <span className="text-gray-500">
           {expanded ? (

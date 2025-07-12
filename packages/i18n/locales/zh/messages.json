@@ -207,5 +207,8 @@
   },
   "openaiApiDesc": {
     "message": "要使用 PR Checklistify，您需要提供您的 OpenAI API 密钥。"
+  },
+  "clickToExpand": {
+    "message": "点击展开"
   }
 }

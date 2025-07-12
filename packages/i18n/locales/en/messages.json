@@ -324,5 +324,8 @@
   },
   "openaiApiDesc": {
     "message": "To use PR Checklistify, you need to provide your OpenAI API key."
+  },
+  "clickToExpand": {
+    "message": "Click to expand"
   }
 }
