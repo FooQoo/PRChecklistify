@@ -55,6 +55,12 @@
   "githubIntegration": {
     "message": "GitHub Integration"
   },
+  "aiProvider": {
+    "message": "AI Provider"
+  },
+  "selectAiProvider": {
+    "message": "Select AI Provider"
+  },
   "settingsSavedSuccess": {
     "message": "Settings saved successfully!"
   },
