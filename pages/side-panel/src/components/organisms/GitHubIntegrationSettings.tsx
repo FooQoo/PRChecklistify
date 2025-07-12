@@ -1,6 +1,6 @@
-import { useGithubTokenAtom } from '../hooks/useGithubTokenAtom';
+import { useGithubTokenAtom } from '../../hooks/useGithubTokenAtom';
 import { useI18n } from '@extension/i18n';
-import TextInput from './common/TextInput';
+import { TextInput } from '../atoms';
 
 interface GitHubIntegrationSettingsProps {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;

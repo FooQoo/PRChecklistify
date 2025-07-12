@@ -1,11 +1,10 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { PRData, Checklist, PRAnalysisResult } from '../types';
+import type { PRData, Checklist, PRAnalysisResult } from '../../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { fetchers } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
-import { MarkdownRenderer } from './MarkdownRenderer';
-import ChecklistComponent from './ChecklistComponent';
+import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
 
 interface FileChecklistProps {

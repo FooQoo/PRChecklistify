@@ -1,7 +1,7 @@
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useGeminiModelAtom } from '@src/hooks/useGeminiModelAtom';
 import { useI18n } from '@extension/i18n';
-import TextInput from './common/TextInput';
+import { TextInput } from '../atoms';
 import { getGeminiModelOptions } from '@extension/storage';
 
 interface GeminiKeySettingsProps {

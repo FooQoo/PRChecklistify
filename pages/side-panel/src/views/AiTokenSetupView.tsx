@@ -1,7 +1,7 @@
 import { UnifiedApiKeySetupView } from '../components';
 
-const OpenAiTokenSetupView: React.FC = () => {
+const AiTokenSetupView: React.FC = () => {
   return <UnifiedApiKeySetupView mode="setup" />;
 };
 
-export default OpenAiTokenSetupView;
+export default AiTokenSetupView;

@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigation } from '../context/NavigationContext';
-import UnifiedApiKeySetupView from '../components/UnifiedApiKeySetupView';
-import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
-import InstructionPathSettings from '../components/InstructionPathSettings';
+import { UnifiedApiKeySetupView, GitHubIntegrationSettings, InstructionPathSettings, Toast } from '../components';
 import type { Language } from '@extension/storage';
 import { useI18n } from '@extension/i18n';
-import Toast from '../components/Toast';
 
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();

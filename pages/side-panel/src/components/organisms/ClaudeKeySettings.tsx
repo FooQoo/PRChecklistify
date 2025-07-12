@@ -1,7 +1,7 @@
-import { useClaudeKeyAtom } from '../hooks/useClaudeKeyAtom';
-import { useClaudeModelAtom } from '../hooks/useClaudeModelAtom';
+import { useClaudeKeyAtom } from '../../hooks/useClaudeKeyAtom';
+import { useClaudeModelAtom } from '../../hooks/useClaudeModelAtom';
 import { useI18n } from '@extension/i18n';
-import TextInput from './common/TextInput';
+import { TextInput } from '../atoms';
 import { getClaudeModelOptions } from '@extension/storage';
 
 interface ClaudeKeySettingsProps {

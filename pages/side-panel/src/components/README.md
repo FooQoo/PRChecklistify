@@ -1,13 +1,62 @@
-# `pages/side-panel/src/components`
+# Components Architecture (Atomic Design)
 
-## Overview
+このプロジェクトのコンポーネントは、Atomic Design の原則に基づいて整理されています。
 
-The `components` folder houses the React components that constitute the core UI elements of the side panel in the PR Checklistify extension. These components handle various aspects of the extension, from displaying PR analysis results and file checklists to managing settings and displaying informative messages. It now also includes support for Gemini models, alongside OpenAI.
+## 構造
 
-- **Folder Name:** components
-- **Purpose:** Contains reusable React components for the PR Checklistify extension's side panel.
+```
+components/
+├── atoms/          # 最小の機能単位
+├── molecules/      # 複数のatomsを組み合わせた小さな機能単位
+├── organisms/      # 複数のmoleculesを組み合わせた大きな機能単位
+├── templates/      # レイアウトやページ構造
+└── index.ts        # 全コンポーネントのエクスポート
+```
 
-## Naming Conventions
+## Atoms (最小の機能単位)
+- `Button.tsx` - 基本的なボタンコンポーネント
+- `TextInput.tsx` - テキスト入力コンポーネント
+- `SecretKeyInput.tsx` - パスワード/秘密鍵入力コンポーネント
+- `Toast.tsx` - 通知メッセージコンポーネント
+- `SettingsButton.tsx` - 設定ボタンコンポーネント
+
+## Molecules (複数のatomsを組み合わせた小さな機能単位)
+- `ApiKeySettings.tsx` - API キー設定の共通コンポーネント
+- `SettingSection.tsx` - 設定セクション用コンポーネント
+- `MarkdownRenderer.tsx` - Markdown表示コンポーネント
+- `ChecklistComponent.tsx` - チェックリスト表示コンポーネント
+
+## Organisms (複数のmoleculesを組み合わせた大きな機能単位)
+- `OpenAIKeySettings.tsx` - OpenAI API キー設定
+- `GeminiKeySettings.tsx` - Gemini API キー設定
+- `ClaudeKeySettings.tsx` - Claude API キー設定
+- `GitHubIntegrationSettings.tsx` - GitHub統合設定
+- `InstructionPathSettings.tsx` - 指示パス設定
+- `StorageManagement.tsx` - ストレージ管理
+- `FileChecklist.tsx` - ファイル毎のチェックリスト
+- `FileChatModal.tsx` - ファイルチャットモーダル
+- `PRAnalysis.tsx` - PR分析メイン画面
+
+## Templates (レイアウトやページ構造)
+- `Header.tsx` - ヘッダーコンポーネント
+- `Footer.tsx` - フッターコンポーネント
+- `UnifiedApiKeySetupView.tsx` - 統合API設定ビュー
+
+## 使用方法
+
+各階層のコンポーネントは、適切なindex.tsファイルからエクスポートされているため、以下のようにインポートできます：
+
+```typescript
+// 個別インポート
+import { Button, TextInput } from '../components/atoms';
+import { MarkdownRenderer } from '../components/molecules';
+import { PRAnalysis } from '../components/organisms';
+
+// 統合インポート
+import { Button, MarkdownRenderer, PRAnalysis } from '../components';
+```
+
+この構造により、コンポーネントの再利用性が向上し、保守性が高まります。
 
 -   Component file names are written in PascalCase (e.g., `FileChatModal.tsx`).
 -   Props interfaces are named after the component, suffixed with `Props` (e.g., `FileChatModalProps`).

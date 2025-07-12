@@ -5,7 +5,7 @@ import SettingsView from '../views/SettingsView';
 import GithubTokenSetupView from '../views/GithubTokenSetupView';
 import { NavigationProvider } from '../context/NavigationContext';
 import Layout from '../layouts/Layout';
-import OpenAiTokenSetupView from '@src/views/OpenAiTokenSetupView';
+import AiTokenSetupView from '@src/views/AiTokenSetupView';
 
 // ルート定義
 export const routes = [
@@ -31,7 +31,7 @@ export const routes = [
       },
       {
         path: 'openai-token-setup',
-        element: <OpenAiTokenSetupView />,
+        element: <AiTokenSetupView />,
       },
     ],
   },

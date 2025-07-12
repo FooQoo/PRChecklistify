@@ -1,5 +1,5 @@
 import { useI18n } from '@extension/i18n';
-import TextInput from './TextInput';
+import { TextInput } from '../atoms';
 
 export type ApiProvider = {
   id: string;

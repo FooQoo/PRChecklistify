@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useState } from 'react';
-import type { Checklist } from '../types';
+import type { Checklist } from '../../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { useI18n } from '@extension/i18n';
 

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import type { Checklist, PRAnalysisResult, PRData } from '../types';
+import type { Checklist, PRAnalysisResult, PRData } from '../../types';
 import { fetchers } from '@src/services/aiService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
-import { MarkdownRenderer } from './MarkdownRenderer';
+import { MarkdownRenderer } from '../molecules';
 import { useI18n } from '@extension/i18n';
 
 interface PRAnalysisProps {

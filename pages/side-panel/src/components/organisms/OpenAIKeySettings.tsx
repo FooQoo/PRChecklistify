@@ -1,7 +1,7 @@
 import { useI18n } from '@extension/i18n';
-import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
-import { useOpenaiModelAtom } from '../hooks/useOpenaiModelAtom';
-import TextInput from './common/TextInput';
+import { useOpenaiKeyAtom } from '../../hooks/useOpenaiKeyAtom';
+import { useOpenaiModelAtom } from '../../hooks/useOpenaiModelAtom';
+import { TextInput } from '../atoms';
 import { getOpenAIModelOptions } from '@extension/storage';
 
 type OpenAIKeySettingsProps = {

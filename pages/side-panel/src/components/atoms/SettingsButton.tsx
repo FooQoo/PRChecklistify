@@ -1,4 +1,4 @@
-import { useNavigation } from '../context/NavigationContext';
+import { useNavigation } from '../../context/NavigationContext';
 
 interface SettingsButtonProps {
   className?: string;

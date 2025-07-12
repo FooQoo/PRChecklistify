@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigation } from '../context/NavigationContext';
+import { useNavigation } from '../../context/NavigationContext';
 import { useI18n } from '@extension/i18n';
-import { useOpenaiKeyAtom } from '../hooks/useOpenaiKeyAtom';
-import { useGeminiKeyAtom } from '../hooks/useGeminiKeyAtom';
-import { useClaudeKeyAtom } from '../hooks/useClaudeKeyAtom';
-import { useOpenaiModelAtom } from '../hooks/useOpenaiModelAtom';
-import { useGeminiModelAtom } from '../hooks/useGeminiModelAtom';
-import { useClaudeModelAtom } from '../hooks/useClaudeModelAtom';
-import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
-import { isGeminiApiEnabled } from '../utils/envUtils';
-import TextInput from './common/TextInput';
-import Button from './common/Button';
+import { useOpenaiKeyAtom } from '../../hooks/useOpenaiKeyAtom';
+import { useGeminiKeyAtom } from '../../hooks/useGeminiKeyAtom';
+import { useClaudeKeyAtom } from '../../hooks/useClaudeKeyAtom';
+import { useOpenaiModelAtom } from '../../hooks/useOpenaiModelAtom';
+import { useGeminiModelAtom } from '../../hooks/useGeminiModelAtom';
+import { useClaudeModelAtom } from '../../hooks/useClaudeModelAtom';
+import { useModelClientTypeAtom } from '../../hooks/useModelClientTypeAtom';
+import { isGeminiApiEnabled } from '../../utils/envUtils';
+import { TextInput, Button } from '../atoms';
 import { getOpenAIModelOptions, getGeminiModelOptions, getClaudeModelOptions } from '@extension/storage';
 
-import type { ModelClientType } from '../services/modelClient';
+import type { ModelClientType } from '../../services/modelClient';
 
 interface UnifiedApiKeySetupViewProps {
   mode?: 'setup' | 'settings';

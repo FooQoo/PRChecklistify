@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { usePRData } from '../hooks/usePRData';
 import { calculateReviewTime, getPrKey } from '../utils/prUtils';
-import PRAnalysis from '../components/PRAnalysis';
+import { PRAnalysis } from '../components';
 import { useReward } from 'react-rewards';
 import { useParams } from 'react-router-dom';
 
