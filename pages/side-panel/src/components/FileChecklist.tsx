@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import type React from 'react';
 import type { PRData, Checklist, PRAnalysisResult } from '../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { fetchers } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import ChecklistComponent from './ChecklistComponent';
 import { t } from '@extension/i18n';
 
 interface FileChecklistProps {
@@ -17,76 +17,6 @@ interface FileChecklistProps {
   language: Language;
   saveAnalysisResultChecklist: (fileChecklist: Checklist) => Promise<void>;
 }
-
-// チェックリスト項目コンポーネント
-interface ChecklistItemProps {
-  label: string;
-  isChecked: boolean;
-  onToggle: () => void;
-  onCopy: () => Promise<boolean>;
-  className?: string;
-}
-
-const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: ChecklistItemProps) => {
-  const [tooltip, setTooltip] = useState<string | null>(null);
-
-  const handleCopyClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    const success = await onCopy();
-    if (success) {
-      setTooltip('copy');
-      setTimeout(() => setTooltip(null), 1500);
-    }
-  };
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      className={`flex items-center gap-2 cursor-pointer select-none ${className}`}
-      onClick={e => {
-        e.stopPropagation();
-        onToggle();
-      }}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onToggle();
-        }
-      }}>
-      <input
-        type="checkbox"
-        checked={isChecked}
-        onChange={onToggle}
-        className="w-4 h-4 text-blue-600 border-gray-300 rounded"
-      />
-      <span className="text-sm">
-        <MarkdownRenderer content={label} />
-      </span>
-      <div className="relative ml-auto flex items-center gap-1">
-        {tooltip && (
-          <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-1 py-px rounded shadow pointer-events-none">
-            {tooltip}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={handleCopyClick}
-          className="text-gray-600 focus:outline-none shadow-none hover:shadow-none focus:shadow-none"
-          aria-label={t('copy')}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 transition-transform duration-150 hover:scale-110 hover:drop-shadow-md hover:text-gray-800"
-            viewBox="0 0 20 20"
-            fill="currentColor">
-            <rect x="7" y="7" width="9" height="9" rx="2" className="fill-gray-300" />
-            <rect x="4" y="4" width="9" height="9" rx="2" className="fill-white stroke-gray-500" strokeWidth="1" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const BLOCK_COLS = 10;
 const BLOCK_ROWS = 3;
@@ -106,14 +36,6 @@ const FileChecklist = ({
   const [error, setError] = useState<string | null>(null);
   const [blockActive, setBlockActive] = useState(0);
   const blockTimer = useRef<NodeJS.Timeout | null>(null);
-  const handleCopy = async (text: string): Promise<boolean> => {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      return false;
-    }
-  };
 
   const aiGeneratedChecklist = useMemo(() => {
     return analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
@@ -573,21 +495,11 @@ const FileChecklist = ({
                 {/* チェックリストアイテムを表示 */}
 
                 {!generating && aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold mb-2">{t('checklistItemsTitle')}</h4>
-                    {aiGeneratedChecklist.checklistItems.map((item, index) => (
-                      <ChecklistItem
-                        key={item.id}
-                        label={item.description}
-                        isChecked={checklistItems[`item_${index}`] ?? item.isChecked}
-                        onToggle={() => {
-                          const itemKey = `item_${index}`;
-                          toggleReviewState(itemKey);
-                        }}
-                        onCopy={() => handleCopy(item.description)}
-                      />
-                    ))}
-                  </div>
+                  <ChecklistComponent
+                    checklist={aiGeneratedChecklist}
+                    checklistItems={checklistItems}
+                    onToggle={itemKey => toggleReviewState(itemKey)}
+                  />
                 )}
               </div>
 
