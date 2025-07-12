@@ -2,7 +2,7 @@ import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
 
 // Define the supported languages
-export type Language = 'en' | 'ja' | 'ko' | 'zh';
+export type Language = 'en' | 'ja' | 'ko' | 'zh_CN';
 
 export const defaultLanguage: Language = 'en';
 
@@ -14,8 +14,8 @@ export const getLanguageLabel = (lang: Language): string => {
       return '日本語';
     case 'ko':
       return '한국어';
-    case 'zh':
-      return '中文';
+    case 'zh_CN':
+      return '中文(简体)';
     default:
       return 'Unknown Language';
   }
@@ -40,7 +40,7 @@ type LanguagePreferenceStorage = BaseStorage<Language> & {
   /**
    * Set language to Chinese
    */
-  setZh: () => Promise<void>;
+  setZhCn: () => Promise<void>;
 };
 
 // Create the base storage with 'en' as the default value
@@ -61,7 +61,7 @@ export const languagePreferenceStorage: LanguagePreferenceStorage = {
   setKo: async () => {
     await storage.set('ko');
   },
-  setZh: async () => {
-    await storage.set('zh');
+  setZhCn: async () => {
+    await storage.set('zh_CN');
   },
 };

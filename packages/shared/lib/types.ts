@@ -108,4 +108,4 @@ export interface PRAnalysisResult {
 }
 
 // i18n
-export type Language = 'en' | 'ja' | 'ko' | 'zh';
+export type Language = 'en' | 'ja' | 'ko' | 'zh_CN';

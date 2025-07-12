@@ -136,7 +136,7 @@ const SettingsView: React.FC = () => {
               <option value="en">English</option>
               <option value="ja">日本語</option>
               <option value="ko">한글</option>
-              <option value="zh">中文</option>
+              <option value="zh_CN">中文(简体)</option>
             </select>
             <p className="text-xs text-gray-500 mt-1">{t('analysisLanguageDescription')}</p>
           </div>
