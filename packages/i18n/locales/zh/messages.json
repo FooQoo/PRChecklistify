@@ -107,7 +107,7 @@
     "message": "分析语言"
   },
   "analysisLanguageDescription": {
-    "message": "为AI生成的PR分析和检查项选择语言。"
+    "message": "选择要使用的语言。"
   },
   "openaiApiKey": {
     "message": "OpenAI API密钥"

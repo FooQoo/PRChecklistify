@@ -107,7 +107,7 @@
     "message": "Analysis Language"
   },
   "analysisLanguageDescription": {
-    "message": "Select the language for AI-generated PR analysis and checklist items."
+    "message": "Select the language to use."
   },
   "openaiApiKey": {
     "message": "OpenAI API Key"
