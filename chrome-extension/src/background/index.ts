@@ -3,7 +3,7 @@ import 'webextension-polyfill';
 // Add event listener to open side panel when extension icon is clicked
 chrome.action.onClicked.addListener(async tab => {
   // Open the side panel in the current tab
-  await chrome.sidePanel.open({ tabId: tab.id });
+  await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
   console.log('Side panel opened for tab:', tab.id);
 });
 

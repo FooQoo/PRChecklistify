@@ -86,7 +86,7 @@
     "message": "您的GitHub令牌存储在本地，仅用于访问PR数据。"
   },
   "createGithubToken": {
-    "message": "在GitHub上创建新令牌 →"
+    "message": "在GitHub上创建个人访问令牌 →"
   },
   "githubApiDomain": {
     "message": "GitHub API域名"
