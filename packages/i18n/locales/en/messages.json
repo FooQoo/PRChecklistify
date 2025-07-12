@@ -134,7 +134,7 @@
     "message": "API key saved successfully!"
   },
   "apiKeyIsSet": {
-    "message": "API key is set"
+    "message": "OpenAI API key is set"
   },
   "pathIsSet": {
     "message": "Path is set"

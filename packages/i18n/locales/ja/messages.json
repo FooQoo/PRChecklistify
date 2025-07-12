@@ -134,7 +134,7 @@
     "message": "APIキーが正常に保存されました！"
   },
   "apiKeyIsSet": {
-    "message": "APIキーが設定されています"
+    "message": "OpenAI APIキーが設定されています"
   },
   "pathIsSet": {
     "message": "パスが設定されています"

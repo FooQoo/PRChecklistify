@@ -134,7 +134,7 @@
     "message": "API密钥已成功保存！"
   },
   "apiKeyIsSet": {
-    "message": "API密钥已设置"
+    "message": "OpenAI API密钥已设置"
   },
   "pathIsSet": {
     "message": "路径已设置"
