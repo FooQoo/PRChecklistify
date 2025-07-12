@@ -352,9 +352,9 @@
     "message": "You"
   },
   "instructionPath": {
-    "message": "설명 파일 경로"
+    "message": "커스텀 지시사항 파일 경로"
   },
   "instructionPathPlaceholder": {
-    "message": "./CLAUDE.md"
+    "message": "./custom-instructions.md"
   }
 }

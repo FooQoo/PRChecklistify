@@ -353,9 +353,9 @@
     "message": "To use PR Checklistify with Gemini, provide your Gemini API key."
   },
   "instructionPath": {
-    "message": "Instructions file path"
+    "message": "Custom instructions file path"
   },
   "instructionPathPlaceholder": {
-    "message": "./CLAUDE.md"
+    "message": "./custom-instructions.md"
   }
 }

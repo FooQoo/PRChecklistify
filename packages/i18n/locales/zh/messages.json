@@ -353,9 +353,9 @@
     "message": "You"
   },
   "instructionPath": {
-    "message": "指令文件路径"
+    "message": "自定义指令文件路径"
   },
   "instructionPathPlaceholder": {
-    "message": "./CLAUDE.md"
+    "message": "./custom-instructions.md"
   }
 }
