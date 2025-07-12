@@ -4,11 +4,19 @@ PR Checklistify is an intelligent Chrome extension designed for developers. It d
 
 ✨ Key Features
 
-• AI Auto-Analysis - Instantly analyze Pull Request content and automatically generate appropriate checklists • Customizable Checklists - Create and share optimized check items for each team and project • AI Chat Support - Ask AI questions about code concerns and get instant solutions • Progress Visualization - Track review progress at a glance • Copy & Paste Function - Easily copy checklist items for use • Multi-language Support - Available in Japanese, English, Korean, and Chinese
+• AI Auto-Analysis - Instantly analyze Pull Request content and automatically generate appropriate checklists 
+• Customizable Checklists - Create and share optimized check items for each team and project 
+• AI Chat Support - Ask AI questions about code concerns and get instant solutions 
+• Progress Visualization - Track review progress at a glance 
+• Copy & Paste Function - Easily copy checklist items for use 
+• Multi-language Support - Available in Japanese, English, Korean, and Chinese
 
 🎯 Perfect for
 
-• Developers who want to improve code review quality • Team leaders who want to reduce review time • Senior engineers who want to prevent oversights • Development teams seeking efficient review processes
+• Developers who want to improve code review quality 
+• Team leaders who want to reduce review time 
+• Senior engineers who want to prevent oversights 
+• Development teams seeking efficient review processes
 
 💡 How to Use
 
