@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { PRFile, PRAnalysisResult } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import ChecklistComponent from './ChecklistComponent';
-import { t } from '@extension/i18n';
+import { useI18n } from '@extension/i18n';
 
 interface FileChatModalProps {
   open: boolean;
@@ -33,6 +33,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   onChecklistChange,
   analysisResult,
 }) => {
+  const { t } = useI18n();
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamedMessage, setStreamedMessage] = useState('');
