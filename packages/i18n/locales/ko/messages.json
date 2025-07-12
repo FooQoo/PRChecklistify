@@ -198,11 +198,32 @@
   "failedToLoadSettings": {
     "message": "저장된 설정을 불러오는데 실패했습니다"
   },
-  "enterPrUrlPrompt": {
-    "message": "AI 기반 검토 체크리스트를 생성하려면 GitHub Pull Request URL을 입력하세요."
+  "copy": {
+    "message": "복사"
+  },
+  "paste": {
+    "message": "붙여넣기"
+  },
+  "copied": {
+    "message": "클립보드에 복사되었습니다"
+  },
+  "pasted": {
+    "message": "클립보드에서 붙여넣었습니다"
+  },
+  "copyFailed": {
+    "message": "복사에 실패했습니다"
+  },
+  "pasteFailed": {
+    "message": "붙여넣기에 실패했습니다"
   },
   "openaiApiDesc": {
-    "message": "PR Checklistify를 사용하려면 OpenAI API 키를 입력해야 합니다."
+    "message": "PR Checklistify를 사용하려면 OpenAI API 키를 제공해야 합니다."
+  },
+  "clickToExpand": {
+    "message": "클릭해서 확장"
+  },
+  "enterPrUrlPrompt": {
+    "message": "AI 기반 검토 체크리스트를 생성하려면 GitHub Pull Request URL을 입력하세요."
   },
   "geminiDesc": {
     "message": "Gemini로 PR Checklistify를 사용하려면 Gemini API 키를 입력하세요."

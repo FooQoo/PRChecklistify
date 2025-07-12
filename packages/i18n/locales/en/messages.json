@@ -316,6 +316,27 @@
   "generatingChecklistError": {
     "message": "Error occurred while generating the checklist."
   },
+  "copy": {
+    "message": "Copy"
+  },
+  "paste": {
+    "message": "Paste"
+  },
+  "copied": {
+    "message": "Copied to clipboard"
+  },
+  "pasted": {
+    "message": "Pasted from clipboard"
+  },
+  "copyFailed": {
+    "message": "Failed to copy"
+  },
+  "pasteFailed": {
+    "message": "Failed to paste"
+  },
+  "clickToExpand": {
+    "message": "Click to expand"
+  },
   "enterPrUrlPrompt": {
     "message": "Enter a GitHub Pull Request URL to generate an AI-powered review checklist."
   },

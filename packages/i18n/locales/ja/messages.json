@@ -316,11 +316,32 @@
   "generatingChecklistError": {
     "message": "チェックリスト生成中にエラーが発生しました。"
   },
-  "enterPrUrlPrompt": {
-    "message": "AIによるレビュー チェックリストを生成するには、GitHubのPull Request URLを入力してください。"
+  "copy": {
+    "message": "コピー"
+  },
+  "paste": {
+    "message": "ペースト"
+  },
+  "copied": {
+    "message": "クリップボードにコピーしました"
+  },
+  "pasted": {
+    "message": "クリップボードから貼り付けました"
+  },
+  "copyFailed": {
+    "message": "コピーに失敗しました"
+  },
+  "pasteFailed": {
+    "message": "貼り付けに失敗しました"
   },
   "openaiApiDesc": {
     "message": "PR Checklistifyを利用するには、OpenAI APIキーの提供が必要です。"
+  },
+  "clickToExpand": {
+    "message": "クリックして展開"
+  },
+  "enterPrUrlPrompt": {
+    "message": "AIによるレビュー チェックリストを生成するには、GitHubのPull Request URLを入力してください。"
   },
   "geminiDesc": {
     "message": "PR ChecklistifyでGeminiを利用するには、Gemini APIキーを入力してください。"

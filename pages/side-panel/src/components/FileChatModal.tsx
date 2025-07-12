@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { PRFile, PRAnalysisResult } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import ChecklistComponent from './ChecklistComponent';
 import { t } from '@extension/i18n';
 
 interface FileChatModalProps {
@@ -244,70 +245,22 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
               {/* チェックリスト表示 */}
               {aiAnalysis && aiAnalysis.checklistItems && aiAnalysis.checklistItems.length > 0 && (
                 <div className="mt-6 border-t pt-4">
-                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                    <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    チェックリスト
-                  </h4>
-                  <div className="space-y-2">
-                    {aiAnalysis.checklistItems.map((item, idx) => {
-                      // checklistItems propがあればそちらを使う
-                      const key = `item_${idx}`;
-                      const checked = (localChecklistItems && localChecklistItems[key]) ?? item.isChecked;
+                  <ChecklistComponent
+                    checklist={aiAnalysis}
+                    checklistItems={localChecklistItems}
+                    onToggle={itemKey => {
+                      const checked = localChecklistItems[itemKey] ?? false;
+                      const newChecklistItems = { ...localChecklistItems, [itemKey]: !checked };
+                      setLocalChecklistItems(newChecklistItems);
+                      onChecklistChange(newChecklistItems);
 
-                      // checklistItemsとonChecklistChangeがあればトグル可能
-                      return (
-                        <div
-                          key={key}
-                          role="button"
-                          tabIndex={0}
-                          className="flex items-center gap-2 cursor-pointer select-none"
-                          onClick={() => {
-                            const newChecklistItems = { ...localChecklistItems, [key]: !checked };
-                            setLocalChecklistItems(newChecklistItems);
-                            onChecklistChange(newChecklistItems);
-
-                            const allChecked = Object.values(newChecklistItems).every(s => s);
-                            if (allChecked) {
-                              setShowCompleteModal(true);
-                            }
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              const newChecklistItems = { ...localChecklistItems, [key]: !checked };
-                              setLocalChecklistItems(newChecklistItems);
-                              onChecklistChange(newChecklistItems);
-
-                              const allChecked = Object.values(newChecklistItems).every(s => s);
-                              if (allChecked) {
-                                setShowCompleteModal(true);
-                              }
-                            }
-                          }}>
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => {
-                              const newChecklistItems = { ...localChecklistItems, [key]: !checked };
-                              setLocalChecklistItems(newChecklistItems);
-                              onChecklistChange(newChecklistItems);
-
-                              const allChecked = Object.values(newChecklistItems).every(s => s);
-                              if (allChecked) {
-                                setShowCompleteModal(true);
-                              }
-                            }}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded shrink-0"
-                          />
-                          <span className="text-sm">
-                            <MarkdownRenderer content={item.description} />
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                      const allChecked = Object.values(newChecklistItems).every(s => s);
+                      if (allChecked) {
+                        setShowCompleteModal(true);
+                      }
+                    }}
+                    defaultExpanded={false}
+                  />
                 </div>
               )}
               {/* チャットメッセージの終端 */}
