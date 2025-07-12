@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "扩展描述",
-    "message": "自动分析Pull Request内容并生成检查清单。通过AI聊天支持代码审核。"
+    "message": "自动分析Pull Request内容并生成检查清单。通过AI聊天为代码审核提供支持。"
   },
   "extensionName": {
     "description": "PRChecklistfy",
