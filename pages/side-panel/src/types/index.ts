@@ -89,7 +89,6 @@ export interface ChecklistItem {
   id: string;
   description: string;
   isChecked: boolean;
-  status?: 'OK' | 'NG' | 'PENDING';
 }
 
 // ファイルチェックリストの型

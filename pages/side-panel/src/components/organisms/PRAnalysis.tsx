@@ -83,23 +83,25 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   const handleChecklistChange = (filename: string, checklistItems: Record<string, boolean>) => {
     if (!prData || !analysisResult) return;
 
-    // 分析結果のファイルチェックリストを更新する
-    const updatedFileChecklists = analysisResult.fileAnalysis
-      .filter(checklist => checklist.filename === filename)
-      .map(checklist => {
-        // ステータスマッピングしたチェックリストアイテムを作成
-        const updatedItems = checklist.checklistItems.map((item, index) => {
-          const key = `item_${index}`;
-          if (key in checklistItems) {
-            return { ...item, isChecked: checklistItems[key] };
-          }
-          return item;
-        });
-        return { ...checklist, checklistItems: updatedItems };
-      });
+    const fileChecklist = analysisResult.fileAnalysis?.find(c => c.filename === filename);
+    if (!fileChecklist) return;
+
+    const updatedChecklistItems = fileChecklist.checklistItems.map((item, index) => {
+      const key = `item_${index}`;
+      const isChecked = checklistItems[key];
+      if (isChecked !== undefined) {
+        return { ...item, isChecked };
+      }
+      return item;
+    });
+
+    const updatedFileChecklist = {
+      ...fileChecklist,
+      checklistItems: updatedChecklistItems,
+    };
 
     // 分析結果を更新
-    saveAnalysisResultChecklist(updatedFileChecklists[0]);
+    saveAnalysisResultChecklist(updatedFileChecklist);
   };
 
   return (

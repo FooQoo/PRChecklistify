@@ -10,7 +10,7 @@ export const GEMINI_MODELS = {
 } as const;
 
 export type GeminiModelType = keyof typeof GEMINI_MODELS;
-export const DEFAULT_GEMINI_MODEL: GeminiModelType = 'gemini-2.5-pro';
+export const DEFAULT_GEMINI_MODEL: GeminiModelType = 'gemini-2.5-flash';
 
 // Get all available Gemini models as array
 export const getGeminiModelOptions = () => {

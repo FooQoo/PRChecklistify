@@ -5,7 +5,7 @@ export const getApprovedFiles = (prData: PRData | null, analysisResult: PRAnalys
   return prData.files.filter(file => {
     const fileChecklist = analysisResult.fileAnalysis?.find(checklist => checklist.filename === file.filename);
     if (!fileChecklist) return false;
-    return fileChecklist.checklistItems.every(item => item.status === 'OK');
+    return fileChecklist.checklistItems.every(item => item.isChecked);
   }).length;
 };
 
