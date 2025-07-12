@@ -368,7 +368,7 @@
     "message": "Click to expand"
   },
   "enterPrUrlPrompt": {
-    "message": "Enter a GitHub Pull Request URL to generate an AI-powered review checklist."
+    "message": "Enter a GitHub Pull Request URL to start your review!"
   },
   "openaiApiDesc": {
     "message": "To use PR Checklistify, you need to provide your OpenAI API key."

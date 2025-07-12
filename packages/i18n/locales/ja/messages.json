@@ -371,7 +371,7 @@
     "message": "クリックして展開"
   },
   "enterPrUrlPrompt": {
-    "message": "AIによるレビュー チェックリストを生成するには、GitHubのPull Request URLを入力してください。"
+    "message": "GitHubのPull RequestのURLを入力してレビューを始めましょう！"
   },
   "geminiDesc": {
     "message": "PR ChecklistifyでGeminiを利用するには、Gemini APIキーを入力してください。"

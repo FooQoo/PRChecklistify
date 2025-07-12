@@ -251,7 +251,7 @@
     "message": "点击展开"
   },
   "enterPrUrlPrompt": {
-    "message": "输入 GitHub Pull Request URL 以生成 AI 驱动的评审清单。"
+    "message": "输入 GitHub Pull Request URL 开始您的评审！"
   },
   "openaiApiDesc": {
     "message": "要使用 PR Checklistify，您需要提供 OpenAI API 密钥。"
