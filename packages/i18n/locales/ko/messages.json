@@ -187,7 +187,7 @@
     "message": "Gemini API 키 받기"
   },
   "modelClientTypeSaved": {
-    "message": "모델 클라이언트 유형이 저장되었습니다"
+    "message": "LLM 모델이 저장되었습니다"
   },
   "failedToLoadSettings": {
     "message": "저장된 설정을 불러오는데 실패했습니다"
