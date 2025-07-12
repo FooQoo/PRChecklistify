@@ -146,10 +146,9 @@ Want:
 Do not include items that merely state obvious or general expectations.  
 Only include items if there is a concrete reason to review that part of the code.
 
-If no valid checklist items are found, output exactly the following:
-No checklist items.
-
-If the implementation is solid and needs no revision, briefly explain why the checklist is 'No checklist items'.
+If no valid checklist items are found, create exactly one checklist item with:
+* description: "No issues found"
+* isChecked: true
 
 ### Additional instructions for file analysis:
 
@@ -164,8 +163,10 @@ If the implementation is solid and needs no revision, briefly explain why the ch
 * For **dist and other build artifacts**, generate only one checklist item with:
   * description: e.g. "Build artifact - review not required."
   * isChecked: true
+* For **files with no specific issues to review**, generate only one checklist item with:
+  * description: "No issues found"
+  * isChecked: true
 * Provide a meaningful explanation for every file, even for mocks and dist files, summarizing why they changed and their role in the PR.
-* If there are no items that require review, set the explanation to "No issues found" and return an empty checklistItems array.
 
   PR Title: ${title}
   PR Description: ${body}
