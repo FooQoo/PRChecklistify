@@ -312,5 +312,11 @@
   },
   "geminiDesc": {
     "message": "To use PR Checklistify with Gemini, provide your Gemini API key."
+  },
+  "instructionPath": {
+    "message": "Instructions file path"
+  },
+  "instructionPathPlaceholder": {
+    "message": "./CLAUDE.md"
   }
 }

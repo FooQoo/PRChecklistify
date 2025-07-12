@@ -3,6 +3,7 @@ import { useNavigation } from '../context/NavigationContext';
 import OpenAIKeySettings from '../components/OpenAIKeySettings';
 import GitHubIntegrationSettings from '../components/GitHubIntegrationSettings';
 import GeminiKeySettings from '../components/GeminiKeySettings';
+import InstructionPathSettings from '../components/InstructionPathSettings';
 import { useModelClientTypeAtom } from '../hooks/useModelClientTypeAtom';
 import type { Language } from '@extension/storage';
 import { useI18n } from '@extension/i18n';
@@ -161,6 +162,8 @@ const SettingsView: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold mb-4">{t('preferences')}</h2>
+
+          <InstructionPathSettings onToast={showToast} />
 
           <div className="mb-4">
             <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-1">

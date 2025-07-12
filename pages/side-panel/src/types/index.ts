@@ -40,7 +40,7 @@ export interface PRData {
   commits: number;
   comments: number;
   review_comments: number;
-  copilot_instructions?: string;
+  instructions?: string;
   readme?: string;
   userComments?: PRUserComment[]; // ユーザコメント情報を追加
 }

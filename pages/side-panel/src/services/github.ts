@@ -43,7 +43,7 @@ export class GithubClient {
    * @param repo リポジトリ名
    * @returns ファイル内容（string）またはnull（存在しない場合）
    */
-  async fetchCopilotInstructionsFromMain(owner: string, repo: string): Promise<string | undefined> {
+  async fetchInstructionsFromMain(owner: string, repo: string): Promise<string | undefined> {
     try {
       const { data } = await this.fetchFileContent(owner, repo, '.github/copilot-instructions.md');
       if ('content' in data && typeof data.content === 'string') {

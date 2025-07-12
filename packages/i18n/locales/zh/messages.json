@@ -195,5 +195,11 @@
   },
   "geminiDesc": {
     "message": "要在 PR Checklistify 中使用 Gemini，请提供您的 Gemini API 密钥。"
+  },
+  "instructionPath": {
+    "message": "指令文件路径"
+  },
+  "instructionPathPlaceholder": {
+    "message": "./CLAUDE.md"
   }
 }

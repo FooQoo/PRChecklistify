@@ -43,7 +43,7 @@ export const fetchers = {
     // PR情報をシステムプロンプトに含める
     const prInfo = `title: ${prData.title || ''}\ndescription: ${prData.body || ''}\nauthor: ${prData.user?.login || ''}`;
     const fileInfo = `\nfilename: ${file.filename}\ndiff:\n${file.patch || ''}\nfull code:\n${file.decodedContent || ''}`;
-    const copilotInstructions = `\n--- Repository Information ---\n${prData.copilot_instructions || ''}`;
+    const instructionsSection = `\n--- Repository Information ---\n${prData.instructions || ''}`;
     const readme = `\n--- README Content ---\n${prData.readme || ''}`;
     // --- 追加: PRレビューコメントを整形して追記 ---
     let commentsText = '';
@@ -65,7 +65,7 @@ export const fetchers = {
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       {
         role: 'system',
-        content: `You are a senior software developer conducting a thorough code review in ${getLanguageLabel(_language)}.. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${copilotInstructions}${readme}${commentsText}`,
+        content: `You are a senior software developer conducting a thorough code review in ${getLanguageLabel(_language)}.. You provide detailed, actionable feedback as an AI reviewer.\n${prInfo}${fileInfo}${allDiffsInfo}${instructionsSection}${readme}${commentsText}`,
       },
       ...chatHistory.map((msg): { role: 'user' | 'assistant'; content: string } => ({
         role: msg.sender === 'You' ? 'user' : 'assistant',
@@ -116,7 +116,7 @@ export const fetchers = {
       const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
         {
           role: 'system',
-          content: `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${getLanguageLabel(_language)}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\nPR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nRepository README: ${prData.readme || ''}\nRepository information: ${prData.copilot_instructions || ''}\nPR Merge Status: ${mergeStatus}${commentsText}`,
+          content: `This is a pull request summary generation task. You will generate a concise summary of the pull request content in ${getLanguageLabel(_language)}.\n\nPR Author: ${prData.user?.login || 'Unknown'}\nPR Title: ${prData.title}\nPR Description: ${prData.body}\nPR diff: ${diff}\nRepository README: ${prData.readme || ''}\nRepository information: ${prData.instructions || ''}\nPR Merge Status: ${mergeStatus}${commentsText}`,
         },
         {
           role: 'user',

@@ -6,3 +6,4 @@ export * from './languagePreferenceStorage.js';
 export * from './geminiApiKeyStorage.js';
 export * from './githubApiDomainStorage.js';
 export * from './openaiApiEndpointStorage.js';
+export * from './instructionPathStorage.js';
