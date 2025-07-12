@@ -61,6 +61,9 @@
   "selectAiProvider": {
     "message": "Select AI Provider"
   },
+  "modelVersion": {
+    "message": "Model Version"
+  },
   "settingsSavedSuccess": {
     "message": "Settings saved successfully!"
   },
@@ -198,6 +201,27 @@
   },
   "getGeminiKey": {
     "message": "Get your Gemini API key"
+  },
+  "claudeIntegration": {
+    "message": "Claude Integration"
+  },
+  "claudeApiKey": {
+    "message": "Claude API Key"
+  },
+  "invalidClaudeApiKeyFormat": {
+    "message": "Invalid Claude API key format"
+  },
+  "claudeApiKeySavedSuccess": {
+    "message": "Claude API key saved"
+  },
+  "claudeApiKeyIsSet": {
+    "message": "Claude API key is set"
+  },
+  "claudeKeyStorageNotice": {
+    "message": "Your Claude API key is stored locally and only used by the extension."
+  },
+  "claudeDesc": {
+    "message": "To use PR Checklistfy with Claude, provide your Claude API key."
   },
   "modelClientTypeSaved": {
     "message": "Model client type saved"

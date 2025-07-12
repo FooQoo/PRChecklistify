@@ -1,6 +1,6 @@
 // Common interface for LLM clients (OpenAI, Gemini, etc.)
 import type { Checklist, PRData, PRFile } from '@src/types';
-import { createGeminiClient, createOpenAIClient } from './openai';
+import { createGeminiClient, createOpenAIClient, createClaudeClient } from './openai';
 import type { Language } from '@extension/storage';
 import { getLanguageLabel } from '@extension/storage';
 
@@ -8,6 +8,7 @@ import { getLanguageLabel } from '@extension/storage';
 export enum ModelClientType {
   OpenAI = 'openai',
   Gemini = 'gemini',
+  Claude = 'claude',
 }
 
 // Common interface for all LLM clients
@@ -62,6 +63,8 @@ export async function createModelClient(): Promise<ModelClient | null> {
       return await createOpenAIClient();
     case ModelClientType.Gemini:
       return await createGeminiClient();
+    case ModelClientType.Claude:
+      return await createClaudeClient();
     default:
       console.error(`Unknown model client type: ${clientType}`);
       return null;

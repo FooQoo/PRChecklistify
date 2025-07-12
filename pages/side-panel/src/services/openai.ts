@@ -3,7 +3,15 @@ import type { PRData, PRFile, Checklist } from '@src/types';
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
-import { geminiApiKeyStorage, openaiApiKeyStorage, type Language } from '@extension/storage';
+import {
+  geminiApiKeyStorage,
+  openaiApiKeyStorage,
+  claudeApiKeyStorage,
+  openaiModelStorage,
+  geminiModelStorage,
+  claudeModelStorage,
+  type Language,
+} from '@extension/storage';
 import { buildPRAnalysisPrompt } from './modelClient';
 import { z } from 'zod';
 
@@ -106,9 +114,10 @@ export const createOpenAIClient = async (): Promise<OpenAIClient> => {
   if (!apiKey) {
     throw new Error('Failed to retrieve OpenAI API key');
   }
+  const model = await openaiModelStorage.get();
   return new OpenAIClient({
     apiKey,
-    model: 'gpt-4o',
+    model,
     endpoint: 'https://api.openai.com/v1',
   });
 };
@@ -118,10 +127,24 @@ export const createGeminiClient = async (): Promise<OpenAIClient> => {
   if (!apiKey) {
     throw new Error('Gemini API key not found');
   }
+  const model = await geminiModelStorage.get();
   return new OpenAIClient({
     apiKey,
-    model: 'gemini-1.5-pro',
+    model,
     endpoint: 'https://generativelanguage.googleapis.com/v1beta',
+  });
+};
+
+export const createClaudeClient = async (): Promise<OpenAIClient> => {
+  const apiKey = await claudeApiKeyStorage.get();
+  if (!apiKey) {
+    throw new Error('Claude API key not found');
+  }
+  const model = await claudeModelStorage.get();
+  return new OpenAIClient({
+    apiKey,
+    model,
+    endpoint: 'https://api.anthropic.com/v1',
   });
 };
 
