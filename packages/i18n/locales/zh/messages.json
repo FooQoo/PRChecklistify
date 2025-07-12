@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "扩展描述",
-    "message": "自动生成 PR 审核清单，防止审核遗漏的 Chrome 扩展。"
+    "message": "通过自动生成 PR 摘要、检查项目和 AI 聊天来支持您的 PR 审核。"
   },
   "extensionName": {
     "description": "PRChecklistfy",

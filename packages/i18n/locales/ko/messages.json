@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "PR 리뷰 체크리스트를 자동 생성하여 누락을 방지하는 Chrome 확장 프로그램입니다."
+    "message": "PR 요약, 체크리스트 자동 생성, AI 채팅으로 PR 리뷰를 지원합니다."
   },
   "extensionName": {
     "description": "Extension name",

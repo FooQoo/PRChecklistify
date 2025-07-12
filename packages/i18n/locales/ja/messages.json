@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "拡張機能の説明",
-    "message": "PRレビューのチェックリストを自動生成し、見落としを防ぐChrome拡張機能です。"
+    "message": "PRのサマリーやチェック項目の自動生成、AIチャットによってあなたのPRレビューをサポートします。"
   },
   "extensionName": {
     "description": "PRChecklistfy",

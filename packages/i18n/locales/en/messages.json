@@ -1,7 +1,7 @@
 {
   "extensionDescription": {
     "description": "Description of the extension",
-    "message": "Chrome extension that generates checklists for Pull Request reviews to prevent oversights."
+    "message": "Supports your PR reviews with automatic generation of PR summaries, check items, and AI chat."
   },
   "extensionName": {
     "description": "Name of the extension",
