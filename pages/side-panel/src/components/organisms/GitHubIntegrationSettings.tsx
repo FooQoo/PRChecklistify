@@ -28,7 +28,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
         <TextInput
           label={t('githubToken')}
           value={githubToken}
-          placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+          placeholder="xxxxxxxxxxxxxxxxxxxx"
           type="password"
           onSave={setTokenAndStorage}
           onRemove={clearToken}

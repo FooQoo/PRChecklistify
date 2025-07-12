@@ -1,6 +1,3 @@
-export { default as OpenAIKeySettings } from './OpenAIKeySettings';
-export { default as GeminiKeySettings } from './GeminiKeySettings';
-export { default as ClaudeKeySettings } from './ClaudeKeySettings';
 export { default as GitHubIntegrationSettings } from './GitHubIntegrationSettings';
 export { default as InstructionPathSettings } from './InstructionPathSettings';
 export { default as StorageManagement } from './StorageManagement';

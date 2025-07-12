@@ -112,7 +112,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
           <TextInput
             label={t('openaiApiKey')}
             value={openaiKey}
-            placeholder="sk-..."
+            placeholder="******"
             type="password"
             onSave={async key => {
               await setOpenaiKeyAndStorage(key);
@@ -166,7 +166,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
           <TextInput
             label={t('geminiApiKey')}
             value={geminiKey}
-            placeholder={t('enterGeminiApiKey')}
+            placeholder="******"
             type="password"
             onSave={async key => {
               await setGeminiKeyAndStorage(key);
@@ -220,7 +220,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
           <TextInput
             label={t('claudeApiKey')}
             value={claudeKey}
-            placeholder="sk-..."
+            placeholder="******"
             type="password"
             onSave={async key => {
               await setClaudeKeyAndStorage(key);

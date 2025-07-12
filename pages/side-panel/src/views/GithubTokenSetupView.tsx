@@ -45,8 +45,8 @@ const GithubTokenSetupView: React.FC = () => {
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-xl font-bold mb-4">GitHub Token Setup</h2>
         <p className="text-sm mb-4">
-          To use PR Checklistify, you need to provide a GitHub Personal Access Token with
-          <code>repo</code> scope permissions.
+          To use PR Checklistify, you need to provide a GitHub Personal Access Token with{' '}
+          <span className="font-bold">repo</span> scope permissions.
         </p>
 
         <div className="mb-4">
@@ -71,7 +71,7 @@ const GithubTokenSetupView: React.FC = () => {
               id="token"
               value={token}
               onChange={e => setToken(e.target.value)}
-              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+              placeholder="xxxxxxxxxxxxxxxxxxxx"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
