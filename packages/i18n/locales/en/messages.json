@@ -83,7 +83,7 @@
     "message": "Your GitHub token is stored locally and only used to access PR data."
   },
   "createGithubToken": {
-    "message": "Create a new token on GitHub →"
+    "message": "Create a personal access token on GitHub →"
   },
   "githubApiDomain": {
     "message": "GitHub API Domain"

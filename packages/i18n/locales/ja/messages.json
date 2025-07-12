@@ -83,7 +83,7 @@
     "message": "GitHubトークンはローカルに保存され、PRデータへのアクセスにのみ使用されます。"
   },
   "createGithubToken": {
-    "message": "GitHubで新しいトークンを作成 →"
+    "message": "GitHubで個人用アクセス トークンを作成 →"
   },
   "githubApiDomain": {
     "message": "GitHub APIドメイン"
