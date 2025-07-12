@@ -97,6 +97,18 @@
   "saving": {
     "message": "保存中..."
   },
+  "savedSuccessfully": {
+    "message": "保存成功"
+  },
+  "invalidFormat": {
+    "message": "格式无效"
+  },
+  "valueIsSet": {
+    "message": "值已设置"
+  },
+  "valueIsNotSet": {
+    "message": "值未设置"
+  },
   "githubEnterpriseNotice": {
     "message": "用于GitHub Enterprise实例"
   },

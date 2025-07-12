@@ -126,6 +126,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             saveText={t('save')}
             savingText={t('saving')}
             keySetText={t('apiKeyIsSet')}
+            keyNotSetText={t('apiKeyNotSet')}
             getMaskedValue={getMaskedApiKey}
             onToast={onToast}
           />
@@ -180,6 +181,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             saveText={t('save')}
             savingText={t('saving')}
             keySetText={t('geminiApiKeyIsSet')}
+            keyNotSetText={t('geminiApiKeyNotSet')}
             getMaskedValue={getMaskedApiKey}
             onToast={onToast}
           />
@@ -234,6 +236,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             saveText={t('save')}
             savingText={t('saving')}
             keySetText={t('claudeApiKeyIsSet')}
+            keyNotSetText={t('claudeApiKeyNotSet')}
             getMaskedValue={getMaskedApiKey}
             onToast={onToast}
           />

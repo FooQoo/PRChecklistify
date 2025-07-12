@@ -97,6 +97,18 @@
   "saving": {
     "message": "Saving..."
   },
+  "savedSuccessfully": {
+    "message": "Saved successfully"
+  },
+  "invalidFormat": {
+    "message": "Invalid format"
+  },
+  "valueIsSet": {
+    "message": "Value is set"
+  },
+  "valueIsNotSet": {
+    "message": "Value is not set"
+  },
   "githubEnterpriseNotice": {
     "message": "Use this for GitHub Enterprise instances"
   },
@@ -135,6 +147,9 @@
   },
   "apiKeyIsSet": {
     "message": "OpenAI API key is set"
+  },
+  "apiKeyNotSet": {
+    "message": "OpenAI API key is not set"
   },
   "pathIsSet": {
     "message": "Path is set"
@@ -187,6 +202,9 @@
   "geminiApiKeyIsSet": {
     "message": "Gemini API key is set"
   },
+  "geminiApiKeyNotSet": {
+    "message": "Gemini API key is not set"
+  },
   "failedToSaveGeminiApiKey": {
     "message": "Failed to save Gemini API key"
   },
@@ -222,6 +240,9 @@
   },
   "claudeApiKeyIsSet": {
     "message": "Claude API key is set"
+  },
+  "claudeApiKeyNotSet": {
+    "message": "Claude API key is not set"
   },
   "claudeKeyStorageNotice": {
     "message": "Your Claude API key is stored locally and only used by the extension."

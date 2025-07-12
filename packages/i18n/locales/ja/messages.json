@@ -97,6 +97,18 @@
   "saving": {
     "message": "保存中..."
   },
+  "savedSuccessfully": {
+    "message": "正常に保存されました"
+  },
+  "invalidFormat": {
+    "message": "無効な形式です"
+  },
+  "valueIsSet": {
+    "message": "値が設定されています"
+  },
+  "valueIsNotSet": {
+    "message": "値が設定されていません"
+  },
   "githubEnterpriseNotice": {
     "message": "GitHub Enterprise用に使用します"
   },
@@ -135,6 +147,9 @@
   },
   "apiKeyIsSet": {
     "message": "OpenAI APIキーが設定されています"
+  },
+  "apiKeyNotSet": {
+    "message": "OpenAI APIキーが設定されていません"
   },
   "pathIsSet": {
     "message": "パスが設定されています"
@@ -187,6 +202,9 @@
   "geminiApiKeyIsSet": {
     "message": "Gemini APIキーが設定されています"
   },
+  "geminiApiKeyNotSet": {
+    "message": "Gemini APIキーが設定されていません"
+  },
   "failedToSaveGeminiApiKey": {
     "message": "Gemini APIキーの保存に失敗しました"
   },
@@ -222,6 +240,9 @@
   },
   "claudeApiKeyIsSet": {
     "message": "Claude APIキーが設定されています"
+  },
+  "claudeApiKeyNotSet": {
+    "message": "Claude APIキーが設定されていません"
   },
   "claudeKeyStorageNotice": {
     "message": "Claude APIキーはローカルに保存され、拡張機能でのみ使用されます。"

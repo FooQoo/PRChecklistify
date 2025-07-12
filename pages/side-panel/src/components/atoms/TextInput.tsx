@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '@extension/i18n';
 
 export type TextInputProps = {
   label: string;
@@ -15,6 +16,7 @@ export type TextInputProps = {
   saveText?: string;
   savingText?: string;
   keySetText?: string;
+  keyNotSetText?: string;
   getMaskedValue?: (value: string) => string;
   onToast?: (message: string, type: 'success' | 'error' | 'info') => void;
 };
@@ -28,17 +30,29 @@ const TextInput: React.FC<TextInputProps> = ({
   onSave,
   onRemove,
   validator,
-  errorMessage = 'Invalid format',
-  successMessage = 'Saved successfully',
-  removeText = 'Remove',
-  saveText = 'Save',
-  savingText = 'Saving...',
-  keySetText = 'Value is set',
+  errorMessage,
+  successMessage,
+  removeText,
+  saveText,
+  savingText,
+  keySetText,
+  keyNotSetText,
   getMaskedValue,
   onToast,
 }) => {
+  const { t } = useI18n();
+
+  // i18nを使用してデフォルト値を設定
+  const defaultErrorMessage = errorMessage || t('invalidFormat');
+  const defaultSuccessMessage = successMessage || t('savedSuccessfully');
+  const defaultRemoveText = removeText || t('remove');
+  const defaultSaveText = saveText || t('save');
+  const defaultSavingText = savingText || t('saving');
+  const defaultKeySetText = keySetText || t('valueIsSet');
+  const defaultKeyNotSetText = keyNotSetText || t('valueIsNotSet');
   const [inputValue, setInputValue] = useState('');
   const [internalLoading, setInternalLoading] = useState(false);
+  const [hasUserInput, setHasUserInput] = useState(false);
 
   const loading = isLoading || internalLoading;
 
@@ -53,12 +67,12 @@ const TextInput: React.FC<TextInputProps> = ({
     e.preventDefault();
     const valueToSave = displayValue.trim();
     if (!valueToSave) {
-      onToast?.(errorMessage, 'error');
+      onToast?.(defaultErrorMessage, 'error');
       return;
     }
 
     if (validator && !validator(valueToSave)) {
-      onToast?.(errorMessage, 'error');
+      onToast?.(defaultErrorMessage, 'error');
       return;
     }
 
@@ -69,7 +83,7 @@ const TextInput: React.FC<TextInputProps> = ({
       if (type === 'password') {
         setInputValue('');
       }
-      onToast?.(successMessage, 'success');
+      onToast?.(defaultSuccessMessage, 'success');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       onToast?.('Failed to save', 'error');
@@ -85,7 +99,8 @@ const TextInput: React.FC<TextInputProps> = ({
       setInternalLoading(true);
       await onRemove();
       setInputValue('');
-      onToast?.(removeText, 'success');
+      setHasUserInput(false);
+      onToast?.(defaultRemoveText, 'success');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       onToast?.('Failed to remove', 'error');
@@ -97,7 +112,18 @@ const TextInput: React.FC<TextInputProps> = ({
   const displayPlaceholder = value ? maskValue(value) : placeholder;
 
   // テキストタイプの場合は保存された値を入力フィールドに表示
-  const displayValue = inputValue || (type === 'text' && value ? value : '');
+  // ただし、ユーザーが一度でも入力した場合は inputValue を優先する
+  const displayValue = hasUserInput ? inputValue : type === 'text' && value ? value : inputValue;
+
+  // プレースホルダーの設定：ユーザーが入力中の場合は前回の保存済み値を表示
+  const inputPlaceholder =
+    hasUserInput && value
+      ? type === 'text'
+        ? value
+        : displayPlaceholder
+      : type === 'text'
+        ? placeholder
+        : displayPlaceholder;
 
   return (
     <div className="text-input">
@@ -111,8 +137,11 @@ const TextInput: React.FC<TextInputProps> = ({
               type={type}
               id="text-input"
               value={displayValue}
-              onChange={e => setInputValue(e.target.value)}
-              placeholder={type === 'text' ? placeholder : displayPlaceholder}
+              onChange={e => {
+                setInputValue(e.target.value);
+                setHasUserInput(true);
+              }}
+              placeholder={inputPlaceholder}
               className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:z-10 focus:ring-blue-500"
             />
             <button
@@ -123,19 +152,24 @@ const TextInput: React.FC<TextInputProps> = ({
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
               } rounded-r-md`}>
-              {loading ? savingText : saveText}
+              {loading ? defaultSavingText : defaultSaveText}
             </button>
           </div>
           {value && onRemove && (
             <div className="mt-1 flex items-center justify-between">
-              <span className="text-xs text-gray-500">{keySetText}</span>
+              <span className="text-xs text-gray-500">{defaultKeySetText}</span>
               <button
                 type="button"
                 onClick={handleRemove}
                 disabled={loading}
                 className="text-xs text-red-500 hover:text-red-700 disabled:text-gray-400">
-                {removeText}
+                {defaultRemoveText}
               </button>
+            </div>
+          )}
+          {!value && (
+            <div className="mt-1">
+              <span className="text-xs text-gray-400">{defaultKeyNotSetText}</span>
             </div>
           )}
         </div>

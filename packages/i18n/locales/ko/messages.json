@@ -81,6 +81,18 @@
   "saving": {
     "message": "저장 중..."
   },
+  "savedSuccessfully": {
+    "message": "성공적으로 저장되었습니다"
+  },
+  "invalidFormat": {
+    "message": "잘못된 형식입니다"
+  },
+  "valueIsSet": {
+    "message": "값이 설정되었습니다"
+  },
+  "valueIsNotSet": {
+    "message": "값이 설정되지 않았습니다"
+  },
   "githubEnterpriseNotice": {
     "message": "GitHub Enterprise 인스턴스에 사용하세요"
   },
