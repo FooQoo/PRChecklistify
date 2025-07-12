@@ -121,11 +121,17 @@
   "invalidApiKeyFormat": {
     "message": "APIキーのフォーマットが無効です。OpenAI APIキーは通常「sk-」で始まります"
   },
+  "invalidPathFormat": {
+    "message": "無効なパス形式です"
+  },
   "apiKeySavedSuccess": {
     "message": "APIキーが正常に保存されました！"
   },
   "apiKeyIsSet": {
     "message": "APIキーが設定されています"
+  },
+  "pathIsSet": {
+    "message": "パスが設定されています"
   },
   "failedToSaveApiKey": {
     "message": "APIキーの保存に失敗しました"
@@ -345,5 +351,11 @@
   },
   "geminiDesc": {
     "message": "PR ChecklistifyでGeminiを利用するには、Gemini APIキーを入力してください。"
+  },
+  "instructionPath": {
+    "message": "カスタムインストラクションファイルのパス"
+  },
+  "instructionPathPlaceholder": {
+    "message": "./custom-instructions.md"
   }
 }

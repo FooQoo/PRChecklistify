@@ -1,5 +1,6 @@
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
 import { getGithubClient } from './github';
+import { instructionPathStorage } from '@extension/storage';
 
 type RecentPR = { title: string; key: string; timestamp: number };
 
@@ -192,10 +193,23 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
     );
 
     // レビューデータを取得
-    let copilotInstructions = undefined;
+    let instructions = undefined;
     let readme = undefined;
     try {
-      copilotInstructions = await github.fetchCopilotInstructionsFromMain(owner, repo);
+      const customPath = await instructionPathStorage.get();
+      if (customPath) {
+        try {
+          const { data } = await github.fetchFileContent(owner, repo, customPath);
+          if ('content' in data && typeof data.content === 'string') {
+            const base64 = data.content.replace(/\n/g, '');
+            instructions = atob(base64);
+          }
+        } catch {
+          instructions = undefined;
+        }
+      } else {
+        instructions = await github.fetchInstructionsFromMain(owner, repo);
+      }
       readme = await github.fetchReadmeContent(owner, repo);
     } catch (error) {
       console.warn('Failed to fetch PR reviews:', error);
@@ -254,7 +268,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       commits: prData.commits,
       comments: prData.comments,
       review_comments: prData.review_comments,
-      copilot_instructions: copilotInstructions,
+      instructions,
       readme,
       userComments, // ここでレビューコメントを格納
     };

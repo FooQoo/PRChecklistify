@@ -121,11 +121,17 @@
   "invalidApiKeyFormat": {
     "message": "Invalid API key format. OpenAI API keys typically start with \"sk-\""
   },
+  "invalidPathFormat": {
+    "message": "Invalid path format"
+  },
   "apiKeySavedSuccess": {
     "message": "API key saved successfully!"
   },
   "apiKeyIsSet": {
     "message": "API key is set"
+  },
+  "pathIsSet": {
+    "message": "Path is set"
   },
   "failedToSaveApiKey": {
     "message": "Failed to save API key"
@@ -345,5 +351,11 @@
   },
   "geminiDesc": {
     "message": "To use PR Checklistify with Gemini, provide your Gemini API key."
+  },
+  "instructionPath": {
+    "message": "Custom instructions file path"
+  },
+  "instructionPathPlaceholder": {
+    "message": "./custom-instructions.md"
   }
 }

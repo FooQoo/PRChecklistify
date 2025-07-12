@@ -18,6 +18,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, visible, onClose, duration
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [visible, duration, onClose]);
 
   if (!visible) return null;

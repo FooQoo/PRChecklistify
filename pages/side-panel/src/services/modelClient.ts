@@ -143,7 +143,7 @@ If the implementation is solid and needs no revision, briefly explain why the ch
   PR Description: ${body}
 PR Comments: ${commentsText || 'No comments provided.'}
 Repository README: ${prData.readme || 'No README provided.'}
-Repository information: ${prData.copilot_instructions || 'No instructions provided.'}
+Repository information: ${prData.instructions || 'No instructions provided.'}
 
 Format your response as a JSON object with the following structure:
 {
