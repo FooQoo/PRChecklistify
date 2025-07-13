@@ -1,13 +1,13 @@
 🚀 使用 PR Checklistify 革命性地提升您的 Pull Request 审核效率！
 
-PR Checklistify 是一款为开发者设计的智能 Chrome 扩展程序。通过利用 AI 技术，它能显著改善 GitHub 中的 Pull Request 审核流程。
+PR Checklistify 是一款为开发者设计的智能 Chrome 扩展程序。
+通过利用 AI 技术，它能显著改善 GitHub 中的 Pull Request 审核流程。
 
 ✨ 主要功能
 
-• AI 自动分析 - 即时分析 Pull Request 内容并自动生成适当的检查清单
+• AI 自动分析 - 即时分析 Pull Request 内容并自动生成内容摘要和适当的检查清单
 • AI 聊天支持 - 向 AI 询问代码相关问题并获得即时解决方案
 • 进度可视化 - 一目了然地跟踪审核进度
-• 复制粘贴功能 - 轻松复制检查清单项目以供使用
 • 多语言支持 - 支持日语、英语、韩语和中文
 
 🎯 适合人群
@@ -34,4 +34,5 @@ PR Checklistify 是一款为开发者设计的智能 Chrome 扩展程序。通�
 
 🌟 为什么选择 PR Checklistify？
 
-传统的审核流程往往会遗漏重要问题或需要每次手动检查相似的项目。PR Checklistify 利用 AI 技术解决这些挑战，帮助开发者专注于更有价值的工作。
+传统的审核流程往往会遗漏重要问题或需要每次手动检查相似的项目。
+PR Checklistify 利用 AI 技术解决这些挑战，帮助开发者专注于更有价值的工作。

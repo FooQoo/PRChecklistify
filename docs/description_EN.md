@@ -1,13 +1,13 @@
 🚀 Revolutionize Your Pull Request Reviews with PR Checklistify!
 
-PR Checklistify is an intelligent Chrome extension designed for developers. It dramatically improves Pull Request reviews on GitHub by leveraging AI technology.
+PR Checklistify is an intelligent Chrome extension designed for developers. 
+It dramatically improves Pull Request reviews on GitHub by leveraging AI technology.
 
 ✨ Key Features
 
-• AI Auto-Analysis - Instantly analyze Pull Request content and automatically generate appropriate checklists 
+• AI Auto-Analysis - Instantly analyze Pull Request content and automatically generate content summaries and appropriate checklists 
 • AI Chat Support - Ask AI questions about code concerns and get instant solutions 
 • Progress Visualization - Track review progress at a glance 
-• Copy & Paste Function - Easily copy checklist items for use 
 • Multi-language Support - Available in Japanese, English, Korean, and Chinese
 
 🎯 Perfect for
@@ -34,4 +34,5 @@ PR Checklistify is an intelligent Chrome extension designed for developers. It d
 
 🌟 Why Choose PR Checklistify?
 
-Traditional review processes often lead to missing important issues or manually checking similar items repeatedly. PR Checklistify leverages AI technology to solve these challenges, helping developers focus on more valuable work.
+Traditional review processes often lead to missing important issues or manually checking similar items repeatedly. 
+PR Checklistify leverages AI technology to solve these challenges, helping developers focus on more valuable work.
