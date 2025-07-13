@@ -40,12 +40,6 @@ const manifest = {
   icons: {
     128: 'icon-128.png',
   },
-  web_accessible_resources: [
-    {
-      resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],
-      matches: ['*://*/*'],
-    },
-  ],
   side_panel: {
     default_path: 'side-panel/index.html',
   },
