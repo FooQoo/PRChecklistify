@@ -21,12 +21,6 @@ const manifest = {
   manifest_version: 3,
   default_locale: 'en',
   name: '__MSG_extensionName__',
-  browser_specific_settings: {
-    gecko: {
-      id: 'example@example.com',
-      strict_min_version: '109.0',
-    },
-  },
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
   permissions: ['storage', 'tabs', 'sidePanel', 'unlimitedStorage'],
