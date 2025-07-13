@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { PRData, Checklist, PRAnalysisResult } from '../../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
@@ -9,7 +9,7 @@ import { useI18n } from '@extension/i18n';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
-  onChecklistChange: (filename: string, checklistItems: Record<string, boolean>) => void;
+  onChecklistChange: (filename: string, updatedChecklist: Checklist) => void;
   analysisResult: PRAnalysisResult | undefined;
   onOpenChat?: () => void;
   prData: PRData;
@@ -41,30 +41,6 @@ const FileChecklist = ({
     return analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
   }, [analysisResult, file.filename]);
 
-  // AI生成されたチェックリストに基づいて動的オブジェクトを準備
-  const initializeChecklistItems = useCallback(() => {
-    // AIによって生成されたチェックリストが利用可能な場合、そのアイテムを含むオブジェクトを作成
-    if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
-      const items: Record<string, boolean> = {};
-      aiGeneratedChecklist.checklistItems.forEach((item, index) => {
-        items[`item_${index}`] = !!item.isChecked;
-      });
-      return items;
-    }
-
-    // AI生成チェックリストがない場合
-    return {} as Record<string, boolean>;
-  }, [aiGeneratedChecklist]);
-
-  // State to track checklist items - Initialize from saved data if available
-  const [checklistItems, setChecklistItems] = useState<Record<string, boolean>>(initializeChecklistItems());
-
-  // aiGeneratedChecklistが変更されたときだけ状態を更新
-  useEffect(() => {
-    // 明示的にaiGeneratedChecklistが変更されたときだけchecklistItemsを初期化
-    setChecklistItems(initializeChecklistItems());
-  }, [initializeChecklistItems]);
-
   // Override to force expanded state (when user clicks to manually open/close)
   const [expandOverride, setExpandOverride] = useState<boolean | null>(null);
   // Track if all items were just checked to trigger auto-collapse
@@ -72,19 +48,20 @@ const FileChecklist = ({
 
   // Initialize the allItemsJustChecked state based on initial checklist items
   useEffect(() => {
-    const initialItems = initializeChecklistItems();
-    const allInitialItemsOK = Object.values(initialItems).every(item => item);
-    setAllItemsJustChecked(allInitialItemsOK);
-  }, [initializeChecklistItems]);
+    if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
+      const allInitialItemsOK = aiGeneratedChecklist.checklistItems.every(item => item.isChecked);
+      setAllItemsJustChecked(allInitialItemsOK);
+    }
+  }, [aiGeneratedChecklist]);
 
   // Calculate review status directly from checklist items
   const getReviewStatus = (): 'approved' | 'reviewing' | 'not-reviewed' => {
-    if (!checklistItems || Object.keys(checklistItems).length === 0) {
+    if (!aiGeneratedChecklist || aiGeneratedChecklist.checklistItems.length === 0) {
       return 'not-reviewed';
     }
 
-    const allOK = Object.values(checklistItems).every(item => item);
-    const anyReviewed = Object.values(checklistItems).some(item => item);
+    const allOK = aiGeneratedChecklist.checklistItems.every(item => item.isChecked);
+    const anyReviewed = aiGeneratedChecklist.checklistItems.some(item => item.isChecked);
 
     if (allOK) {
       return 'approved';
@@ -103,11 +80,11 @@ const FileChecklist = ({
     }
 
     // If there are no checklist items yet, keep expanded
-    if (!checklistItems || Object.keys(checklistItems).length === 0) {
+    if (!aiGeneratedChecklist || aiGeneratedChecklist.checklistItems.length === 0) {
       return true;
     }
 
-    const allOK = Object.values(checklistItems).every(item => item);
+    const allOK = aiGeneratedChecklist.checklistItems.every(item => item.isChecked);
 
     // If all checks are OK, collapse it
     if (allOK && allItemsJustChecked) {
@@ -130,13 +107,11 @@ const FileChecklist = ({
   // Computed expanded state
   const expanded = getCalculatedExpandedState();
 
-  // 親コンポーネントへの通知を最適化するため、ローカル状態変更時のみ通知する
-  // これによって無限ループを防止
+  // Auto-collapse when all items are checked
   useEffect(() => {
-    // checklistItemsがローカルで変更されたときだけ実行
-    if (checklistItems && Object.keys(checklistItems).length > 0) {
-      // Check if all items just became OK
-      const allOK = Object.values(checklistItems).every(item => item);
+    if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
+      const allOK = aiGeneratedChecklist.checklistItems.every(item => item.isChecked);
+
       if (allOK && !allItemsJustChecked) {
         setAllItemsJustChecked(true);
         // Reset the override when items are all OK
@@ -145,25 +120,26 @@ const FileChecklist = ({
         setAllItemsJustChecked(false);
       }
     }
-  }, [checklistItems, file.filename, allItemsJustChecked]);
+  }, [aiGeneratedChecklist, allItemsJustChecked]);
 
   // Toggle checklist item state
-  const toggleReviewState = (item: string) => {
-    if (!checklistItems) return;
+  const toggleReviewState = (itemIndex: number) => {
+    if (!aiGeneratedChecklist) return;
 
-    const currentState = checklistItems[item];
-    const nextState = !currentState;
+    const updatedChecklistItems = aiGeneratedChecklist.checklistItems.map((item, index) => {
+      if (index === itemIndex) {
+        return { ...item, isChecked: !item.isChecked };
+      }
+      return item;
+    });
 
-    const newChecklistItems = {
-      ...checklistItems,
-      [item]: nextState,
+    const updatedChecklist = {
+      ...aiGeneratedChecklist,
+      checklistItems: updatedChecklistItems,
     };
 
-    // ローカル状態を更新
-    setChecklistItems(newChecklistItems);
-
-    // 明示的に親コンポーネントに通知（useEffectとは別に）
-    onChecklistChange(file.filename, newChecklistItems);
+    // 親コンポーネントに通知
+    onChecklistChange(file.filename, updatedChecklist);
   };
 
   // Toggle expanded state manually
@@ -171,19 +147,19 @@ const FileChecklist = ({
     // タブを閉じる操作の場合
     if (expanded) {
       // If we have checklist items, set them all to OK
-      if (checklistItems && Object.keys(checklistItems).length > 0) {
-        const allOKItems: Record<string, boolean> = {};
+      if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
+        const updatedChecklistItems = aiGeneratedChecklist.checklistItems.map(item => ({
+          ...item,
+          isChecked: true,
+        }));
 
-        // Set all items to checked
-        Object.keys(checklistItems).forEach(key => {
-          allOKItems[key] = true;
-        });
-
-        // チェックリストを全てOKに変更
-        setChecklistItems(allOKItems);
+        const updatedChecklist = {
+          ...aiGeneratedChecklist,
+          checklistItems: updatedChecklistItems,
+        };
 
         // 親コンポーネントに変更を通知
-        onChecklistChange(file.filename, allOKItems);
+        onChecklistChange(file.filename, updatedChecklist);
       }
 
       // 閉じる
@@ -497,8 +473,7 @@ const FileChecklist = ({
                 {!generating && aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0 && (
                   <ChecklistComponent
                     checklist={aiGeneratedChecklist}
-                    checklistItems={checklistItems}
-                    onToggle={itemKey => toggleReviewState(itemKey)}
+                    onToggle={itemIndex => toggleReviewState(itemIndex)}
                   />
                 )}
               </div>

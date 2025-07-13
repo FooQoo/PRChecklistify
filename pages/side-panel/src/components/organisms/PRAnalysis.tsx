@@ -80,28 +80,14 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   };
 
   // チェックリスト変更時のハンドラー
-  const handleChecklistChange = (filename: string, checklistItems: Record<string, boolean>) => {
+  const handleChecklistChange = (filename: string, updatedChecklist: Checklist) => {
     if (!prData || !analysisResult) return;
 
-    const fileChecklist = analysisResult.fileAnalysis?.find(c => c.filename === filename);
-    if (!fileChecklist) return;
-
-    const updatedChecklistItems = fileChecklist.checklistItems.map((item, index) => {
-      const key = `item_${index}`;
-      const isChecked = checklistItems[key];
-      if (isChecked !== undefined) {
-        return { ...item, isChecked };
-      }
-      return item;
-    });
-
-    const updatedFileChecklist = {
-      ...fileChecklist,
-      checklistItems: updatedChecklistItems,
-    };
+    const fileChecklistIndex = analysisResult.fileAnalysis?.findIndex(c => c.filename === filename);
+    if (fileChecklistIndex === -1 || fileChecklistIndex === undefined) return;
 
     // 分析結果を更新
-    saveAnalysisResultChecklist(updatedFileChecklist);
+    saveAnalysisResultChecklist(updatedChecklist);
   };
 
   return (
@@ -212,7 +198,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                     }}
                     allDiffs={Object.fromEntries(prData.files.map(f => [f.filename, f.patch || '']))}
                     analysisResult={analysisResult}
-                    onChecklistChange={checklistItems => handleChecklistChange(file.filename, checklistItems)}
+                    onChecklistChange={updatedChecklist => handleChecklistChange(file.filename, updatedChecklist)}
                   />
                 </div>
               );

@@ -6,8 +6,7 @@ import { useI18n } from '@extension/i18n';
 
 interface ChecklistComponentProps {
   checklist: Checklist;
-  checklistItems: Record<string, boolean>;
-  onToggle: (itemKey: string) => void;
+  onToggle: (itemIndex: number) => void;
   className?: string;
   defaultExpanded?: boolean;
 }
@@ -89,7 +88,6 @@ const ChecklistItem = ({ label, isChecked, onToggle, onCopy, className = '' }: C
 
 const ChecklistComponent = ({
   checklist,
-  checklistItems,
   onToggle,
   className = '',
   defaultExpanded = true,
@@ -154,20 +152,15 @@ const ChecklistComponent = ({
       </div>
       {expanded && (
         <div className="space-y-2">
-          {checklist.checklistItems.map((item, index) => {
-            const itemKey = `item_${index}`;
-            const checked = checklistItems[itemKey] ?? item.isChecked;
-
-            return (
-              <ChecklistItem
-                key={item.id || itemKey}
-                label={item.description}
-                isChecked={checked}
-                onToggle={() => onToggle(itemKey)}
-                onCopy={() => handleCopy(item.description)}
-              />
-            );
-          })}
+          {checklist.checklistItems.map((item, index) => (
+            <ChecklistItem
+              key={item.id || `item_${index}`}
+              label={item.description}
+              isChecked={item.isChecked}
+              onToggle={() => onToggle(index)}
+              onCopy={() => handleCopy(item.description)}
+            />
+          ))}
         </div>
       )}
     </div>

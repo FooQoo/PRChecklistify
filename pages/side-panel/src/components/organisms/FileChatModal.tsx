@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { PRFile, PRAnalysisResult } from '../../types';
+import type { PRFile, PRAnalysisResult, Checklist } from '../../types';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
 
@@ -16,9 +16,9 @@ interface FileChatModalProps {
   onResetChat?: () => void;
   // 他ファイルのdiff情報を渡す
   allDiffs?: Record<string, string>;
-  // onChecklistChangeは残す
+  // 分析結果とチェックリスト変更ハンドラー
   analysisResult?: PRAnalysisResult;
-  onChecklistChange: (checklistItems: Record<string, boolean>) => void;
+  onChecklistChange: (updatedChecklist: Checklist) => void;
 }
 
 const FileChatModal: React.FC<FileChatModalProps> = ({
@@ -43,20 +43,8 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   // チャットメッセージ終端への参照を追加
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // checklistItems, aiAnalysisの状態をローカルで管理
+  // AI分析結果を取得
   const aiAnalysis = analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
-  const [localChecklistItems, setLocalChecklistItems] = useState<Record<string, boolean>>({});
-
-  // aiAnalysisが変わったらローカル状態を初期化
-  useEffect(() => {
-    if (aiAnalysis) {
-      const items: Record<string, boolean> = {};
-      aiAnalysis.checklistItems.forEach((item, idx) => {
-        items[item.id || `item_${idx}`] = !!item.isChecked;
-      });
-      setLocalChecklistItems(items);
-    }
-  }, [aiAnalysis]);
 
   // チャットを一番下までスクロールする関数
   const scrollToBottom = () => {
@@ -247,14 +235,22 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 <div className="mt-6 border-t pt-4">
                   <ChecklistComponent
                     checklist={aiAnalysis}
-                    checklistItems={localChecklistItems}
-                    onToggle={itemKey => {
-                      const checked = localChecklistItems[itemKey] ?? false;
-                      const newChecklistItems = { ...localChecklistItems, [itemKey]: !checked };
-                      setLocalChecklistItems(newChecklistItems);
-                      onChecklistChange(newChecklistItems);
+                    onToggle={itemIndex => {
+                      const updatedChecklistItems = aiAnalysis.checklistItems.map((item, index) => {
+                        if (index === itemIndex) {
+                          return { ...item, isChecked: !item.isChecked };
+                        }
+                        return item;
+                      });
 
-                      const allChecked = Object.values(newChecklistItems).every(s => s);
+                      const updatedChecklist = {
+                        ...aiAnalysis,
+                        checklistItems: updatedChecklistItems,
+                      };
+
+                      onChecklistChange(updatedChecklist);
+
+                      const allChecked = updatedChecklistItems.every(item => item.isChecked);
                       if (allChecked) {
                         setShowCompleteModal(true);
                       }
