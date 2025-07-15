@@ -19,10 +19,10 @@ importers:
         version: 1.3.22(zod@3.25.67)
       '@google/genai':
         specifier: ^1.3.0
-        version: 1.7.0(@modelcontextprotocol/sdk@1.13.2)
+        version: 1.7.0(@modelcontextprotocol/sdk@1.15.1)
       '@modelcontextprotocol/sdk':
-        specifier: ^1.13.0
-        version: 1.13.2
+        specifier: ^1.15.1
+        version: 1.15.1
       '@octokit/rest':
         specifier: ^21.1.1
         version: 21.1.1
@@ -1111,8 +1111,8 @@ packages:
     peerDependencies:
       vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
 
-  '@modelcontextprotocol/sdk@1.13.2':
-    resolution: {integrity: sha512-Vx7qOcmoKkR3qhaQ9qf3GxiVKCEu+zfJddHv6x3dY/9P6+uIwJnmuAur5aB+4FDXf41rRrDnOEGkviX5oYZ67w==}
+  '@modelcontextprotocol/sdk@1.15.1':
+    resolution: {integrity: sha512-W/XlN9c528yYn+9MQkVjxiTPgPxoxt+oczfjHBDsJx0+59+O7B75Zhsp0B16Xbwbz8ANISDajh6+V7nIcPMc5w==}
     engines: {node: '>=18'}
 
   '@noble/ciphers@1.3.0':
@@ -5861,14 +5861,14 @@ snapshots:
       '@eslint/core': 0.15.1
       levn: 0.4.1
 
-  '@google/genai@1.7.0(@modelcontextprotocol/sdk@1.13.2)':
+  '@google/genai@1.7.0(@modelcontextprotocol/sdk@1.15.1)':
     dependencies:
       google-auth-library: 9.15.1
       ws: 8.18.0
       zod: 3.25.67
       zod-to-json-schema: 3.24.6(zod@3.25.67)
     optionalDependencies:
-      '@modelcontextprotocol/sdk': 1.13.2
+      '@modelcontextprotocol/sdk': 1.15.1
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -6187,13 +6187,14 @@ snapshots:
       semver: 7.7.2
       vite: 6.1.0(@types/node@24.0.13)(jiti@1.21.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
 
-  '@modelcontextprotocol/sdk@1.13.2':
+  '@modelcontextprotocol/sdk@1.15.1':
     dependencies:
       ajv: 6.12.6
       content-type: 1.0.5
       cors: 2.8.5
       cross-spawn: 7.0.6
       eventsource: 3.0.7
+      eventsource-parser: 3.0.3
       express: 5.1.0
       express-rate-limit: 7.5.1(express@5.1.0)
       pkce-challenge: 5.0.0
@@ -8449,7 +8450,7 @@ snapshots:
 
   fastmcp@3.6.2:
     dependencies:
-      '@modelcontextprotocol/sdk': 1.13.2
+      '@modelcontextprotocol/sdk': 1.15.1
       '@standard-schema/spec': 1.0.0
       execa: 9.6.0
       file-type: 21.0.0
@@ -9366,7 +9367,7 @@ snapshots:
 
   mcp-proxy@5.1.1:
     dependencies:
-      '@modelcontextprotocol/sdk': 1.13.2
+      '@modelcontextprotocol/sdk': 1.15.1
       eventsource: 4.0.0
       yargs: 18.0.0
     transitivePeerDependencies:
