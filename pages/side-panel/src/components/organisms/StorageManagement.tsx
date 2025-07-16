@@ -51,8 +51,8 @@ const StorageManagement = () => {
 
       setMessage({ text: t('prDataCleared'), type: 'success' });
       setHasPRData(false);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error clearing PR data:', error);
       setMessage({ text: t('failedToClearPrData'), type: 'error' });
     } finally {
       setIsClearing(false);
