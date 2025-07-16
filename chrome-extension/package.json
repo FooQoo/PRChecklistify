@@ -1,6 +1,6 @@
 {
   "name": "pr-checklistfy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Chrome extension that generates checklists for Pull Request reviews to prevent oversights.",
   "type": "module",
   "private": true,
