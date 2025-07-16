@@ -217,7 +217,7 @@ const FileChecklist = ({
                 <th className="py-0 px-2 w-10 text-right font-mono bg-gray-50">old</th>
                 <th className="py-0 px-2 w-10 text-right font-mono bg-gray-50 text-green-700">new</th>
                 <th className="py-0 px-2 w-6 text-center font-mono bg-gray-50"></th>
-                <th className="py-0 px-2 font-mono bg-gray-50 text-left">内容</th>
+                <th className="py-0 px-2 font-mono bg-gray-50 text-left">{t('content')}</th>
               </tr>
             </thead>
             <tbody>

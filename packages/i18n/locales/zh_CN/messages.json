@@ -399,5 +399,8 @@
   },
   "instructionPathPlaceholder": {
     "message": "CLAUDE.md"
+  },
+  "content": {
+    "message": "内容"
   }
 }
