@@ -37,7 +37,7 @@ const StorageManagement = () => {
       setMessage({ text: '', type: '' });
 
       // Get the 'pr' object from storage
-      const result = await chrome.storage.local.get('pr_data_cache');
+      const result = await chrome.storage.local.get('prDataCache');
       const prStorage = result.pr || {};
 
       if (Object.keys(prStorage).length === 0) {
@@ -47,7 +47,7 @@ const StorageManagement = () => {
       }
 
       // Clear the entire 'pr' object
-      await chrome.storage.local.remove('pr_data_cache');
+      await chrome.storage.local.remove('prDataCache');
 
       setMessage({ text: t('prDataCleared'), type: 'success' });
       setHasPRData(false);

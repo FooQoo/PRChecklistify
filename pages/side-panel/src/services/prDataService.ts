@@ -8,7 +8,7 @@ type RecentPR = { title: string; key: string; timestamp: number };
 
 // PRデータをローカルストレージに保存・取得するためのユーティリティ
 class PRDataStorage {
-  private readonly STORAGE_KEY = 'pr_data_cache';
+  private readonly STORAGE_KEY = 'prDataCache';
   private readonly MAX_CACHE_SIZE = 20; // 最大キャッシュ数
 
   // PRデータのみを保存

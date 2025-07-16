@@ -5,7 +5,7 @@ type GitHubTokenStorage = BaseStorage<string> & {
   clear: () => Promise<void>;
 };
 
-const storage = createStorage<string>('github-token-storage-key', '', {
+const storage = createStorage<string>('githubTokenStorageKey', '', {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
 });
