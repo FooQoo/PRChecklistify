@@ -1,18 +1,55 @@
 import { Octokit } from '@octokit/rest';
 import { githubTokenStorage } from '@extension/storage';
 import type { PRIdentifier } from '../types';
+import type { GitHubServer } from '@extension/storage';
+import { getActiveGitHubServer, loadGitHubServerConfig } from './configLoader';
 
 export class GithubClient {
   private octokit: Octokit;
+  private server: GitHubServer & { token?: string };
 
-  private constructor(octokit: Octokit) {
+  private constructor(octokit: Octokit, server: GitHubServer & { token?: string }) {
     this.octokit = octokit;
+    this.server = server;
   }
 
-  static async create() {
-    const token = await githubTokenStorage.get();
+  static async create(serverId?: string): Promise<GithubClient> {
+    let server: (GitHubServer & { token?: string }) | undefined;
+
+    if (serverId) {
+      // Get specific server
+      const servers = await loadGitHubServerConfig();
+      const targetServer = servers.find(s => s.id === serverId);
+      if (targetServer) {
+        const { githubTokensStorage } = await import('@extension/storage');
+        const token = await githubTokensStorage.getToken(serverId);
+        server = { ...targetServer, token };
+      }
+    } else {
+      // Get active server
+      server = await getActiveGitHubServer();
+    }
+
+    // Fallback to legacy storage if no server found
+    if (!server || !server.token) {
+      const legacyToken = await githubTokenStorage.get();
+      if (legacyToken) {
+        server = {
+          id: 'legacy',
+          name: 'GitHub.com',
+          apiUrl: 'https://api.github.com',
+          webUrl: 'https://github.com',
+          isDefault: true,
+          token: legacyToken,
+        };
+      } else {
+        throw new Error('No GitHub server configuration found or no token available');
+      }
+    }
+
     const octokit = new Octokit({
-      auth: token || undefined,
+      auth: server.token || undefined,
+      baseUrl: server.apiUrl,
       log: {
         debug: () => {},
         info: () => {},
@@ -20,7 +57,12 @@ export class GithubClient {
         error: () => {},
       },
     });
-    return new GithubClient(octokit);
+
+    return new GithubClient(octokit, server);
+  }
+
+  getServer(): GitHubServer & { token?: string } {
+    return this.server;
   }
 
   async fetchPullRequest(identifier: PRIdentifier) {

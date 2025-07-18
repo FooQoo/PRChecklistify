@@ -1,6 +1,10 @@
-import { useGithubTokenAtom } from '../../hooks/useGithubTokenAtom';
+import type React from 'react';
+import { useState, useEffect } from 'react';
+import { useGithubTokensAtom } from '../../hooks/useGithubTokensAtom';
 import { useI18n } from '@extension/i18n';
-import { TextInput } from '../atoms';
+import GitHubServerTokenCard from '../molecules/GitHubServerTokenCard';
+import { getGitHubServersWithTokens } from '../../services/configLoader';
+import type { GitHubServer } from '@extension/storage';
 
 interface GitHubIntegrationSettingsProps {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -8,53 +12,115 @@ interface GitHubIntegrationSettingsProps {
 
 const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
-  const { githubToken, setTokenAndStorage, clearToken } = useGithubTokenAtom();
+  const { setToken, removeToken, setActiveServer, getActiveServerId, isGithubTokensLoaded } = useGithubTokensAtom();
 
-  // GitHub トークンのバリデーション
-  const validateGitHubToken = (token: string): boolean => {
-    return token.startsWith('ghp_') || token.startsWith('github_pat_');
+  const [servers, setServers] = useState<Array<GitHubServer & { token?: string; hasToken: boolean }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const activeServerId = getActiveServerId();
+
+  // Load servers from external config
+  useEffect(() => {
+    const loadServers = async () => {
+      try {
+        const serversWithTokens = await getGitHubServersWithTokens();
+        setServers(serversWithTokens);
+      } catch (error) {
+        console.error('Failed to load GitHub servers:', error);
+        onToast('Failed to load GitHub server configuration', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isGithubTokensLoaded) {
+      loadServers();
+    }
+  }, [isGithubTokensLoaded, onToast]);
+
+  // Refresh servers when tokens change
+  const refreshServers = async () => {
+    try {
+      const serversWithTokens = await getGitHubServersWithTokens();
+      setServers(serversWithTokens);
+    } catch (error) {
+      console.error('Failed to refresh servers:', error);
+    }
   };
 
-  // トークンのマスク表示
-  const getMaskedToken = (token: string): string => {
-    if (!token || token.length < 10) return '****';
-    return `${token.substring(0, 4)}...${token.substring(token.length - 4)}`;
+  const handleSetToken = async (serverId: string, token: string) => {
+    await setToken(serverId, token);
+    await refreshServers();
   };
+
+  const handleRemoveToken = async (serverId: string) => {
+    await removeToken(serverId);
+    await refreshServers();
+  };
+
+  const handleSetActive = async (serverId: string) => {
+    await setActiveServer(serverId);
+    await refreshServers();
+  };
+
+  if (isLoading || !isGithubTokensLoaded) {
+    return (
+      <div className="animate-pulse">
+        <h2 className="text-lg font-semibold mb-4">GitHub Integration</h2>
+        <div className="h-20 bg-gray-200 rounded-lg"></div>
+      </div>
+    );
+  }
 
   return (
     <>
       <h2 className="text-lg font-semibold mb-4">{t('githubIntegration')}</h2>
-      <div className="mb-6">
-        <TextInput
-          label={t('githubToken')}
-          value={githubToken}
-          placeholder="xxxxxxxxxxxxxxxxxxxx"
-          type="password"
-          onSave={setTokenAndStorage}
-          onRemove={clearToken}
-          validator={validateGitHubToken}
-          errorMessage="Invalid GitHub token format"
-          successMessage={t('settingsSavedSuccess')}
-          removeText={t('remove')}
-          saveText={t('save')}
-          savingText={t('verifying')}
-          keySetText={t('tokenIsSet')}
-          getMaskedValue={getMaskedToken}
-          onToast={onToast}
-        />
 
-        <div className="text-xs text-gray-500 mt-2">
-          <p>
-            {t('githubTokenStorageNotice')}
-            <a
-              href="https://github.com/settings/tokens/new?scopes=repo&description=PR+Checklistify+Extension"
-              target="_blank"
-              rel="noreferrer"
-              className="text-blue-500 hover:text-blue-700 ml-1">
-              {t('createGithubToken')}
-            </a>
-          </p>
+      {servers.length === 0 ? (
+        <div className="mb-6">
+          <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+            <p className="text-sm text-gray-600 mb-3">
+              No GitHub servers configured. Please check your build configuration.
+            </p>
+            <p className="text-xs text-gray-500">
+              GitHub servers are defined in <code>config/github-servers.json</code> and loaded at build time.
+            </p>
+          </div>
         </div>
+      ) : (
+        <div className="mb-6">
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">
+              Configure API tokens for GitHub servers ({servers.length} available)
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {servers.map(server => (
+              <GitHubServerTokenCard
+                key={server.id}
+                server={server}
+                isActive={server.id === activeServerId}
+                onSetToken={handleSetToken}
+                onRemoveToken={handleRemoveToken}
+                onSetActive={handleSetActive}
+                onToast={onToast}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="text-xs text-gray-500">
+        <p>{t('githubTokenStorageNotice')}</p>
+        <p className="mt-2">
+          <strong>Server Configuration:</strong> GitHub servers are pre-configured at build time. Only API tokens can be
+          managed through this interface.
+        </p>
+        <p className="mt-1">
+          <strong>Enterprise Setup:</strong> Contact your administrator to add GitHub Enterprise servers to the build
+          configuration.
+        </p>
       </div>
     </>
   );

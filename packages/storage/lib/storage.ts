@@ -37,6 +37,9 @@ export const openaiApiKeyStorage = {
   },
 };
 
+export * from './impl/index.js';
+export * from './types/index.js';
+
 export default {
   githubTokenStorage,
   openaiApiKeyStorage,

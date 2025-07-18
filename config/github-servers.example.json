@@ -1,0 +1,22 @@
+{
+  "github": {
+    "servers": [
+      {
+        "id": "github-com",
+        "name": "GitHub.com",
+        "apiUrl": "https://api.github.com",
+        "webUrl": "https://github.com",
+        "isDefault": true,
+        "description": "Public GitHub"
+      },
+      {
+        "id": "enterprise-example",
+        "name": "GitHub Enterprise",
+        "apiUrl": "https://github.your-company.com/api/v3",
+        "webUrl": "https://github.your-company.com",
+        "isDefault": false,
+        "description": "Company GitHub Enterprise Server"
+      }
+    ]
+  }
+}

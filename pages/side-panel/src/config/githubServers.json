@@ -1,0 +1,22 @@
+{
+  "github": {
+    "servers": [
+      {
+        "id": "github-com",
+        "name": "GitHub.com",
+        "apiUrl": "https://api.github.com",
+        "webUrl": "https://github.com",
+        "isDefault": true,
+        "description": "Public GitHub"
+      },
+      {
+        "id": "github-com2",
+        "name": "GitHub.com2",
+        "apiUrl": "https://api.github.com",
+        "webUrl": "https://github.com",
+        "isDefault": true,
+        "description": "Public GitHub2"
+      }
+    ]
+  }
+}
