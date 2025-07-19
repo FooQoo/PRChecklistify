@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigation } from '../../context/NavigationContext';
 import { useI18n } from '@extension/i18n';
 import { useOpenaiKeyAtom } from '../../hooks/useOpenaiKeyAtom';
@@ -13,7 +13,6 @@ import { TextInput, Button } from '../atoms';
 import { getAllLLMProviders, getLLMProviderById } from '../../services/configLoader';
 
 import type { ModelClientType } from '../../services/modelClient';
-import type { LLMProvider } from '../../types';
 
 interface UnifiedApiKeySetupViewProps {
   mode?: 'setup' | 'settings';
@@ -31,22 +30,16 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   const { claudeModel, setModelAndStorage: setClaudeModelAndStorage } = useClaudeModelAtom();
   const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
   const [provider, setProvider] = useState<ModelClientType>(modelClientType);
-  const [currentProvider, setCurrentProvider] = useState<LLMProvider | null>(null);
 
   const geminiEnabled = isGeminiApiEnabled();
   const llmProviders = getAllLLMProviders();
 
-  // プロバイダー初期値をストレージから取得
-  useEffect(() => {
-    setProvider(modelClientType);
-  }, [modelClientType]);
-
-  // 現在のプロバイダー情報を更新
-  useEffect(() => {
+  // 現在のプロバイダー情報をメモ化
+  const currentProvider = useMemo(() => {
     if (provider && llmProviders.length > 0) {
-      const providerInfo = getLLMProviderById(provider);
-      setCurrentProvider(providerInfo || null);
+      return getLLMProviderById(provider) || null;
     }
+    return null;
   }, [provider, llmProviders]);
 
   // モデルオプションを統一形式で取得するヘルパー関数

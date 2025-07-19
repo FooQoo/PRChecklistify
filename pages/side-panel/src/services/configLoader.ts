@@ -82,24 +82,3 @@ export function getLLMProviderById(providerId: string): LLMProvider | undefined 
 export function getAllLLMProviders(): LLMProvider[] {
   return loadLLMServiceConfig();
 }
-
-/**
- * Gets model options for a specific provider in the format expected by existing code
- */
-export function getModelOptions(providerId: string): Array<{ value: string; label: string }> {
-  const provider = getLLMProviderById(providerId);
-  if (!provider) return [];
-
-  return provider.models.map(model => ({
-    value: model.id,
-    label: model.name,
-  }));
-}
-
-/**
- * Gets default model for a specific provider
- */
-export function getDefaultModel(providerId: string): string | null {
-  const provider = getLLMProviderById(providerId);
-  return provider?.defaultModel || null;
-}
