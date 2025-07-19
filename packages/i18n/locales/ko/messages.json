@@ -449,5 +449,20 @@
   },
   "apiKeySetup": {
     "message": "API 키 설정"
+  },
+  "githubAuthenticationError": {
+    "message": "입력된 API 키가 올바르지 않습니다."
+  },
+  "failedToLoadPrData": {
+    "message": "PR 데이터 로드에 실패했습니다"
+  },
+  "errorOccurredWhileLoadingPrData": {
+    "message": "PR 데이터 로드 중 오류가 발생했습니다"
+  },
+  "failedToRefreshPrData": {
+    "message": "PR 데이터 새로고침에 실패했습니다"
+  },
+  "errorOccurredWhileRefreshingPrData": {
+    "message": "PR 데이터 새로고침 중 오류가 발생했습니다"
   }
 }

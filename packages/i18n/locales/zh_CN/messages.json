@@ -450,5 +450,20 @@
   },
   "apiKeySetup": {
     "message": "API密钥设置"
+  },
+  "githubAuthenticationError": {
+    "message": "输入的API密钥不正确。"
+  },
+  "failedToLoadPrData": {
+    "message": "加载PR数据失败"
+  },
+  "errorOccurredWhileLoadingPrData": {
+    "message": "加载PR数据时发生错误"
+  },
+  "failedToRefreshPrData": {
+    "message": "刷新PR数据失败"
+  },
+  "errorOccurredWhileRefreshingPrData": {
+    "message": "刷新PR数据时发生错误"
   }
 }

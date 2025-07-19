@@ -4,6 +4,7 @@ import { calculateReviewTime, getPrKey } from '../utils/prUtils';
 import { PRAnalysis } from '../components';
 import { useReward } from 'react-rewards';
 import { useParams } from 'react-router-dom';
+import { useI18n } from '@extension/i18n';
 
 const GitHubPRView = () => {
   const { domain, owner, repo, prNumber } = useParams<{
@@ -12,6 +13,7 @@ const GitHubPRView = () => {
     repo: string;
     prNumber: string;
   }>();
+  const { t } = useI18n();
 
   const prKey = getPrKey(domain, owner, repo, prNumber);
   const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
@@ -61,7 +63,7 @@ const GitHubPRView = () => {
   if (prError) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <p className="text-red-500 mb-4">Failed to load PR data</p>
+        <p className="text-red-500 mb-4">{t(prError)}</p>
       </div>
     );
   }

@@ -1,12 +1,13 @@
 import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
-import { fetchPRData, prDataStorage } from '../services/prDataService';
+import { fetchPRData, GitHubAuthenticationError, prDataStorage } from '../services/prDataService';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
+import type { ErrorKeyType } from './usePRData';
 
 export const loadPRDataFromAnySource = async (
   prKey: string,
   setPRData: (data: PRData | null) => void,
   setAnalysisResult: (result: PRAnalysisResult | undefined) => void,
-  setError: (err: string | null) => void,
+  setError: (err: ErrorKeyType) => void,
 ) => {
   const basicInfo = extractPRInfoFromKey(prKey);
   if (!basicInfo) {
@@ -34,18 +35,22 @@ export const loadPRDataFromAnySource = async (
         await prDataStorage.savePRDataToStorage(prKey, newData);
         setAnalysisResult(undefined);
       } else {
-        setError('Failed to load PR data');
+        setError('failedToLoadPrData');
       }
     }
-  } catch {
-    setError('An error occurred while loading PR data');
+  } catch (error) {
+    if (error instanceof GitHubAuthenticationError) {
+      setError('githubAuthenticationError');
+    } else {
+      setError('errorOccurredWhileLoadingPrData');
+    }
   }
 };
 
 export const fetchAndSetPRData = async (
   prKey: string,
   setPRData: (data: PRData | null) => void,
-  setError: (err: string | null) => void,
+  setError: (err: ErrorKeyType) => void,
   setIsLoading: (b: boolean) => void,
 ) => {
   const basicInfo = extractPRInfoFromKey(prKey);
@@ -64,10 +69,14 @@ export const fetchAndSetPRData = async (
       setPRData(newData);
       await prDataStorage.savePRDataToStorage(prKey, newData);
     } else {
-      setError('Failed to refresh PR data');
+      setError('failedToRefreshPrData');
     }
-  } catch {
-    setError('An error occurred while refreshing PR data');
+  } catch (error) {
+    if (error instanceof GitHubAuthenticationError) {
+      setError('githubAuthenticationError');
+    } else {
+      setError('errorOccurredWhileRefreshingPrData');
+    }
   } finally {
     setIsLoading(false);
   }

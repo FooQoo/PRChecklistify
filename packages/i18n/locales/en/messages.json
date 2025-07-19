@@ -459,5 +459,20 @@
   },
   "apiKeySetup": {
     "message": "API Key Setup"
+  },
+  "githubAuthenticationError": {
+    "message": "The entered API key is incorrect."
+  },
+  "failedToLoadPrData": {
+    "message": "Failed to load PR data"
+  },
+  "errorOccurredWhileLoadingPrData": {
+    "message": "An error occurred while loading PR data"
+  },
+  "failedToRefreshPrData": {
+    "message": "Failed to refresh PR data"
+  },
+  "errorOccurredWhileRefreshingPrData": {
+    "message": "An error occurred while refreshing PR data"
   }
 }

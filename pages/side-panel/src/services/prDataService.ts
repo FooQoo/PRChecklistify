@@ -268,6 +268,23 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       userComments, // ここでレビューコメントを格納
     };
   } catch (error) {
-    return null;
+    // GitHub API認証エラーの場合は専用のエラーを投げる
+    if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
+      throw new GitHubAuthenticationError();
+    } else {
+      // その他のエラーはそのまま投げる
+      throw new Error('Failed to fetch PR data');
+    }
   }
 };
+
+// GitHub認証エラー用のカスタムエラークラス
+export class GitHubAuthenticationError extends Error {
+  constructor() {
+    super('GitHub authentication failed. Please check your access token.');
+    this.name = 'GitHubAuthenticationError';
+
+    // プロトタイプチェーンを正しく設定（TypeScriptでのError継承のベストプラクティス）
+    Object.setPrototypeOf(this, GitHubAuthenticationError.prototype);
+  }
+}

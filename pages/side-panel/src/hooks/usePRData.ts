@@ -1,18 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult, Checklist } from '../types';
-import { prDataStorage } from '../services/prDataService';
+import { GitHubAuthenticationError, prDataStorage } from '../services/prDataService';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { loadPRDataFromAnySource, fetchAndSetPRData } from './prDataLoader';
 import { getApprovedFiles, getApprovalPercentage } from '../utils/prApprovalUtils';
 
 const currentPrDataAtom = atom<PRData | null>(null);
 
+export type ErrorKeyType =
+  | 'githubAuthenticationError'
+  | 'failedToLoadPrData'
+  | 'errorOccurredWhileLoadingPrData'
+  | 'failedToRefreshPrData'
+  | 'errorOccurredWhileRefreshingPrData'
+  | null;
+
 // PRデータを管理するためのカスタムフック
 export function usePRData(prKey: string) {
   const [prData, setPRData] = useAtom(currentPrDataAtom);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorKeyType>(null);
   const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | undefined>(undefined);
   const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
   const [isJustCompleted, setIsJustCompleted] = useState(false);
@@ -79,8 +87,12 @@ export function usePRData(prKey: string) {
     try {
       await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading);
       return prData;
-    } catch {
-      setError('Failed to reload PR data');
+    } catch (error) {
+      if (error instanceof GitHubAuthenticationError) {
+        setError('githubAuthenticationError');
+      } else {
+        setError('failedToLoadPrData');
+      }
       return null;
     } finally {
       setIsLoading(false);

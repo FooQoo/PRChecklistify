@@ -459,5 +459,20 @@
   },
   "apiKeySetup": {
     "message": "APIキー設定"
+  },
+  "githubAuthenticationError": {
+    "message": "入力されたAPIキーは正しくありません。"
+  },
+  "failedToLoadPrData": {
+    "message": "PRデータの読み込みに失敗しました"
+  },
+  "errorOccurredWhileLoadingPrData": {
+    "message": "PRデータの読み込み中にエラーが発生しました"
+  },
+  "failedToRefreshPrData": {
+    "message": "PRデータの更新に失敗しました"
+  },
+  "errorOccurredWhileRefreshingPrData": {
+    "message": "PRデータの更新中にエラーが発生しました"
   }
 }
