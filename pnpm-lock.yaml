@@ -202,8 +202,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/storage
       vite-plugin-node-polyfills:
-        specifier: ^0.23.0
-        version: 0.23.0(rollup@4.44.1)(vite@6.1.0(@types/node@24.0.13)(jiti@1.21.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
+        specifier: ^0.24.0
+        version: 0.24.0(rollup@4.44.1)(vite@6.1.0(@types/node@24.0.13)(jiti@1.21.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
       webextension-polyfill:
         specifier: ^0.12.0
         version: 0.12.0
@@ -4725,8 +4725,9 @@ packages:
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
 
-  sha.js@2.4.11:
-    resolution: {integrity: sha512-QMEp5B7cftE7APOjk5Y6xgrbWu+WkLVQwk8JNjZ8nKRciZaByEW6MubieAiToS7+dwvrjGhH8jRXz3MVd0AYqQ==}
+  sha.js@2.4.12:
+    resolution: {integrity: sha512-8LzC5+bvI45BjpfXU8V5fdU2mfeKiQe1D1gIMn7XUlF3OTUrpdJpPPH4EMAnF0DsHHdSZqCdSss5qCmJKuiO3w==}
+    engines: {node: '>= 0.10'}
     hasBin: true
 
   shebang-command@2.0.0:
@@ -5309,10 +5310,10 @@ packages:
   vfile@6.0.3:
     resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
 
-  vite-plugin-node-polyfills@0.23.0:
-    resolution: {integrity: sha512-4n+Ys+2bKHQohPBKigFlndwWQ5fFKwaGY6muNDMTb0fSQLyBzS+jjUNRZG9sKF0S/Go4ApG6LFnUGopjkILg3w==}
+  vite-plugin-node-polyfills@0.24.0:
+    resolution: {integrity: sha512-GA9QKLH+vIM8NPaGA+o2t8PDfFUl32J8rUp1zQfMKVJQiNkOX4unE51tR6ppl6iKw5yOrDAdSH7r/UIFLCVhLw==}
     peerDependencies:
-      vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
+      vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
   vite@6.1.0:
     resolution: {integrity: sha512-RjjMipCKVoR4hVfPY6GQTgveinjNuyLw+qruksLDvA5ktI1150VmcMBKmQaEWJhg/j6Uaf6dNCNA0AfdzUb/hQ==}
@@ -7577,8 +7578,8 @@ snapshots:
     dependencies:
       cipher-base: 1.0.6
       inherits: 2.0.4
-      ripemd160: 2.0.1
-      sha.js: 2.4.11
+      ripemd160: 2.0.2
+      sha.js: 2.4.12
 
   create-hash@1.2.0:
     dependencies:
@@ -7586,7 +7587,7 @@ snapshots:
       inherits: 2.0.4
       md5.js: 1.3.5
       ripemd160: 2.0.2
-      sha.js: 2.4.11
+      sha.js: 2.4.12
 
   create-hmac@1.1.7:
     dependencies:
@@ -7595,7 +7596,7 @@ snapshots:
       inherits: 2.0.4
       ripemd160: 2.0.2
       safe-buffer: 5.2.1
-      sha.js: 2.4.11
+      sha.js: 2.4.12
 
   create-require@1.1.1: {}
 
@@ -10123,7 +10124,7 @@ snapshots:
       create-hmac: 1.1.7
       ripemd160: 2.0.1
       safe-buffer: 5.2.1
-      sha.js: 2.4.11
+      sha.js: 2.4.12
       to-buffer: 1.2.1
 
   pend@1.2.0: {}
@@ -10656,10 +10657,11 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  sha.js@2.4.11:
+  sha.js@2.4.12:
     dependencies:
       inherits: 2.0.4
       safe-buffer: 5.2.1
+      to-buffer: 1.2.1
 
   shebang-command@2.0.0:
     dependencies:
@@ -11337,7 +11339,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
-  vite-plugin-node-polyfills@0.23.0(rollup@4.44.1)(vite@6.1.0(@types/node@24.0.13)(jiti@1.21.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)):
+  vite-plugin-node-polyfills@0.24.0(rollup@4.44.1)(vite@6.1.0(@types/node@24.0.13)(jiti@1.21.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)):
     dependencies:
       '@rollup/plugin-inject': 5.0.5(rollup@4.44.1)
       node-stdlib-browser: 1.3.1
