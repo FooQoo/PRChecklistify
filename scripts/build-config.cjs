@@ -21,25 +21,9 @@ function buildGitHubConfig() {
 
     // Check if external config file exists
     if (!fs.existsSync(CONFIG_FILE_PATH)) {
-      console.log('External GitHub config file not found, using default configuration...');
-
-      // Create default configuration
-      const defaultConfig = {
-        github: {
-          servers: [
-            {
-              id: 'github-com',
-              name: 'GitHub.com',
-              apiUrl: 'https://api.github.com',
-              webUrl: 'https://github.com',
-            },
-          ],
-        },
-      };
-
-      fs.writeFileSync(OUTPUT_FILE_PATH, JSON.stringify(defaultConfig, null, 2));
-      console.log('Default GitHub configuration created at:', OUTPUT_FILE_PATH);
-      return;
+      console.error(`GitHub config file not found at: ${CONFIG_FILE_PATH}`);
+      console.error('Please create the config file or check the path.');
+      process.exit(1);
     }
 
     // Read and validate external config
