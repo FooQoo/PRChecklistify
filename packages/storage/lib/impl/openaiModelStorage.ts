@@ -1,7 +1,7 @@
 import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
 
-const storage = createStorage<string>('openai-model', '', {
+const storage = createStorage<string>('openaiModel', '', {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
 });

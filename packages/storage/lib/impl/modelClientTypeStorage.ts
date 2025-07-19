@@ -8,11 +8,18 @@ export enum ModelClientType {
   Claude = 'claude',
 }
 
-const storage = createStorage<ModelClientType>('model-client-type', ModelClientType.OpenAI, {
+const storage = createStorage<ModelClientType>('modelClientType', ModelClientType.OpenAI, {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
+  serialization: {
+    serialize: (value: ModelClientType) => value as string,
+    deserialize: (text: string) => text as ModelClientType,
+  },
 });
 
 export const modelClientTypeStorage: BaseStorage<ModelClientType> = {
   ...storage,
+  get: async () => {
+    return storage.get();
+  },
 };

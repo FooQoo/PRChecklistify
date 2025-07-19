@@ -44,7 +44,7 @@ type LanguagePreferenceStorage = BaseStorage<Language> & {
 };
 
 // Create the base storage with 'en' as the default value
-const storage = createStorage<Language>('language-preference', defaultLanguage, {
+const storage = createStorage<Language>('languagePreference', defaultLanguage, {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
 });

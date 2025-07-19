@@ -16,7 +16,7 @@ export function useModelClientTypeAtom() {
     let mounted = true;
     (async () => {
       const saved = await modelClientTypeStorage.get();
-      if (mounted && saved) setModelClientType(saved);
+      if (mounted) setModelClientType(saved);
     })();
     return () => {
       mounted = false;

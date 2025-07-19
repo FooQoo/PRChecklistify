@@ -164,6 +164,19 @@ Services are abstracted through a unified `modelClient` interface in `services/m
 - Never hardcode API keys in source code
 - Use provided storage hooks for persistence
 
+#### Storage Key Naming Convention
+- **ALWAYS use camelCase** for all storage keys (e.g., `modelClientType`, `openaiApiKey`)
+- Never use kebab-case, snake_case, or PascalCase for storage keys
+- Examples of correct naming:
+  - ✅ `modelClientType`
+  - ✅ `openaiApiEndpoint`
+  - ✅ `languagePreference`
+  - ❌ `model-client-type`
+  - ❌ `openai_api_endpoint`
+  - ❌ `LanguagePreference`
+- Storage implementations in `packages/storage/lib/impl/` should use `createStorage()` with camelCase keys
+- When adding new storage, ensure the key follows this convention to maintain consistency
+
 ### Error Handling
 - Components wrapped with error boundaries
 - Suspense for loading states
