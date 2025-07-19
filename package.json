@@ -33,7 +33,7 @@
     "set-global-env": "bash bash-scripts/set_global_env.sh",
     "postinstall": "pnpm build:eslint && pnpm copy_env && pnpm build-config",
     "module-manager": "pnpm -F module-manager start",
-    "build-config": "node scripts/build-config.cjs"
+    "build-config": "tsx scripts/build-config.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
@@ -49,7 +49,8 @@
     "react-dom": "19.0.0",
     "react-rewards": "^2.1.0",
     "react-router-dom": "^7.6.0",
-    "swr": "^2.3.3"
+    "swr": "^2.3.3",
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",

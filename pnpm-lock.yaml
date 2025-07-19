@@ -50,6 +50,9 @@ importers:
       swr:
         specifier: ^2.3.3
         version: 2.3.3(react@19.0.0)
+      tsx:
+        specifier: ^4.19.2
+        version: 4.20.3
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
