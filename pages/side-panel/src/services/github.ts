@@ -1,5 +1,4 @@
 import { Octokit } from '@octokit/rest';
-import { githubTokenStorage } from '@extension/storage';
 import type { PRIdentifier } from '../types';
 import type { GitHubServer } from '@extension/storage';
 import { getActiveGitHubServer, loadGitHubServerConfig } from './configLoader';
@@ -30,25 +29,12 @@ export class GithubClient {
       server = await getActiveGitHubServer();
     }
 
-    // Fallback to legacy storage if no server found
     if (!server || !server.token) {
-      const legacyToken = await githubTokenStorage.get();
-      if (legacyToken) {
-        server = {
-          id: 'legacy',
-          name: 'GitHub.com',
-          apiUrl: 'https://api.github.com',
-          webUrl: 'https://github.com',
-          isDefault: true,
-          token: legacyToken,
-        };
-      } else {
-        throw new Error('No GitHub server configuration found or no token available');
-      }
+      throw new Error('No GitHub server configuration found or no token available');
     }
 
     const octokit = new Octokit({
-      auth: server.token || undefined,
+      auth: server.token,
       baseUrl: server.apiUrl,
       log: {
         debug: () => {},

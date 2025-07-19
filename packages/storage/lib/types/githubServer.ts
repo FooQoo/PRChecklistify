@@ -35,24 +35,3 @@ export interface GitHubTokensConfiguration {
   /** ID of the currently active server */
   activeServerId?: string;
 }
-
-/**
- * External configuration file format
- */
-export interface GitHubExternalConfig {
-  github: {
-    servers: GitHubServer[];
-  };
-}
-
-/**
- * Default GitHub.com server configuration
- */
-export const DEFAULT_GITHUB_SERVER: GitHubServer = {
-  id: 'github-com',
-  name: 'GitHub.com',
-  apiUrl: 'https://api.github.com',
-  webUrl: 'https://github.com',
-  isDefault: true,
-  description: 'Public GitHub',
-};

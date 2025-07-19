@@ -5,8 +5,8 @@
  * This script reads the external config file and injects it into the build
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const CONFIG_FILE_PATH = path.join(__dirname, '../config/github-servers.json');
 const OUTPUT_FILE_PATH = path.join(__dirname, '../pages/side-panel/src/config/githubServers.json');

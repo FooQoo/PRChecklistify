@@ -1,6 +1,6 @@
 import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
-import type { GitHubTokensConfiguration, GitHubServerToken } from '../types/githubServer.js';
+import type { GitHubTokensConfiguration } from '../types/githubServer.js';
 
 type GitHubTokensStorage = BaseStorage<GitHubTokensConfiguration> & {
   setToken: (serverId: string, token: string) => Promise<void>;
@@ -16,7 +16,7 @@ const defaultConfiguration: GitHubTokensConfiguration = {
   activeServerId: undefined,
 };
 
-const storage = createStorage<GitHubTokensConfiguration>('github-tokens-config', defaultConfiguration, {
+const storage = createStorage<GitHubTokensConfiguration>('githubTokensConfig', defaultConfiguration, {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
 });
@@ -73,23 +73,3 @@ export const githubTokensStorage: GitHubTokensStorage = {
     await storage.set(defaultConfiguration);
   },
 };
-
-/**
- * Migration helper: Converts legacy single token storage to new multi-server format
- */
-export async function migrateLegacyGitHubTokens(
-  legacyToken: string,
-  legacyApiDomain: string = 'https://api.github.com',
-): Promise<void> {
-  if (!legacyToken) return;
-
-  const config = await githubTokensStorage.get();
-
-  // Only migrate if no tokens are configured yet
-  if (config.tokens.length === 0) {
-    const serverId = legacyApiDomain === 'https://api.github.com' ? 'github-com' : 'enterprise';
-
-    await githubTokensStorage.setToken(serverId, legacyToken);
-    await githubTokensStorage.setActiveServer(serverId);
-  }
-}

@@ -1,4 +1,4 @@
-import type { PRData } from '../types';
+import type { PRData, PRIdentifier } from '../types';
 
 // レビュー時間を計算する関数（単位：時間）
 export const calculateReviewTime = (prData: PRData): number => {
@@ -45,4 +45,59 @@ export const getPrKey = (owner: string | undefined, repo: string | undefined, pr
     throw new Error('Invalid PR information');
   }
   return `${owner}/${repo}/${prNumber}`;
+};
+
+/**
+ * GitHub PRのURLからPRIdentifierを作成する
+ * @param url GitHub PRのURL（例: https://github.com/owner/repo/pull/123）
+ * @returns PRIdentifier または null
+ */
+export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+
+    // /owner/repo/pull/123 のパターンをマッチ
+    const pathMatch = urlObj.pathname.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+    if (!pathMatch) return null;
+
+    const [, owner, repo, prNumber] = pathMatch;
+
+    return {
+      owner,
+      repo,
+      prNumber,
+      domain,
+    };
+  } catch (error) {
+    console.error('Failed to parse PR URL:', error);
+    return null;
+  }
+};
+
+/**
+ * ドメインからサーバーIDを取得する
+ * @param domain ドメイン名（例: github.com）
+ * @returns サーバーID または null
+ */
+export const getServerIdByDomain = async (domain: string): Promise<string | null> => {
+  try {
+    const { getGitHubServersWithTokens } = await import('../services/configLoader');
+    const servers = await getGitHubServersWithTokens();
+
+    // webUrlからドメインを抽出して比較
+    const server = servers.find(s => {
+      try {
+        const serverDomain = new URL(s.webUrl).hostname;
+        return serverDomain === domain;
+      } catch {
+        return false;
+      }
+    });
+
+    return server?.id || null;
+  } catch (error) {
+    console.error('Failed to get server by domain:', error);
+    return null;
+  }
 };

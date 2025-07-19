@@ -5,7 +5,7 @@ import { router } from '../routes/AppRoutes';
 import { atom, useAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { currentPageAtom } from '@src/atoms/currentPageAtom';
-import { useGithubTokenAtom } from '@src/hooks/useGithubTokenAtom';
+import { useGithubTokensAtom } from '../hooks/useGithubTokensAtom';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useClaudeKeyAtom } from '@src/hooks/useClaudeKeyAtom';
@@ -32,19 +32,28 @@ interface NavigationProviderProps {
 }
 
 // PRのURLからオーナー、リポジトリ、PR番号を抽出する関数
-const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string } | null => {
-  // githun.comに限らずドメインは考慮しない
-  const baseMatch = url.match(/(?:https?:\/\/)?[^/]+\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-  if (!baseMatch) return null;
+const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string; domain: string } | null => {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
 
-  const [, owner, repo, prNumber] = baseMatch;
-  return { owner, repo, prNumber };
+    // /owner/repo/pull/123 のパターンをマッチ
+    const pathMatch = urlObj.pathname.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+    if (!pathMatch) return null;
+
+    const [, owner, repo, prNumber] = pathMatch;
+
+    return { owner, repo, prNumber, domain };
+  } catch (error) {
+    console.error('Failed to parse PR URL:', error);
+    return null;
+  }
 };
 
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
   const [generating] = useAtom(generatingAtom);
   const [currentPage] = useAtom(currentPageAtom);
-  const { githubToken, isGithubTokenLoaded } = useGithubTokenAtom();
+  const { githubTokens, isGithubTokensLoaded } = useGithubTokensAtom();
   const { openaiKey, isOpenaiKeyLoaded } = useOpenaiKeyAtom();
   const { geminiKey, isGeminiKeyLoaded } = useGeminiKeyAtom();
   const { claudeKey, isClaudeKeyLoaded } = useClaudeKeyAtom();
@@ -64,7 +73,10 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   // トークン
   useEffect(() => {
-    if (firstMount && isGithubTokenLoaded && !githubToken) {
+    // GitHubトークンが設定されていない場合はトークンセットアップ画面に遷移
+    const hasGitHubToken = githubTokens && githubTokens.tokens.length > 0;
+
+    if (firstMount && isGithubTokensLoaded && !hasGitHubToken) {
       setFirstMount(false);
       router.navigate('/github-token-setup');
       return;
@@ -84,8 +96,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
       return;
     }
   }, [
-    isGithubTokenLoaded,
-    githubToken,
+    isGithubTokensLoaded,
+    githubTokens,
     firstMount,
     setFirstMount,
     isOpenaiKeyLoaded,
@@ -118,7 +130,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   // --- 追加: トークンセットアップ画面へのナビゲーション ---
   const navigateToGithubTokenSetup = () => {
-    router.navigate('/github-token-setup');
     router.navigate('/github-token-setup');
   };
 

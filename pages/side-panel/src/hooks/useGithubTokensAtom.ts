@@ -1,10 +1,5 @@
 import { atom, useAtom } from 'jotai';
-import {
-  githubTokensStorage,
-  migrateLegacyGitHubTokens,
-  githubTokenStorage,
-  githubApiDomainStorage,
-} from '@extension/storage';
+import { githubTokensStorage } from '@extension/storage';
 import { useEffect } from 'react';
 import type { GitHubTokensConfiguration } from '@extension/storage';
 
@@ -17,25 +12,12 @@ export function useGithubTokensAtom() {
   const [githubTokens, setGithubTokens] = useAtom(githubTokensAtom);
   const [isGithubTokensLoaded, setIsGithubTokensLoaded] = useAtom(isGithubTokensLoadedAtom);
 
-  // 初回マウント時にstorageから値を取得＆レガシー移行
+  // 初回マウント時にstorageから値を取得
   useEffect(() => {
     let mounted = true;
 
-    const loadAndMigrate = async () => {
+    const loadConfig = async () => {
       try {
-        // Check if migration is needed
-        const currentConfig = await githubTokensStorage.get();
-
-        if (currentConfig.tokens.length === 0) {
-          // Try to migrate from legacy storage
-          const legacyToken = await githubTokenStorage.get();
-          const legacyApiDomain = await githubApiDomainStorage.get();
-
-          if (legacyToken) {
-            await migrateLegacyGitHubTokens(legacyToken, legacyApiDomain);
-          }
-        }
-
         // Load the current configuration
         const config = await githubTokensStorage.get();
         if (mounted) {
@@ -50,7 +32,7 @@ export function useGithubTokensAtom() {
       }
     };
 
-    loadAndMigrate();
+    loadConfig();
 
     return () => {
       mounted = false;

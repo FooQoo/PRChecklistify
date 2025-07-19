@@ -3,6 +3,7 @@
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
 import { GithubClient } from './github';
 import { instructionPathStorage } from '@extension/storage';
+import { getServerIdByDomain } from '../utils/prUtils';
 
 type RecentPR = { title: string; key: string; timestamp: number };
 
@@ -146,6 +147,27 @@ export const prDataStorage = new PRDataStorage();
 // Service to fetch PR data from GitHub
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
+    // ドメインベースでGitHubサーバーを自動切り替え
+    if (identifier.domain) {
+      try {
+        const serverId = await getServerIdByDomain(identifier.domain);
+
+        if (serverId) {
+          // 現在のアクティブサーバーIDを取得
+          const result = await chrome.storage.local.get('activeServerId');
+          const currentActiveServerId = result.activeServerId;
+
+          if (serverId !== currentActiveServerId) {
+            console.log(`Auto-switching to server ${serverId} for domain ${identifier.domain}`);
+            // アクティブサーバーIDを更新
+            await chrome.storage.local.set({ activeServerId: serverId });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to auto-switch GitHub server:', error);
+      }
+    }
+
     const github = await GithubClient.create();
     const { owner, repo } = identifier;
 
