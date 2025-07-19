@@ -56,7 +56,7 @@ export const getPrKey = (
 
 /**
  * GitHub PRのURLからPRIdentifierを作成する
- * @param url GitHub PRのURL（例: https://github.com/owner/repo/pull/123）
+ * @param url GitHub PRのURL
  * @returns PRIdentifier または null
  */
 export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
@@ -84,7 +84,7 @@ export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
 
 /**
  * ドメインからサーバーIDを取得する
- * @param domain ドメイン名（例: github.com）
+ * @param domain ドメイン名
  * @returns サーバーID
  */
 export const getServerIdByDomain = async (domain: string): Promise<string> => {

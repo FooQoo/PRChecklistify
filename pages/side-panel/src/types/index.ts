@@ -66,7 +66,7 @@ export interface PRIdentifier {
   owner: string;
   repo: string;
   prNumber: string;
-  domain: string; // GitHubサーバーのドメイン（例: github.com, github.enterprise.com）
+  domain: string;
 }
 
 // 保存されたPRデータの型

@@ -11,3 +11,13 @@ declare const __GITHUB_CONFIG__: {
     }>;
   };
 };
+
+// ビルド時に注入されるFooter設定の型定義
+declare const __FOOTER_CONFIG__: {
+  footer: {
+    author: {
+      name: string;
+      url: string;
+    };
+  };
+};

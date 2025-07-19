@@ -13,10 +13,7 @@ const GitHubPRView = () => {
     prNumber: string;
   }>();
 
-  // domainをuseParamsから取得し、デフォルト値を設定
-  const actualDomain = domain || 'github.com';
-
-  const prKey = getPrKey(actualDomain, owner, repo, prNumber);
+  const prKey = getPrKey(domain, owner, repo, prNumber);
   const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
     elementCount: 200,
     elementSize: 10,

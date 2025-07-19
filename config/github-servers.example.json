@@ -10,8 +10,8 @@
       {
         "id": "enterprise-example",
         "name": "GitHub Enterprise",
-        "apiUrl": "https://github.your-company.com/api/v3",
-        "webUrl": "https://github.your-company.com"
+        "apiUrl": "https://example.com/api/v3",
+        "webUrl": "https://example.com"
       }
     ]
   }
