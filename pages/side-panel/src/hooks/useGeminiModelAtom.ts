@@ -1,6 +1,7 @@
 import { atom, useAtom } from 'jotai';
 import { useEffect } from 'react';
 import { geminiModelStorage } from '@extension/storage';
+import { getDefaultModelByProvider } from '@src/utils/defaultModel';
 
 export const geminiModelAtom = atom<string>('');
 const isGeminiModelLoadedAtom = atom<boolean>(false);
@@ -12,7 +13,13 @@ export function useGeminiModelAtom() {
   useEffect(() => {
     let mounted = true;
     geminiModelStorage.get().then(val => {
-      if (mounted && val) setGeminiModel(val);
+      if (mounted && val) {
+        setGeminiModel(val);
+      } else if (!val) {
+        const defaultModel = getDefaultModelByProvider('gemini');
+        setGeminiModel(defaultModel);
+        geminiModelStorage.set(defaultModel);
+      }
       setIsGeminiModelLoaded(true);
     });
     return () => {
