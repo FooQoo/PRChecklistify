@@ -77,14 +77,6 @@ export interface SavedPRData {
   analysisResult?: PRAnalysisResult;
 }
 
-// 現在のページ情報の型
-export interface CurrentPage {
-  url: string;
-  title: string;
-  key?: string; // "owner/repo/prNumber" 形式のキー
-  isPRPage?: boolean;
-}
-
 // チェックリストアイテムの型
 export interface ChecklistItem {
   id: string;

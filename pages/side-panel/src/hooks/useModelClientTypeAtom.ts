@@ -1,11 +1,8 @@
 import { atom, useAtom } from 'jotai';
 import { useEffect } from 'react';
-import { ModelClientType, modelClientTypeStorage } from '../services/modelClient';
+import { ModelClientType, modelClientTypeStorage } from '@extension/storage';
 
-// 型定義
-export type ModelClientTypeAtomType = ModelClientType;
-
-export const modelClientTypeAtom = atom<ModelClientType>(ModelClientType.OpenAI);
+const modelClientTypeAtom = atom<ModelClientType>(ModelClientType.OpenAI);
 
 /**
  * モデルクライアント種別（OpenAI/Gemini）を管理するカスタムフック
@@ -34,7 +31,7 @@ export function useModelClientTypeAtom() {
 
   // remover
   const clearType = async () => {
-    await modelClientTypeStorage.clear();
+    await modelClientTypeStorage.set(ModelClientType.OpenAI);
     setModelClientType(ModelClientType.OpenAI);
   };
 

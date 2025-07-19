@@ -1,13 +1,14 @@
-/* eslint-disable no-useless-catch */
 // Common interface for LLM clients (OpenAI, Gemini, etc.)
 import type { Checklist, PRData, PRFile } from '@src/types';
 import { createOpenAIClient } from './openai';
 import { createGeminiClient } from './gemini';
 import { createClaudeClient } from './claude';
 import { getLLMProviderById } from './configLoader';
-import type { Language } from '@extension/storage';
-import { getLanguageLabel } from '@extension/storage';
+import { modelClientTypeStorage, ModelClientType, type Language, getLanguageLabel } from '@extension/storage';
 import { z } from 'zod';
+
+// Re-export ModelClientType for backward compatibility
+export { ModelClientType } from '@extension/storage';
 
 // 共通のシステムプロンプト
 export const SYSTEM_PROMPT =
@@ -32,11 +33,6 @@ export const ChecklistSchema = z
   .describe('ファイル単位のチェックリスト（説明＋アイテム配列）');
 
 // ModelClientType for selecting the appropriate LLM service
-export enum ModelClientType {
-  OpenAI = 'openai',
-  Gemini = 'gemini',
-  Claude = 'claude',
-}
 
 // Common interface for all LLM clients
 export interface ModelClient {
@@ -49,36 +45,6 @@ export interface ModelClient {
 }
 
 // Factory function to create appropriate client
-
-// Storage for model client type preference
-export const modelClientTypeStorage = {
-  get: async (): Promise<ModelClientType | null> => {
-    try {
-      const result = await chrome.storage.local.get('modelClientType');
-      return (result.modelClientType as ModelClientType) || null;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      return null;
-    }
-  },
-
-  set: async (clientType: ModelClientType): Promise<void> => {
-    try {
-      await chrome.storage.local.set({ modelClientType: clientType });
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  clear: async (): Promise<void> => {
-    try {
-      await chrome.storage.local.remove('modelClientType');
-    } catch (error) {
-      throw error;
-    }
-  },
-};
-
 export async function createModelClient(): Promise<ModelClient | null> {
   // Get the preferred client type from storage, default to OpenAI if not set
   const clientType = (await modelClientTypeStorage.get()) || ModelClientType.OpenAI;
