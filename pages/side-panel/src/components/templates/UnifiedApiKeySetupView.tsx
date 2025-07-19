@@ -69,11 +69,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
     await setTypeAndStorage(newProvider);
   };
 
-  // 各プロバイダーのバリデーション関数
-  const validateOpenAIKey = (key: string): boolean => key.startsWith('sk-');
-  const validateGeminiKey = (key: string): boolean => key.startsWith('AIza');
-  const validateClaudeKey = (key: string): boolean => key.startsWith('sk-');
-
   // APIキーのマスク表示
   const getMaskedApiKey = (key: string): string => {
     if (!key || key.length < 10) return '****';
@@ -141,7 +136,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
               if (onToast) onToast(t('apiKeySavedSuccess'), 'success');
             }}
             onRemove={clearOpenaiKey}
-            validator={validateOpenAIKey}
             errorMessage={t('invalidApiKeyFormat')}
             successMessage={t('apiKeySavedSuccess')}
             removeText={t('remove')}
@@ -196,7 +190,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
               if (onToast) onToast(t('geminiApiKeySavedSuccess'), 'success');
             }}
             onRemove={clearGeminiKey}
-            validator={validateGeminiKey}
             errorMessage={t('invalidGeminiApiKeyFormat')}
             successMessage={t('geminiApiKeySavedSuccess')}
             removeText={t('remove')}
@@ -251,7 +244,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
               if (onToast) onToast(t('claudeApiKeySavedSuccess'), 'success');
             }}
             onRemove={clearClaudeKey}
-            validator={validateClaudeKey}
             errorMessage={t('invalidClaudeApiKeyFormat')}
             successMessage={t('claudeApiKeySavedSuccess')}
             removeText={t('remove')}

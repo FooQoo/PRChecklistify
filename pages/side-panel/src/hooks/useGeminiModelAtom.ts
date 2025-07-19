@@ -1,8 +1,8 @@
 import { atom, useAtom } from 'jotai';
 import { useEffect } from 'react';
-import { geminiModelStorage, DEFAULT_GEMINI_MODEL } from '@extension/storage';
+import { geminiModelStorage } from '@extension/storage';
 
-export const geminiModelAtom = atom<string>(DEFAULT_GEMINI_MODEL);
+export const geminiModelAtom = atom<string>('');
 const isGeminiModelLoadedAtom = atom<boolean>(false);
 
 export function useGeminiModelAtom() {

@@ -1,8 +1,8 @@
 import { atom, useAtom } from 'jotai';
 import { useEffect } from 'react';
-import { openaiModelStorage, DEFAULT_OPENAI_MODEL } from '@extension/storage';
+import { openaiModelStorage } from '@extension/storage';
 
-export const openaiModelAtom = atom<string>(DEFAULT_OPENAI_MODEL);
+export const openaiModelAtom = atom<string>('');
 const isOpenaiModelLoadedAtom = atom<boolean>(false);
 
 export function useOpenaiModelAtom() {
