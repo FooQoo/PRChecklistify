@@ -6,12 +6,6 @@
         "name": "GitHub.com",
         "apiUrl": "https://api.github.com",
         "webUrl": "https://github.com"
-      },
-      {
-        "id": "enterprise-example",
-        "name": "GitHub Enterprise",
-        "apiUrl": "https://example.com/api/v3",
-        "webUrl": "https://example.com"
       }
     ]
   }
