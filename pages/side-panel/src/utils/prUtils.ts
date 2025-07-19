@@ -1,4 +1,5 @@
-import type { PRData } from '../types';
+import type { PRData, PRIdentifier } from '../types';
+import { getGitHubServersWithTokens } from '../services/configLoader';
 
 // レビュー時間を計算する関数（単位：時間）
 export const calculateReviewTime = (prData: PRData): number => {
@@ -31,18 +32,74 @@ export const isGitHubPRPage = (url: string): boolean => {
 };
 
 /**
- * owner/repo/123 のようなkeyからPR情報を抽出する
+ * domain/owner/repo/123 のようなkeyからPR情報を抽出する
  */
-export const extractPRInfoFromKey = (key: string): { owner: string; repo: string; prNumber: string } | null => {
-  const match = key.match(/^([^/]+)\/([^/]+)\/(\d+)$/);
+export const extractPRInfoFromKey = (
+  key: string,
+): { domain: string; owner: string; repo: string; prNumber: string } | null => {
+  const match = key.match(/^([^/]+)\/([^/]+)\/([^/]+)\/(\d+)$/);
   if (!match) return null;
-  const [, owner, repo, prNumber] = match;
-  return { owner, repo, prNumber };
+  const [, domain, owner, repo, prNumber] = match;
+  return { domain, owner, repo, prNumber };
 };
 
-export const getPrKey = (owner: string | undefined, repo: string | undefined, prNumber: string | undefined): string => {
-  if (!owner || !repo || !prNumber) {
+export const getPrKey = (
+  domain: string | undefined,
+  owner: string | undefined,
+  repo: string | undefined,
+  prNumber: string | undefined,
+): string => {
+  if (!domain || !owner || !repo || !prNumber) {
     throw new Error('Invalid PR information');
   }
-  return `${owner}/${repo}/${prNumber}`;
+  return `${domain}/${owner}/${repo}/${prNumber}`;
+};
+
+/**
+ * GitHub PRのURLからPRIdentifierを作成する
+ * @param url GitHub PRのURL
+ * @returns PRIdentifier または null
+ */
+export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+
+    // /owner/repo/pull/123 のパターンをマッチ
+    const pathMatch = urlObj.pathname.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+    if (!pathMatch) return null;
+
+    const [, owner, repo, prNumber] = pathMatch;
+
+    return {
+      owner,
+      repo,
+      prNumber,
+      domain,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * ドメインからサーバーIDを取得する
+ * @param domain ドメイン名
+ * @returns サーバーID
+ */
+export const getServerIdByDomain = async (domain: string): Promise<string> => {
+  const servers = await getGitHubServersWithTokens();
+
+  // webUrlからドメインを抽出して比較
+  const server = servers.find(s => {
+    try {
+      const serverDomain = new URL(s.webUrl).hostname;
+      return serverDomain === domain;
+    } catch {
+      return false;
+    }
+  });
+
+  return server!.id;
 };

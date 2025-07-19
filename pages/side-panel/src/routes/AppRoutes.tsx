@@ -22,7 +22,7 @@ export const routes = [
         element: <SettingsView />,
       },
       {
-        path: 'pr/:owner/:repo/:prNumber',
+        path: 'pr/:domain/:owner/:repo/:prNumber',
         element: <GitHubPRView />,
       },
       {

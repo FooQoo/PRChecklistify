@@ -3,6 +3,7 @@ import { config } from '@dotenvx/dotenvx';
 export const baseEnv =
   config({
     path: `${import.meta.dirname}/../../../../.env`,
+    quiet: true,
   }).parsed ?? {};
 
 export const dynamicEnvValues = {

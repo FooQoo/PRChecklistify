@@ -401,5 +401,53 @@
   },
   "content": {
     "message": "내용"
+  },
+  "allRightsReserved": {
+    "message": "All rights reserved."
+  },
+  "settingsAriaLabel": {
+    "message": "설정"
+  },
+  "keyIsSet": {
+    "message": "키가 설정되었습니다"
+  },
+  "failedToSave": {
+    "message": "저장에 실패했습니다"
+  },
+  "failedToRemove": {
+    "message": "삭제에 실패했습니다"
+  },
+  "close": {
+    "message": "닫기"
+  },
+  "failedToGenerateSummary": {
+    "message": "요약 생성에 실패했습니다. 다시 시도해 주세요."
+  },
+  "aiResponseInterrupted": {
+    "message": "(AI 응답이 중단되었습니다)"
+  },
+  "failedToLoadGitHubConfig": {
+    "message": "GitHub 서버 설정 로드에 실패했습니다"
+  },
+  "noGitHubServersConfigured": {
+    "message": "GitHub 서버가 구성되지 않았습니다. 빌드 설정을 확인해 주세요."
+  },
+  "gitHubServersDefinedIn": {
+    "message": "GitHub 서버는 다음에서 정의됩니다"
+  },
+  "andLoadedAtBuildTime": {
+    "message": "빌드 시에 로드됩니다."
+  },
+  "configureApiTokens": {
+    "message": "GitHub 서버의 API 토큰 구성"
+  },
+  "configured": {
+    "message": "구성됨"
+  },
+  "invalidGitHubTokenFormat": {
+    "message": "유효하지 않은 GitHub 토큰 형식입니다"
+  },
+  "apiKeySetup": {
+    "message": "API 키 설정"
   }
 }

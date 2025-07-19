@@ -71,7 +71,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
       // ストリーム完了後に保存（文字列として）
       saveAnalysisResultSummary(streamed);
     } catch {
-      setError('Failed to generate summary. Please try again.');
+      setError(t('failedToGenerateSummary'));
     } finally {
       setGenerating(false);
       setSummaryGenerating(false);
@@ -189,7 +189,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                           ...prev,
                           [file.filename]: [
                             ...(prev[file.filename] || []),
-                            { sender: 'AI', message: aiMsg || '（AI応答が中断されました）' },
+                            { sender: 'AI', message: aiMsg || t('aiResponseInterrupted') },
                           ],
                         }));
                       } finally {

@@ -3,6 +3,7 @@
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
 import { GithubClient } from './github';
 import { instructionPathStorage } from '@extension/storage';
+import { getServerIdByDomain } from '../utils/prUtils';
 
 type RecentPR = { title: string; key: string; timestamp: number };
 
@@ -146,7 +147,10 @@ export const prDataStorage = new PRDataStorage();
 // Service to fetch PR data from GitHub
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
-    const github = await GithubClient.create();
+    // ドメインからサーバーIDを取得してGitHubクライアントを作成
+
+    const serverId = await getServerIdByDomain(identifier.domain);
+    const github: GithubClient = await GithubClient.create(serverId);
     const { owner, repo } = identifier;
 
     // PRデータ取得

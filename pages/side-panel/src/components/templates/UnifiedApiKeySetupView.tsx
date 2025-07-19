@@ -278,7 +278,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
     return (
       <div className="flex items-center justify-center h-screen p-6 bg-gray-50">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-          <h2 className="text-xl font-bold mb-4">API Key Setup</h2>
+          <h2 className="text-xl font-bold mb-4">{t('apiKeySetup')}</h2>
           {renderContent()}
           <div className="mt-6 flex justify-end">
             <Button onClick={navigateToHome} variant="primary" disabled={!isApiKeySet()}>

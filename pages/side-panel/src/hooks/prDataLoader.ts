@@ -1,4 +1,4 @@
-import type { PRData, PRAnalysisResult } from '../types';
+import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
 import { fetchPRData, prDataStorage } from '../services/prDataService';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
 
@@ -8,10 +8,16 @@ export const loadPRDataFromAnySource = async (
   setAnalysisResult: (result: PRAnalysisResult | undefined) => void,
   setError: (err: string | null) => void,
 ) => {
-  const identifier = extractPRInfoFromKey(prKey);
-  if (!identifier) {
+  const basicInfo = extractPRInfoFromKey(prKey);
+  if (!basicInfo) {
     return;
   }
+  const identifier: PRIdentifier = {
+    owner: basicInfo.owner,
+    repo: basicInfo.repo,
+    prNumber: basicInfo.prNumber,
+    domain: basicInfo.domain,
+  };
   try {
     const savedData = await prDataStorage.getFromStorage(prKey);
     if (savedData) {
@@ -42,8 +48,14 @@ export const fetchAndSetPRData = async (
   setError: (err: string | null) => void,
   setIsLoading: (b: boolean) => void,
 ) => {
-  const identifier = extractPRInfoFromKey(prKey);
-  if (!identifier) return;
+  const basicInfo = extractPRInfoFromKey(prKey);
+  if (!basicInfo) return;
+  const identifier: PRIdentifier = {
+    owner: basicInfo.owner,
+    repo: basicInfo.repo,
+    prNumber: basicInfo.prNumber,
+    domain: basicInfo.domain,
+  };
   setIsLoading(true);
   setError(null);
   try {

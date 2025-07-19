@@ -55,7 +55,7 @@ const DefaultView: React.FC = () => {
     const prInfo = extractPRInfoFromKey(prKey);
     if (!prInfo) return;
     // PR情報を抽出してナビゲーション
-    navigateToPrFromHistory(prInfo.owner, prInfo.repo, prInfo.prNumber);
+    navigateToPrFromHistory(prInfo.domain, prInfo.owner, prInfo.repo, prInfo.prNumber);
   };
 
   // 表示する最近のPR数を制御
@@ -78,7 +78,7 @@ const DefaultView: React.FC = () => {
               id="pr-url"
               value={prUrl}
               onChange={handleUrlChange}
-              placeholder="https://github.com/owner/repo/pull/123"
+              placeholder="https://example.com/owner/repo/pull/123"
               className={`flex-grow px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:z-10 ${
                 prUrl && !isValid ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
@@ -101,7 +101,9 @@ const DefaultView: React.FC = () => {
             <ul className="divide-y divide-gray-200">
               {displayedPRs.map((pr, index) => {
                 const prInfo = extractPRInfoFromKey(pr.key);
-                const prIdentifier = prInfo ? `${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}` : pr.key;
+                const prIdentifier = prInfo
+                  ? `${prInfo.domain}/${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}`
+                  : pr.key;
 
                 return (
                   <li key={index} className="py-2">

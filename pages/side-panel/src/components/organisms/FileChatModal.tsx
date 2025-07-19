@@ -119,7 +119,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
           <button
             className="text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
             onClick={onClose}
-            aria-label="閉じる">
+            aria-label={t('close')}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fillRule="evenodd"

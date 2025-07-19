@@ -411,5 +411,53 @@
   },
   "content": {
     "message": "内容"
+  },
+  "allRightsReserved": {
+    "message": "All rights reserved."
+  },
+  "settingsAriaLabel": {
+    "message": "設定"
+  },
+  "keyIsSet": {
+    "message": "キーが設定されています"
+  },
+  "failedToSave": {
+    "message": "保存に失敗しました"
+  },
+  "failedToRemove": {
+    "message": "削除に失敗しました"
+  },
+  "close": {
+    "message": "閉じる"
+  },
+  "failedToGenerateSummary": {
+    "message": "サマリーの生成に失敗しました。もう一度お試しください。"
+  },
+  "aiResponseInterrupted": {
+    "message": "（AI応答が中断されました）"
+  },
+  "failedToLoadGitHubConfig": {
+    "message": "GitHubサーバー設定の読み込みに失敗しました"
+  },
+  "noGitHubServersConfigured": {
+    "message": "GitHubサーバーが設定されていません。ビルド設定を確認してください。"
+  },
+  "gitHubServersDefinedIn": {
+    "message": "GitHubサーバーは以下で定義されています"
+  },
+  "andLoadedAtBuildTime": {
+    "message": "ビルド時に読み込まれます。"
+  },
+  "configureApiTokens": {
+    "message": "GitHubサーバーのAPIトークンを設定"
+  },
+  "configured": {
+    "message": "設定済み"
+  },
+  "invalidGitHubTokenFormat": {
+    "message": "無効なGitHubトークン形式です"
+  },
+  "apiKeySetup": {
+    "message": "APIキー設定"
   }
 }

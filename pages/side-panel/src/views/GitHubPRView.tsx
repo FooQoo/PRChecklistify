@@ -6,8 +6,14 @@ import { useReward } from 'react-rewards';
 import { useParams } from 'react-router-dom';
 
 const GitHubPRView = () => {
-  const { owner, repo, prNumber } = useParams<{ owner: string; repo: string; prNumber: string }>();
-  const prKey = getPrKey(owner, repo, prNumber);
+  const { domain, owner, repo, prNumber } = useParams<{
+    domain: string;
+    owner: string;
+    repo: string;
+    prNumber: string;
+  }>();
+
+  const prKey = getPrKey(domain, owner, repo, prNumber);
   const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
     elementCount: 200,
     elementSize: 10,

@@ -5,7 +5,7 @@ import { router } from '../routes/AppRoutes';
 import { atom, useAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { currentPageAtom } from '@src/atoms/currentPageAtom';
-import { useGithubTokenAtom } from '@src/hooks/useGithubTokenAtom';
+import { useGithubTokensAtom } from '../hooks/useGithubTokensAtom';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
 import { useClaudeKeyAtom } from '@src/hooks/useClaudeKeyAtom';
@@ -16,7 +16,7 @@ const firstMountAtom = atom(true);
 // ナビゲーション状態の型
 interface NavigationContextType {
   navigateToPr: (url: string) => void;
-  navigateToPrFromHistory: (owner: string, repo: string, prNumber: string) => void;
+  navigateToPrFromHistory: (domain: string, owner: string, repo: string, prNumber: string) => void;
   navigateToSettings: () => void;
   navigateToHome: () => void;
   navigateToGithubTokenSetup: () => void;
@@ -32,19 +32,28 @@ interface NavigationProviderProps {
 }
 
 // PRのURLからオーナー、リポジトリ、PR番号を抽出する関数
-const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string } | null => {
-  // githun.comに限らずドメインは考慮しない
-  const baseMatch = url.match(/(?:https?:\/\/)?[^/]+\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
-  if (!baseMatch) return null;
+const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: string; domain: string } | null => {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
 
-  const [, owner, repo, prNumber] = baseMatch;
-  return { owner, repo, prNumber };
+    // /owner/repo/pull/123 のパターンをマッチ
+    const pathMatch = urlObj.pathname.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+    if (!pathMatch) return null;
+
+    const [, owner, repo, prNumber] = pathMatch;
+
+    return { owner, repo, prNumber, domain };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return null;
+  }
 };
 
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
   const [generating] = useAtom(generatingAtom);
   const [currentPage] = useAtom(currentPageAtom);
-  const { githubToken, isGithubTokenLoaded } = useGithubTokenAtom();
+  const { githubTokens, isGithubTokensLoaded } = useGithubTokensAtom();
   const { openaiKey, isOpenaiKeyLoaded } = useOpenaiKeyAtom();
   const { geminiKey, isGeminiKeyLoaded } = useGeminiKeyAtom();
   const { claudeKey, isClaudeKeyLoaded } = useClaudeKeyAtom();
@@ -57,14 +66,17 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     if (currentPage?.url) {
       const prInfo = extractPRInfo(currentPage.url);
       if (prInfo) {
-        router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
+        router.navigate(`/pr/${prInfo.domain}/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
       }
     }
   }, [generating, currentPage]);
 
   // トークン
   useEffect(() => {
-    if (firstMount && isGithubTokenLoaded && !githubToken) {
+    // GitHubトークンが設定されていない場合はトークンセットアップ画面に遷移
+    const hasGitHubToken = githubTokens && githubTokens.tokens.length > 0;
+
+    if (firstMount && isGithubTokensLoaded && !hasGitHubToken) {
       setFirstMount(false);
       router.navigate('/github-token-setup');
       return;
@@ -84,8 +96,8 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
       return;
     }
   }, [
-    isGithubTokenLoaded,
-    githubToken,
+    isGithubTokensLoaded,
+    githubTokens,
     firstMount,
     setFirstMount,
     isOpenaiKeyLoaded,
@@ -100,12 +112,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   const navigateToPr = (url: string) => {
     const prInfo = extractPRInfo(url);
     if (!prInfo) return;
-    const { owner, repo, prNumber } = prInfo;
-    router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
+    const { domain, owner, repo, prNumber } = prInfo;
+    router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
-  const navigateToPrFromHistory = (owner: string, repo: string, prNumber: string) => {
-    router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
+  const navigateToPrFromHistory = (domain: string, owner: string, repo: string, prNumber: string) => {
+    router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
   const navigateToSettings = () => {
@@ -118,7 +130,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
   // --- 追加: トークンセットアップ画面へのナビゲーション ---
   const navigateToGithubTokenSetup = () => {
-    router.navigate('/github-token-setup');
     router.navigate('/github-token-setup');
   };
 

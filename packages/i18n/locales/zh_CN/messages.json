@@ -402,5 +402,53 @@
   },
   "content": {
     "message": "内容"
+  },
+  "allRightsReserved": {
+    "message": "All rights reserved."
+  },
+  "settingsAriaLabel": {
+    "message": "设置"
+  },
+  "keyIsSet": {
+    "message": "密钥已设置"
+  },
+  "failedToSave": {
+    "message": "保存失败"
+  },
+  "failedToRemove": {
+    "message": "删除失败"
+  },
+  "close": {
+    "message": "关闭"
+  },
+  "failedToGenerateSummary": {
+    "message": "生成摘要失败。请重试。"
+  },
+  "aiResponseInterrupted": {
+    "message": "（AI响应已中断）"
+  },
+  "failedToLoadGitHubConfig": {
+    "message": "加载GitHub服务器配置失败"
+  },
+  "noGitHubServersConfigured": {
+    "message": "未配置GitHub服务器。请检查您的构建配置。"
+  },
+  "gitHubServersDefinedIn": {
+    "message": "GitHub服务器定义在"
+  },
+  "andLoadedAtBuildTime": {
+    "message": "并在构建时加载。"
+  },
+  "configureApiTokens": {
+    "message": "配置GitHub服务器API令牌"
+  },
+  "configured": {
+    "message": "已配置"
+  },
+  "invalidGitHubTokenFormat": {
+    "message": "无效的GitHub令牌格式"
+  },
+  "apiKeySetup": {
+    "message": "API密钥设置"
   }
 }

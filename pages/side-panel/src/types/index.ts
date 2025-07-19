@@ -66,6 +66,7 @@ export interface PRIdentifier {
   owner: string;
   repo: string;
   prNumber: string;
+  domain: string;
 }
 
 // 保存されたPRデータの型
