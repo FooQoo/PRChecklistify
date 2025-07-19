@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import type { PRIdentifier } from '../types';
 import type { GitHubServer } from '@extension/storage';
+import { githubTokensStorage } from '@extension/storage';
 import { getActiveGitHubServer, loadGitHubServerConfig } from './configLoader';
 
 export class GithubClient {
@@ -20,7 +21,6 @@ export class GithubClient {
       const servers = await loadGitHubServerConfig();
       const targetServer = servers.find(s => s.id === serverId);
       if (targetServer) {
-        const { githubTokensStorage } = await import('@extension/storage');
         const token = await githubTokensStorage.getToken(serverId);
         server = { ...targetServer, token };
       }

@@ -3,7 +3,6 @@ export * from './prChecklistStorage.js';
 export * from './openaiApiKeyStorage.js';
 export * from './languagePreferenceStorage.js';
 export * from './geminiApiKeyStorage.js';
-export * from './githubApiDomainStorage.js';
 export * from './openaiApiEndpointStorage.js';
 export * from './instructionPathStorage.js';
 export * from './claudeApiKeyStorage.js';

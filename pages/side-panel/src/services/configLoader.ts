@@ -1,4 +1,5 @@
 import type { GitHubServer } from '@extension/storage';
+import { githubTokensStorage } from '@extension/storage';
 
 /**
  * Loads GitHub server configuration from external config or defaults
@@ -22,7 +23,6 @@ export async function getGitHubServersWithTokens(): Promise<
 > {
   try {
     const servers = await loadGitHubServerConfig();
-    const { githubTokensStorage } = await import('@extension/storage');
     const tokensConfig = await githubTokensStorage.get();
 
     return servers.map(server => {

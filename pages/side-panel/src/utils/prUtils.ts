@@ -1,4 +1,5 @@
 import type { PRData, PRIdentifier } from '../types';
+import { getGitHubServersWithTokens } from '../services/configLoader';
 
 // レビュー時間を計算する関数（単位：時間）
 export const calculateReviewTime = (prData: PRData): number => {
@@ -88,7 +89,6 @@ export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
  * @returns サーバーID
  */
 export const getServerIdByDomain = async (domain: string): Promise<string> => {
-  const { getGitHubServersWithTokens } = await import('../services/configLoader');
   const servers = await getGitHubServersWithTokens();
 
   // webUrlからドメインを抽出して比較
