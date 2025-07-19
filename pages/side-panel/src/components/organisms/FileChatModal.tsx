@@ -79,21 +79,6 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
     }
   };
 
-  // チェックリストが全てOKになったら自動で完了モーダルを表示
-  // useEffect(() => {
-  //   if (aiAnalysis && aiAnalysis.checklistItems && aiAnalysis.checklistItems.length > 0 && checklistItems) {
-  //     const checklistLength = aiAnalysis.checklistItems.length;
-  //     const items = aiAnalysis.checklistItems.map((_, idx) => {
-  //       const key = `item_${idx}`;
-  //       return checklistItems[key] || aiAnalysis.checklistItems[idx].status;
-  //     });
-  //     const allChecked = items.length === checklistLength && items.every(s => s === 'OK');
-  //     if (allChecked && !showCompleteModal) {
-  //       setShowCompleteModal(true);
-  //     }
-  //   }
-  // }, [aiAnalysis, checklistItems, showCompleteModal]);
-
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
