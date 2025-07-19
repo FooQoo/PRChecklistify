@@ -10,10 +10,6 @@ export interface GitHubServer {
   apiUrl: string;
   /** Web interface URL */
   webUrl: string;
-  /** Whether this is the default server */
-  isDefault: boolean;
-  /** Optional description */
-  description?: string;
 }
 
 /**

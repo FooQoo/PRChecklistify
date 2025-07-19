@@ -32,8 +32,6 @@ function buildGitHubConfig() {
               name: 'GitHub.com',
               apiUrl: 'https://api.github.com',
               webUrl: 'https://github.com',
-              isDefault: true,
-              description: 'Public GitHub',
             },
           ],
         },
