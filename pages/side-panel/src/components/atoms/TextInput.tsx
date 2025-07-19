@@ -86,7 +86,7 @@ const TextInput: React.FC<TextInputProps> = ({
       onToast?.(defaultSuccessMessage, 'success');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      onToast?.('Failed to save', 'error');
+      onToast?.(t('failedToSave'), 'error');
     } finally {
       setInternalLoading(false);
     }
@@ -103,7 +103,7 @@ const TextInput: React.FC<TextInputProps> = ({
       onToast?.(defaultRemoveText, 'success');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      onToast?.('Failed to remove', 'error');
+      onToast?.(t('failedToRemove'), 'error');
     } finally {
       setInternalLoading(false);
     }

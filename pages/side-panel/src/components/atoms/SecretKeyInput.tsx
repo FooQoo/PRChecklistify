@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '@extension/i18n';
 
 export type SecretKeyInputProps = {
   label: string;
@@ -26,15 +27,16 @@ const SecretKeyInput: React.FC<SecretKeyInputProps> = ({
   onSave,
   onRemove,
   validator,
-  errorMessage = 'Invalid format',
-  successMessage = 'Saved successfully',
-  removeText = 'Remove',
-  saveText = 'Save',
-  savingText = 'Saving...',
-  keySetText = 'Key is set',
+  errorMessage,
+  successMessage,
+  removeText,
+  saveText,
+  savingText,
+  keySetText,
   getMaskedValue,
   onToast,
 }) => {
+  const { t } = useI18n();
   const [inputValue, setInputValue] = useState('');
   const [internalLoading, setInternalLoading] = useState(false);
 
@@ -50,12 +52,12 @@ const SecretKeyInput: React.FC<SecretKeyInputProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) {
-      onToast?.(errorMessage, 'error');
+      onToast?.(errorMessage || t('invalidFormat'), 'error');
       return;
     }
 
     if (validator && !validator(inputValue)) {
-      onToast?.(errorMessage, 'error');
+      onToast?.(errorMessage || t('invalidFormat'), 'error');
       return;
     }
 
@@ -63,10 +65,10 @@ const SecretKeyInput: React.FC<SecretKeyInputProps> = ({
       setInternalLoading(true);
       await onSave(inputValue);
       setInputValue('');
-      onToast?.(successMessage, 'success');
+      onToast?.(successMessage || t('savedSuccessfully'), 'success');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      onToast?.('Failed to save', 'error');
+      onToast?.(t('failedToSave'), 'error');
     } finally {
       setInternalLoading(false);
     }
@@ -79,10 +81,10 @@ const SecretKeyInput: React.FC<SecretKeyInputProps> = ({
       setInternalLoading(true);
       await onRemove();
       setInputValue('');
-      onToast?.(removeText, 'success');
+      onToast?.(removeText || t('remove'), 'success');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      onToast?.('Failed to remove', 'error');
+      onToast?.(t('failedToRemove'), 'error');
     } finally {
       setInternalLoading(false);
     }
@@ -114,18 +116,18 @@ const SecretKeyInput: React.FC<SecretKeyInputProps> = ({
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
               } rounded-r-md`}>
-              {loading ? savingText : saveText}
+              {loading ? savingText || t('saving') : saveText || t('save')}
             </button>
           </div>
           {value && onRemove && (
             <div className="mt-1 flex items-center justify-between">
-              <span className="text-xs text-gray-500">{keySetText}</span>
+              <span className="text-xs text-gray-500">{keySetText || t('keyIsSet')}</span>
               <button
                 type="button"
                 onClick={handleRemove}
                 disabled={loading}
                 className="text-xs text-red-500 hover:text-red-700 disabled:text-gray-400">
-                {removeText}
+                {removeText || t('remove')}
               </button>
             </div>
           )}

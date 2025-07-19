@@ -411,5 +411,53 @@
   },
   "content": {
     "message": "Content"
+  },
+  "allRightsReserved": {
+    "message": "All rights reserved."
+  },
+  "settingsAriaLabel": {
+    "message": "Settings"
+  },
+  "keyIsSet": {
+    "message": "Key is set"
+  },
+  "failedToSave": {
+    "message": "Failed to save"
+  },
+  "failedToRemove": {
+    "message": "Failed to remove"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "failedToGenerateSummary": {
+    "message": "Failed to generate summary. Please try again."
+  },
+  "aiResponseInterrupted": {
+    "message": "(AI response was interrupted)"
+  },
+  "failedToLoadGitHubConfig": {
+    "message": "Failed to load GitHub server configuration"
+  },
+  "noGitHubServersConfigured": {
+    "message": "No GitHub servers configured. Please check your build configuration."
+  },
+  "gitHubServersDefinedIn": {
+    "message": "GitHub servers are defined in"
+  },
+  "andLoadedAtBuildTime": {
+    "message": "and loaded at build time."
+  },
+  "configureApiTokens": {
+    "message": "Configure API tokens for GitHub servers"
+  },
+  "configured": {
+    "message": "Configured"
+  },
+  "invalidGitHubTokenFormat": {
+    "message": "Invalid GitHub token format"
+  },
+  "apiKeySetup": {
+    "message": "API Key Setup"
   }
 }

@@ -25,7 +25,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
         setServers(serversWithTokens);
       } catch (error) {
         console.error('Failed to load GitHub servers:', error);
-        onToast('Failed to load GitHub server configuration', 'error');
+        onToast(t('failedToLoadGitHubConfig'), 'error');
       } finally {
         setIsLoading(false);
       }
@@ -34,7 +34,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
     if (isGithubTokensLoaded) {
       loadServers();
     }
-  }, [isGithubTokensLoaded, onToast]);
+  }, [isGithubTokensLoaded, onToast, t]);
 
   // Refresh servers when tokens change
   const refreshServers = async () => {
@@ -78,11 +78,9 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
       {servers.length === 0 ? (
         <div className="mb-6">
           <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
-            <p className="text-sm text-gray-600 mb-3">
-              No GitHub servers configured. Please check your build configuration.
-            </p>
+            <p className="text-sm text-gray-600 mb-3">{t('noGitHubServersConfigured')}</p>
             <p className="text-xs text-gray-500">
-              GitHub servers are defined in <code>config/github-servers.json</code> and loaded at build time.
+              {t('gitHubServersDefinedIn')} <code>config/github-servers.json</code> {t('andLoadedAtBuildTime')}
             </p>
           </div>
         </div>
@@ -90,7 +88,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
         <div className="mb-6">
           <div className="mb-4">
             <p className="text-sm text-gray-600">
-              Configure API tokens for GitHub servers ({servers.length} available)
+              {t('configureApiTokens')} ({servers.length} available)
             </p>
           </div>
 
@@ -102,7 +100,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
                     <div className="flex items-center space-x-2">
                       {server.hasToken && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                          Configured
+                          {t('configured')}
                         </span>
                       )}
                     </div>
@@ -116,7 +114,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
                   type="password"
                   onSave={token => handleSetToken(server.id, token)}
                   onRemove={server.hasToken ? () => handleRemoveToken(server.id) : undefined}
-                  errorMessage="Invalid GitHub token format"
+                  errorMessage={t('invalidGitHubTokenFormat')}
                   successMessage={t('settingsSavedSuccess')}
                   removeText={t('remove')}
                   saveText={t('save')}
