@@ -5,10 +5,22 @@ import { createGeminiClient } from './gemini';
 import { createClaudeClient } from './claude';
 import { getLLMProviderById } from './configLoader';
 import { modelClientTypeStorage, ModelClientType, type Language, getLanguageLabel } from '@extension/storage';
+import { APICallError } from 'ai';
 import { z } from 'zod';
+import { LLMError } from '@src/errors/LLMError';
 
 // Re-export ModelClientType for backward compatibility
 export { ModelClientType } from '@extension/storage';
+
+// Error handling for LLM services with i18n support
+export function handleLLMError(error: unknown): never {
+  if (APICallError.isInstance(error) && error.message.includes('API key not valid')) {
+    console.error('API key is invalid:', error);
+    throw LLMError.createAPIKeyError(error);
+  }
+
+  throw LLMError.createServiceError(error);
+}
 
 // 共通のシステムプロンプト
 export const SYSTEM_PROMPT =

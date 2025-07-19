@@ -1,11 +1,11 @@
-/* eslint-disable no-useless-catch */
 // Claude API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
 import { claudeApiKeyStorage, claudeModelStorage, type Language } from '@extension/storage';
-import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelClient';
+import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT, handleLLMError } from './modelClient';
+import { LLMError } from '@src/errors/LLMError';
 
 export interface ClaudeConfig {
   apiKey: string;
@@ -51,9 +51,8 @@ class ClaudeClient implements ModelClient {
       });
 
       return object as Checklist;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      throw new Error('Failed to analyze PR with Claude');
+      handleLLMError(error);
     }
   }
 
@@ -68,18 +67,28 @@ class ClaudeClient implements ModelClient {
     try {
       const model = this.client(this.model);
 
-      const stream = await streamText({
+      const { fullStream } = streamText({
         model,
         messages,
         temperature: 0.3,
         abortSignal: options?.signal,
       });
 
-      for await (const delta of stream.textStream) {
-        if (delta) onToken(delta);
+      for await (const part of fullStream) {
+        switch (part.type) {
+          case 'text-delta': {
+            if (part.textDelta) onToken(part.textDelta);
+            break;
+          }
+
+          case 'error': {
+            const error = part.error;
+            handleLLMError(error);
+          }
+        }
       }
     } catch (error) {
-      throw error;
+      handleLLMError(error);
     }
   }
 }
@@ -88,7 +97,7 @@ class ClaudeClient implements ModelClient {
 export const createClaudeClient = async (endpoint?: string): Promise<ClaudeClient> => {
   const apiKey = await claudeApiKeyStorage.get();
   if (!apiKey) {
-    throw new Error('Claude API key not found');
+    throw LLMError.createApiKeyNotFoundError();
   }
 
   const model = await claudeModelStorage.get();

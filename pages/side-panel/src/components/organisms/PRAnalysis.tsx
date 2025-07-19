@@ -7,6 +7,7 @@ import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
 import { MarkdownRenderer } from '../molecules';
 import { useI18n } from '@extension/i18n';
+import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -70,8 +71,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
       );
       // ストリーム完了後に保存（文字列として）
       saveAnalysisResultSummary(streamed);
-    } catch {
-      setError(t('failedToGenerateSummary'));
+    } catch (error) {
+      setError(getLocalizedErrorMessage(error, t));
     } finally {
       setGenerating(false);
       setSummaryGenerating(false);

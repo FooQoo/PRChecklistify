@@ -6,6 +6,7 @@ import { fetchers } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
+import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 
 interface FileChecklistProps {
   file: PRData['files'][0];
@@ -309,9 +310,8 @@ const FileChecklist = ({
 
       const checklist = await fetchers.generateChecklist(prData, file, language);
       await saveAnalysisResultChecklist(checklist);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      setError(t('generatingChecklistError'));
+      setError(getLocalizedErrorMessage(error, t));
     } finally {
       setGenerating(false);
       setGlobalGenerating(false);

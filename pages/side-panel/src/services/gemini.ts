@@ -4,7 +4,8 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
 import { geminiApiKeyStorage, geminiModelStorage, type Language } from '@extension/storage';
-import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelClient';
+import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT, handleLLMError } from './modelClient';
+import { LLMError } from '@src/errors/LLMError';
 
 export interface GeminiConfig {
   apiKey: string;
@@ -49,9 +50,8 @@ class GeminiClient implements ModelClient {
       });
 
       return object as Checklist;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      throw new Error('Failed to analyze PR with Gemini');
+      handleLLMError(error);
     }
   }
 
@@ -63,22 +63,34 @@ class GeminiClient implements ModelClient {
     onToken: (token: string) => void,
     options?: { signal?: AbortSignal },
   ): Promise<void> {
-    // eslint-disable-next-line no-useless-catch
     try {
       const model = this.client(this.model);
 
-      const stream = await streamText({
+      const { fullStream } = streamText({
         model,
         messages,
         temperature: 0.3,
         abortSignal: options?.signal,
       });
 
-      for await (const delta of stream.textStream) {
-        if (delta) onToken(delta);
+      for await (const part of fullStream) {
+        switch (part.type) {
+          case 'text-delta': {
+            if (part.textDelta) onToken(part.textDelta);
+            break;
+          }
+
+          case 'error': {
+            const error = part.error;
+            handleLLMError(error);
+          }
+        }
       }
     } catch (error) {
-      throw error;
+      if (LLMError.isLLMError(error)) {
+        throw error; // Re-throw LLMError for consistent handling
+      }
+      handleLLMError(error);
     }
   }
 }
@@ -87,7 +99,7 @@ class GeminiClient implements ModelClient {
 export const createGeminiClient = async (endpoint: string): Promise<GeminiClient> => {
   const apiKey = await geminiApiKeyStorage.get();
   if (!apiKey) {
-    throw new Error('Gemini API key not found');
+    throw LLMError.createApiKeyNotFoundError();
   }
 
   const model = await geminiModelStorage.get();

@@ -1,11 +1,11 @@
-/* eslint-disable no-useless-catch */
 // OpenAI API integration for PR checklist generation
 import type { PRData, PRFile, Checklist } from '@src/types';
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
 import { openaiApiKeyStorage, openaiModelStorage, type Language } from '@extension/storage';
-import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelClient';
+import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT, handleLLMError } from './modelClient';
+import { LLMError } from '@src/errors/LLMError';
 
 export interface OpenAIConfig {
   apiKey: string;
@@ -50,9 +50,8 @@ class OpenAIClient implements ModelClient {
       });
 
       return object as Checklist;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      throw new Error('Failed to analyze PR with OpenAI');
+      handleLLMError(error);
     }
   }
 
@@ -66,18 +65,28 @@ class OpenAIClient implements ModelClient {
   ): Promise<void> {
     try {
       const model = this.client.languageModel(this.model);
-      const stream = await streamText({
+      const { fullStream } = streamText({
         model,
         messages,
         temperature: 0.3,
         abortSignal: options?.signal,
       });
 
-      for await (const delta of stream.textStream) {
-        if (delta) onToken(delta);
+      for await (const part of fullStream) {
+        switch (part.type) {
+          case 'text-delta': {
+            if (part.textDelta) onToken(part.textDelta);
+            break;
+          }
+
+          case 'error': {
+            const error = part.error;
+            handleLLMError(error);
+          }
+        }
       }
     } catch (error) {
-      throw error;
+      handleLLMError(error);
     }
   }
 }
@@ -86,7 +95,7 @@ class OpenAIClient implements ModelClient {
 export const createOpenAIClient = async (endpoint?: string): Promise<OpenAIClient> => {
   const apiKey = await openaiApiKeyStorage.get();
   if (!apiKey) {
-    throw new Error('Failed to retrieve OpenAI API key');
+    throw LLMError.createApiKeyNotFoundError();
   }
 
   const model = await openaiModelStorage.get();
