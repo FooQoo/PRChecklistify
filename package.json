@@ -14,10 +14,10 @@
     "clean:install": "pnpm clean:node_modules && pnpm install --frozen-lockfile",
     "type-check": "turbo type-check",
     "base-build": "pnpm clean:bundle && turbo build",
-    "build": "pnpm build-config && pnpm set-global-env && pnpm base-build",
+    "build": "pnpm set-global-env && pnpm base-build",
     "build:firefox": "pnpm set-global-env CLI_CEB_FIREFOX=true && pnpm base-build",
     "base-dev": "pnpm clean:bundle && turbo ready && turbo watch dev --concurrency 20",
-    "dev": "pnpm build-config && pnpm set-global-env CLI_CEB_DEV=true && pnpm base-dev",
+    "dev": "pnpm set-global-env CLI_CEB_DEV=true && pnpm base-dev",
     "dev:firefox": "pnpm set-global-env CLI_CEB_DEV=true CLI_CEB_FIREFOX=true && pnpm base-dev",
     "build:eslint": "tsc -b",
     "zip": "pnpm build && pnpm -F zipper zip",
@@ -31,9 +31,8 @@
     "update-version": "bash bash-scripts/update_version.sh",
     "copy_env": "bash bash-scripts/copy_env.sh",
     "set-global-env": "bash bash-scripts/set_global_env.sh",
-    "postinstall": "pnpm build:eslint && pnpm copy_env && pnpm build-config",
-    "module-manager": "pnpm -F module-manager start",
-    "build-config": "tsx scripts/build-config.ts"
+    "postinstall": "pnpm build:eslint && pnpm copy_env",
+    "module-manager": "pnpm -F module-manager start"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
