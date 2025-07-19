@@ -7,27 +7,12 @@ const createPRIdentifierFromCurrentPage = async (prKey: string): Promise<PRIdent
   const basicInfo = extractPRInfoFromKey(prKey);
   if (!basicInfo) return null;
 
-  try {
-    // Chrome extension APIを使って現在のアクティブタブのURLを取得
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs.length > 0 && tabs[0].url) {
-      const url = tabs[0].url;
-      const urlObj = new URL(url);
-      const domain = urlObj.hostname;
-
-      return {
-        ...basicInfo,
-        domain,
-      };
-    }
-  } catch (error) {
-    console.warn('Failed to get current tab URL:', error);
-  }
-
-  // フォールバック: github.comをデフォルトとして使用
+  // prKey now includes domain information, so we can use it directly
   return {
-    ...basicInfo,
-    domain: 'github.com',
+    owner: basicInfo.owner,
+    repo: basicInfo.repo,
+    prNumber: basicInfo.prNumber,
+    domain: basicInfo.domain,
   };
 };
 

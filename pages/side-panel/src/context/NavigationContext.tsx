@@ -16,7 +16,7 @@ const firstMountAtom = atom(true);
 // ナビゲーション状態の型
 interface NavigationContextType {
   navigateToPr: (url: string) => void;
-  navigateToPrFromHistory: (owner: string, repo: string, prNumber: string) => void;
+  navigateToPrFromHistory: (domain: string, owner: string, repo: string, prNumber: string) => void;
   navigateToSettings: () => void;
   navigateToHome: () => void;
   navigateToGithubTokenSetup: () => void;
@@ -66,7 +66,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     if (currentPage?.url) {
       const prInfo = extractPRInfo(currentPage.url);
       if (prInfo) {
-        router.navigate(`/pr/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
+        router.navigate(`/pr/${prInfo.domain}/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
       }
     }
   }, [generating, currentPage]);
@@ -112,12 +112,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   const navigateToPr = (url: string) => {
     const prInfo = extractPRInfo(url);
     if (!prInfo) return;
-    const { owner, repo, prNumber } = prInfo;
-    router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
+    const { domain, owner, repo, prNumber } = prInfo;
+    router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
-  const navigateToPrFromHistory = (owner: string, repo: string, prNumber: string) => {
-    router.navigate(`/pr/${owner}/${repo}/${prNumber}`);
+  const navigateToPrFromHistory = (domain: string, owner: string, repo: string, prNumber: string) => {
+    router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
   const navigateToSettings = () => {

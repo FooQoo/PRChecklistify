@@ -31,20 +31,27 @@ export const isGitHubPRPage = (url: string): boolean => {
 };
 
 /**
- * owner/repo/123 のようなkeyからPR情報を抽出する
+ * domain/owner/repo/123 のようなkeyからPR情報を抽出する
  */
-export const extractPRInfoFromKey = (key: string): { owner: string; repo: string; prNumber: string } | null => {
-  const match = key.match(/^([^/]+)\/([^/]+)\/(\d+)$/);
+export const extractPRInfoFromKey = (
+  key: string,
+): { domain: string; owner: string; repo: string; prNumber: string } | null => {
+  const match = key.match(/^([^/]+)\/([^/]+)\/([^/]+)\/(\d+)$/);
   if (!match) return null;
-  const [, owner, repo, prNumber] = match;
-  return { owner, repo, prNumber };
+  const [, domain, owner, repo, prNumber] = match;
+  return { domain, owner, repo, prNumber };
 };
 
-export const getPrKey = (owner: string | undefined, repo: string | undefined, prNumber: string | undefined): string => {
-  if (!owner || !repo || !prNumber) {
+export const getPrKey = (
+  domain: string | undefined,
+  owner: string | undefined,
+  repo: string | undefined,
+  prNumber: string | undefined,
+): string => {
+  if (!domain || !owner || !repo || !prNumber) {
     throw new Error('Invalid PR information');
   }
-  return `${owner}/${repo}/${prNumber}`;
+  return `${domain}/${owner}/${repo}/${prNumber}`;
 };
 
 /**

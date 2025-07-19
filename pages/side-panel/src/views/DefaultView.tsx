@@ -101,7 +101,9 @@ const DefaultView: React.FC = () => {
             <ul className="divide-y divide-gray-200">
               {displayedPRs.map((pr, index) => {
                 const prInfo = extractPRInfoFromKey(pr.key);
-                const prIdentifier = prInfo ? `${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}` : pr.key;
+                const prIdentifier = prInfo
+                  ? `${prInfo.domain}/${prInfo.owner}/${prInfo.repo}#${prInfo.prNumber}`
+                  : pr.key;
 
                 return (
                   <li key={index} className="py-2">
