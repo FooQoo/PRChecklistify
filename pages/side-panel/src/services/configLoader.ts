@@ -5,14 +5,14 @@ import type { GitHubServer } from '@extension/storage';
  */
 export async function loadGitHubServerConfig(): Promise<GitHubServer[]> {
   try {
-    // Try to import the built configuration
-    const config = await import('../config/githubServers.json');
+    // ビルド時に注入された設定を使用
+    const config = __GITHUB_CONFIG__;
 
     if (config.github && Array.isArray(config.github.servers)) {
       return config.github.servers as GitHubServer[];
     }
   } catch (error) {
-    console.warn('Failed to load external GitHub config, using defaults:', error);
+    console.warn('Failed to load GitHub config:', error);
   }
 
   throw new Error('Failed to load GitHub server configuration');
