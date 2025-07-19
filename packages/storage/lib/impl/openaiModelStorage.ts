@@ -1,7 +1,7 @@
 import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
 
-// OpenAI models configuration
+// OpenAI models configuration - fallback for when JSON config is not available
 export const OPENAI_MODELS = {
   'gpt-4o': 'gpt-4o',
   'gpt-4.1': 'gpt-4.1',
@@ -12,7 +12,7 @@ export const OPENAI_MODELS = {
 export type OpenAIModelType = keyof typeof OPENAI_MODELS;
 export const DEFAULT_OPENAI_MODEL: OpenAIModelType = 'gpt-4o';
 
-// Get all available OpenAI models as array
+// Get all available OpenAI models as array - fallback implementation (deprecated - use JSON config)
 export const getOpenAIModelOptions = () => {
   return Object.entries(OPENAI_MODELS).map(([value, label]) => ({
     value,

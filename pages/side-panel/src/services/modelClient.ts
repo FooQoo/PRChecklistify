@@ -4,6 +4,7 @@ import type { Checklist, PRData, PRFile } from '@src/types';
 import { createOpenAIClient } from './openai';
 import { createGeminiClient } from './gemini';
 import { createClaudeClient } from './claude';
+import { getLLMProviderById } from './configLoader';
 import type { Language } from '@extension/storage';
 import { getLanguageLabel } from '@extension/storage';
 import { z } from 'zod';
@@ -82,13 +83,16 @@ export async function createModelClient(): Promise<ModelClient | null> {
   // Get the preferred client type from storage, default to OpenAI if not set
   const clientType = (await modelClientTypeStorage.get()) || ModelClientType.OpenAI;
 
+  // Get provider configuration from JSON
+  const providerConfig = getLLMProviderById(clientType);
+
   switch (clientType) {
     case ModelClientType.OpenAI:
-      return await createOpenAIClient();
+      return await createOpenAIClient(providerConfig?.apiEndpoint);
     case ModelClientType.Gemini:
-      return await createGeminiClient();
+      return await createGeminiClient(providerConfig?.apiEndpoint);
     case ModelClientType.Claude:
-      return await createClaudeClient();
+      return await createClaudeClient(providerConfig?.apiEndpoint);
     default:
       return null;
   }

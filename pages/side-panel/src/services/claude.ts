@@ -10,6 +10,7 @@ import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelCl
 export interface ClaudeConfig {
   apiKey: string;
   model: string;
+  endpoint?: string;
 }
 
 class ClaudeClient implements ModelClient {
@@ -19,6 +20,7 @@ class ClaudeClient implements ModelClient {
   constructor(config: ClaudeConfig) {
     this.client = createAnthropic({
       apiKey: config.apiKey,
+      baseURL: config.endpoint,
       headers: { 'anthropic-dangerous-direct-browser-access': 'true' },
     });
     this.model = config.model;
@@ -83,7 +85,7 @@ class ClaudeClient implements ModelClient {
 }
 
 // Create and export Claude client instance
-export const createClaudeClient = async (): Promise<ClaudeClient> => {
+export const createClaudeClient = async (endpoint?: string): Promise<ClaudeClient> => {
   const apiKey = await claudeApiKeyStorage.get();
   if (!apiKey) {
     throw new Error('Claude API key not found');
@@ -93,6 +95,7 @@ export const createClaudeClient = async (): Promise<ClaudeClient> => {
   return new ClaudeClient({
     apiKey,
     model,
+    endpoint,
   });
 };
 

@@ -9,6 +9,7 @@ import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelCl
 export interface GeminiConfig {
   apiKey: string;
   model: string;
+  endpoint?: string;
 }
 
 class GeminiClient implements ModelClient {
@@ -18,6 +19,7 @@ class GeminiClient implements ModelClient {
   constructor(config: GeminiConfig) {
     this.client = createGoogleGenerativeAI({
       apiKey: config.apiKey,
+      baseURL: config.endpoint,
     });
     this.model = config.model;
   }
@@ -82,7 +84,7 @@ class GeminiClient implements ModelClient {
 }
 
 // Create and export Gemini client instance
-export const createGeminiClient = async (): Promise<GeminiClient> => {
+export const createGeminiClient = async (endpoint?: string): Promise<GeminiClient> => {
   const apiKey = await geminiApiKeyStorage.get();
   if (!apiKey) {
     throw new Error('Gemini API key not found');
@@ -92,6 +94,7 @@ export const createGeminiClient = async (): Promise<GeminiClient> => {
   return new GeminiClient({
     apiKey,
     model,
+    endpoint,
   });
 };
 

@@ -10,9 +10,10 @@ import { useClaudeModelAtom } from '../../hooks/useClaudeModelAtom';
 import { useModelClientTypeAtom } from '../../hooks/useModelClientTypeAtom';
 import { isGeminiApiEnabled } from '../../utils/envUtils';
 import { TextInput, Button } from '../atoms';
-import { getOpenAIModelOptions, getGeminiModelOptions, getClaudeModelOptions } from '@extension/storage';
+import { getAllLLMProviders, getLLMProviderById } from '../../services/configLoader';
 
 import type { ModelClientType } from '../../services/modelClient';
+import type { LLMProvider } from '../../types';
 
 interface UnifiedApiKeySetupViewProps {
   mode?: 'setup' | 'settings';
@@ -30,13 +31,36 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   const { claudeModel, setModelAndStorage: setClaudeModelAndStorage } = useClaudeModelAtom();
   const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
   const [provider, setProvider] = useState<ModelClientType>(modelClientType);
+  const [currentProvider, setCurrentProvider] = useState<LLMProvider | null>(null);
 
   const geminiEnabled = isGeminiApiEnabled();
+  const llmProviders = getAllLLMProviders();
 
   // プロバイダー初期値をストレージから取得
   useEffect(() => {
     setProvider(modelClientType);
   }, [modelClientType]);
+
+  // 現在のプロバイダー情報を更新
+  useEffect(() => {
+    if (provider && llmProviders.length > 0) {
+      const providerInfo = getLLMProviderById(provider);
+      setCurrentProvider(providerInfo || null);
+    }
+  }, [provider, llmProviders]);
+
+  // モデルオプションを統一形式で取得するヘルパー関数
+  const getUnifiedModelOptions = (provider: ModelClientType) => {
+    const providerInfo = getLLMProviderById(provider);
+    if (providerInfo && providerInfo.models) {
+      return providerInfo.models.map(model => ({
+        key: model.id,
+        value: model.id,
+        label: model.name,
+      }));
+    }
+    return [];
+  };
 
   // プロバイダー選択時にストレージへ保存
   const handleProviderChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -56,16 +80,14 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
     return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
   };
 
-  // プロバイダーオプションの動的生成
+  // プロバイダーオプションをJSONから取得
   const getProviderOptions = () => {
-    const options = [
-      { id: 'openai', name: 'OpenAI' },
-      { id: 'claude', name: 'Claude' },
-    ];
-    if (geminiEnabled) {
-      options.push({ id: 'gemini', name: 'Gemini' });
-    }
-    return options;
+    return llmProviders
+      .filter(provider => provider.id !== 'gemini' || geminiEnabled)
+      .map(provider => ({
+        id: provider.id,
+        name: provider.name,
+      }));
   };
 
   const providerOptions = getProviderOptions();
@@ -139,9 +161,9 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
               value={openaiModel}
               onChange={e => setOpenaiModelAndStorage(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {getOpenAIModelOptions().map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {getUnifiedModelOptions('openai' as ModelClientType).map(model => (
+                <option key={model.key} value={model.value}>
+                  {model.label}
                 </option>
               ))}
             </select>
@@ -150,7 +172,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             <p>
               {t('openaiKeyStorageNotice')}
               <a
-                href="https://platform.openai.com/account/api-keys"
+                href={currentProvider?.tokenRegistrationUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-blue-500 hover:text-blue-700 ml-1">
@@ -194,9 +216,9 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
               value={geminiModel}
               onChange={e => setGeminiModelAndStorage(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {getGeminiModelOptions().map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {getUnifiedModelOptions('gemini' as ModelClientType).map(model => (
+                <option key={model.key} value={model.value}>
+                  {model.label}
                 </option>
               ))}
             </select>
@@ -205,7 +227,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             <p>
               {t('geminiKeyStorageNotice')}
               <a
-                href="https://aistudio.google.com/app/apikey"
+                href={currentProvider?.tokenRegistrationUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-blue-500 hover:text-blue-700 ml-1">
@@ -249,9 +271,9 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
               value={claudeModel}
               onChange={e => setClaudeModelAndStorage(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {getClaudeModelOptions().map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {getUnifiedModelOptions('claude' as ModelClientType).map(model => (
+                <option key={model.key} value={model.value}>
+                  {model.label}
                 </option>
               ))}
             </select>
@@ -260,7 +282,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
             <p>
               {t('claudeKeyStorageNotice')}
               <a
-                href="https://console.anthropic.com/account/keys"
+                href={currentProvider?.tokenRegistrationUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-blue-500 hover:text-blue-700 ml-1">

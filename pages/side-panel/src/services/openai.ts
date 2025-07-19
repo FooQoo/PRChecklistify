@@ -20,6 +20,7 @@ class OpenAIClient implements ModelClient {
   constructor(config: OpenAIConfig) {
     this.client = createOpenAI({
       apiKey: config.apiKey,
+      baseURL: config.endpoint,
     });
     this.model = config.model;
   }
@@ -82,7 +83,7 @@ class OpenAIClient implements ModelClient {
 }
 
 // Create and export OpenAI client instance
-export const createOpenAIClient = async (): Promise<OpenAIClient> => {
+export const createOpenAIClient = async (endpoint?: string): Promise<OpenAIClient> => {
   const apiKey = await openaiApiKeyStorage.get();
   if (!apiKey) {
     throw new Error('Failed to retrieve OpenAI API key');
@@ -92,6 +93,7 @@ export const createOpenAIClient = async (): Promise<OpenAIClient> => {
   return new OpenAIClient({
     apiKey,
     model,
+    endpoint,
   });
 };
 

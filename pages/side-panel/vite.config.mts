@@ -19,13 +19,22 @@ function loadFooterConfig() {
   return JSON.parse(configContent);
 }
 
+// ビルド時にLLMサービス設定を読み込み
+function loadLLMConfig() {
+  const configPath = resolve(rootDir, '..', '..', 'config', 'llm-services.json');
+  const configContent = readFileSync(configPath, 'utf8');
+  return JSON.parse(configContent);
+}
+
 const githubConfig = loadGitHubConfig();
 const footerConfig = loadFooterConfig();
+const llmConfig = loadLLMConfig();
 
 export default withPageConfig({
   define: {
     __GITHUB_CONFIG__: JSON.stringify(githubConfig),
     __FOOTER_CONFIG__: JSON.stringify(footerConfig),
+    __LLM_CONFIG__: JSON.stringify(llmConfig),
   },
   resolve: {
     alias: {

@@ -104,3 +104,25 @@ export interface PRAnalysisResult {
   summary: string;
   fileAnalysis: Checklist[];
 }
+
+// LLMサービスプロバイダーの型定義
+export interface LLMModel {
+  id: string;
+  name: string;
+  maxTokens: number;
+}
+
+export interface LLMProvider {
+  id: string;
+  name: string;
+  apiEndpoint: string;
+  tokenRegistrationUrl: string;
+  defaultModel: string;
+  models: LLMModel[];
+}
+
+export interface LLMServiceConfig {
+  llmServices: {
+    providers: LLMProvider[];
+  };
+}

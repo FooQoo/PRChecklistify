@@ -1,10 +1,11 @@
 import type { GitHubServer } from '@extension/storage';
 import { githubTokensStorage } from '@extension/storage';
+import type { LLMProvider } from '../types';
 
 /**
  * Loads GitHub server configuration from external config or defaults
  */
-export async function loadGitHubServerConfig(): Promise<GitHubServer[]> {
+export function loadGitHubServerConfig(): GitHubServer[] {
   // ビルド時に注入された設定を使用
   const config = __GITHUB_CONFIG__;
 
@@ -22,7 +23,7 @@ export async function getGitHubServersWithTokens(): Promise<
   Array<GitHubServer & { token?: string; hasToken: boolean }>
 > {
   try {
-    const servers = await loadGitHubServerConfig();
+    const servers = loadGitHubServerConfig();
     const tokensConfig = await githubTokensStorage.get();
 
     return servers.map(server => {
@@ -51,4 +52,54 @@ export async function getActiveGitHubServer(): Promise<(GitHubServer & { token?:
   } catch (error) {
     return undefined;
   }
+}
+
+/**
+ * Loads LLM service configuration from external config
+ */
+export function loadLLMServiceConfig(): LLMProvider[] {
+  // ビルド時に注入された設定を使用
+  const config = __LLM_CONFIG__;
+
+  if (config.llmServices && Array.isArray(config.llmServices.providers)) {
+    return config.llmServices.providers as LLMProvider[];
+  }
+
+  throw new Error('Failed to load LLM service configuration');
+}
+
+/**
+ * Gets LLM provider by ID
+ */
+export function getLLMProviderById(providerId: string): LLMProvider | undefined {
+  const providers = loadLLMServiceConfig();
+  return providers.find(provider => provider.id === providerId);
+}
+
+/**
+ * Gets all available LLM providers
+ */
+export function getAllLLMProviders(): LLMProvider[] {
+  return loadLLMServiceConfig();
+}
+
+/**
+ * Gets model options for a specific provider in the format expected by existing code
+ */
+export function getModelOptions(providerId: string): Array<{ value: string; label: string }> {
+  const provider = getLLMProviderById(providerId);
+  if (!provider) return [];
+
+  return provider.models.map(model => ({
+    value: model.id,
+    label: model.name,
+  }));
+}
+
+/**
+ * Gets default model for a specific provider
+ */
+export function getDefaultModel(providerId: string): string | null {
+  const provider = getLLMProviderById(providerId);
+  return provider?.defaultModel || null;
 }
