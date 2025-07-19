@@ -11,27 +11,11 @@ export async function loadGitHubServerConfig(): Promise<GitHubServer[]> {
     if (config.github && Array.isArray(config.github.servers)) {
       return config.github.servers as GitHubServer[];
     }
-
-    console.warn('Invalid external config structure, using defaults');
-    return getDefaultServers();
   } catch (error) {
     console.warn('Failed to load external GitHub config, using defaults:', error);
-    return getDefaultServers();
   }
-}
 
-/**
- * Returns default GitHub server configuration
- */
-function getDefaultServers(): GitHubServer[] {
-  return [
-    {
-      id: 'github-com',
-      name: 'GitHub.com',
-      apiUrl: 'https://api.github.com',
-      webUrl: 'https://github.com',
-    },
-  ];
+  throw new Error('Failed to load GitHub server configuration');
 }
 
 /**
