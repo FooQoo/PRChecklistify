@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigation } from '../../context/NavigationContext';
 import { useI18n } from '@extension/i18n';
 import { useOpenaiKeyAtom } from '../../hooks/useOpenaiKeyAtom';
@@ -29,18 +29,17 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   const { geminiModel, setModelAndStorage: setGeminiModelAndStorage } = useGeminiModelAtom();
   const { claudeModel, setModelAndStorage: setClaudeModelAndStorage } = useClaudeModelAtom();
   const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
-  const [provider, setProvider] = useState<ModelClientType>(modelClientType);
 
   const geminiEnabled = isGeminiApiEnabled();
   const llmProviders = getAllLLMProviders();
 
   // 現在のプロバイダー情報をメモ化
   const currentProvider = useMemo(() => {
-    if (provider && llmProviders.length > 0) {
-      return getLLMProviderById(provider) || null;
+    if (modelClientType && llmProviders.length > 0) {
+      return getLLMProviderById(modelClientType) || null;
     }
     return null;
-  }, [provider, llmProviders]);
+  }, [modelClientType, llmProviders]);
 
   // モデルオプションを統一形式で取得するヘルパー関数
   const getUnifiedModelOptions = (provider: ModelClientType) => {
@@ -58,7 +57,6 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   // プロバイダー選択時にストレージへ保存
   const handleProviderChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProvider = e.target.value as ModelClientType;
-    setProvider(newProvider);
     await setTypeAndStorage(newProvider);
   };
 
@@ -82,7 +80,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
 
   // 現在のプロバイダーのAPIキーが設定されているかどうかを確認
   const isApiKeySet = () => {
-    switch (provider) {
+    switch (modelClientType) {
       case 'openai':
         return !!openaiKey;
       case 'gemini':
@@ -104,7 +102,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
         </label>
         <select
           id="provider-select"
-          value={provider}
+          value={modelClientType}
           onChange={handleProviderChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
           {providerOptions.map(option => (
@@ -116,7 +114,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
       </div>
 
       {/* 選択されたプロバイダーの詳細設定 */}
-      {provider === 'openai' && (
+      {modelClientType === 'openai' && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold mb-4">{t('openaiIntegration')}</h3>
           <TextInput
@@ -170,7 +168,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
         </div>
       )}
 
-      {provider === 'gemini' && geminiEnabled && (
+      {modelClientType === 'gemini' && geminiEnabled && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold mb-4">{t('geminiIntegration')}</h3>
           <TextInput
@@ -224,7 +222,7 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
         </div>
       )}
 
-      {provider === 'claude' && (
+      {modelClientType === 'claude' && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold mb-4">{t('claudeIntegration')}</h3>
           <TextInput
