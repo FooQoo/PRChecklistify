@@ -15,7 +15,6 @@ export { ModelClientType } from '@extension/storage';
 // Error handling for LLM services with i18n support
 export function handleLLMError(error: unknown): never {
   if (APICallError.isInstance(error) && error.message.includes('API key not valid')) {
-    console.error('API key is invalid:', error);
     throw LLMError.createAPIKeyError(error);
   }
 
