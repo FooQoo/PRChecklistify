@@ -2,30 +2,22 @@ import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
 import { fetchPRData, prDataStorage } from '../services/prDataService';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
 
-// 現在のページURLからPRIdentifierを作成する関数
-const createPRIdentifierFromCurrentPage = async (prKey: string): Promise<PRIdentifier | null> => {
-  const basicInfo = extractPRInfoFromKey(prKey);
-  if (!basicInfo) return null;
-
-  // prKey now includes domain information, so we can use it directly
-  return {
-    owner: basicInfo.owner,
-    repo: basicInfo.repo,
-    prNumber: basicInfo.prNumber,
-    domain: basicInfo.domain,
-  };
-};
-
 export const loadPRDataFromAnySource = async (
   prKey: string,
   setPRData: (data: PRData | null) => void,
   setAnalysisResult: (result: PRAnalysisResult | undefined) => void,
   setError: (err: string | null) => void,
 ) => {
-  const identifier = await createPRIdentifierFromCurrentPage(prKey);
-  if (!identifier) {
+  const basicInfo = extractPRInfoFromKey(prKey);
+  if (!basicInfo) {
     return;
   }
+  const identifier: PRIdentifier = {
+    owner: basicInfo.owner,
+    repo: basicInfo.repo,
+    prNumber: basicInfo.prNumber,
+    domain: basicInfo.domain,
+  };
   try {
     const savedData = await prDataStorage.getFromStorage(prKey);
     if (savedData) {
@@ -56,8 +48,14 @@ export const fetchAndSetPRData = async (
   setError: (err: string | null) => void,
   setIsLoading: (b: boolean) => void,
 ) => {
-  const identifier = await createPRIdentifierFromCurrentPage(prKey);
-  if (!identifier) return;
+  const basicInfo = extractPRInfoFromKey(prKey);
+  if (!basicInfo) return;
+  const identifier: PRIdentifier = {
+    owner: basicInfo.owner,
+    repo: basicInfo.repo,
+    prNumber: basicInfo.prNumber,
+    domain: basicInfo.domain,
+  };
   setIsLoading(true);
   setError(null);
   try {
