@@ -44,8 +44,8 @@ const extractPRInfo = (url: string): { owner: string; repo: string; prNumber: st
     const [, owner, repo, prNumber] = pathMatch;
 
     return { owner, repo, prNumber, domain };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    console.error('Failed to parse PR URL:', error);
     return null;
   }
 };

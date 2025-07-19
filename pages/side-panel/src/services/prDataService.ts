@@ -148,26 +148,9 @@ export const prDataStorage = new PRDataStorage();
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
     // ドメインからサーバーIDを取得してGitHubクライアントを作成
-    let github: GithubClient;
-    if (identifier.domain) {
-      try {
-        const serverId = await getServerIdByDomain(identifier.domain);
-        if (serverId) {
-          console.log(`Using server ${serverId} for domain ${identifier.domain}`);
-          github = await GithubClient.create(serverId);
-        } else {
-          // ドメインに対応するサーバーが見つからない場合はデフォルト
-          github = await GithubClient.create();
-        }
-      } catch (error) {
-        console.error('Failed to get server for domain:', error);
-        // エラーの場合はデフォルトサーバーを使用
-        github = await GithubClient.create();
-      }
-    } else {
-      // ドメイン情報がない場合はデフォルトサーバーを使用
-      github = await GithubClient.create();
-    }
+
+    const serverId = await getServerIdByDomain(identifier.domain);
+    const github: GithubClient = await GithubClient.create(serverId);
     const { owner, repo } = identifier;
 
     // PRデータ取得

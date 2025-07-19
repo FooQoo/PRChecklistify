@@ -23,8 +23,8 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
       try {
         const serversWithTokens = await getGitHubServersWithTokens();
         setServers(serversWithTokens);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.error('Failed to load GitHub servers:', error);
         onToast(t('failedToLoadGitHubConfig'), 'error');
       } finally {
         setIsLoading(false);
@@ -38,12 +38,8 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
 
   // Refresh servers when tokens change
   const refreshServers = async () => {
-    try {
-      const serversWithTokens = await getGitHubServersWithTokens();
-      setServers(serversWithTokens);
-    } catch (error) {
-      console.error('Failed to refresh servers:', error);
-    }
+    const serversWithTokens = await getGitHubServersWithTokens();
+    setServers(serversWithTokens);
   };
 
   const handleSetToken = async (serverId: string, token: string) => {

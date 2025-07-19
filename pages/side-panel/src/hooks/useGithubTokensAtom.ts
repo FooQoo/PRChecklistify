@@ -24,8 +24,8 @@ export function useGithubTokensAtom() {
           setGithubTokens(config);
           setIsGithubTokensLoaded(true);
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.error('Error loading GitHub tokens configuration:', error);
         if (mounted) {
           setIsGithubTokensLoaded(true);
         }

@@ -76,8 +76,8 @@ export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
       prNumber,
       domain,
     };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    console.error('Failed to parse PR URL:', error);
     return null;
   }
 };
@@ -85,26 +85,21 @@ export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
 /**
  * ドメインからサーバーIDを取得する
  * @param domain ドメイン名（例: github.com）
- * @returns サーバーID または null
+ * @returns サーバーID
  */
-export const getServerIdByDomain = async (domain: string): Promise<string | null> => {
-  try {
-    const { getGitHubServersWithTokens } = await import('../services/configLoader');
-    const servers = await getGitHubServersWithTokens();
+export const getServerIdByDomain = async (domain: string): Promise<string> => {
+  const { getGitHubServersWithTokens } = await import('../services/configLoader');
+  const servers = await getGitHubServersWithTokens();
 
-    // webUrlからドメインを抽出して比較
-    const server = servers.find(s => {
-      try {
-        const serverDomain = new URL(s.webUrl).hostname;
-        return serverDomain === domain;
-      } catch {
-        return false;
-      }
-    });
+  // webUrlからドメインを抽出して比較
+  const server = servers.find(s => {
+    try {
+      const serverDomain = new URL(s.webUrl).hostname;
+      return serverDomain === domain;
+    } catch {
+      return false;
+    }
+  });
 
-    return server?.id || null;
-  } catch (error) {
-    console.error('Failed to get server by domain:', error);
-    return null;
-  }
+  return server!.id;
 };

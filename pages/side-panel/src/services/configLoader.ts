@@ -4,15 +4,11 @@ import type { GitHubServer } from '@extension/storage';
  * Loads GitHub server configuration from external config or defaults
  */
 export async function loadGitHubServerConfig(): Promise<GitHubServer[]> {
-  try {
-    // ビルド時に注入された設定を使用
-    const config = __GITHUB_CONFIG__;
+  // ビルド時に注入された設定を使用
+  const config = __GITHUB_CONFIG__;
 
-    if (config.github && Array.isArray(config.github.servers)) {
-      return config.github.servers as GitHubServer[];
-    }
-  } catch (error) {
-    console.warn('Failed to load GitHub config:', error);
+  if (config.github && Array.isArray(config.github.servers)) {
+    return config.github.servers as GitHubServer[];
   }
 
   throw new Error('Failed to load GitHub server configuration');
@@ -37,8 +33,8 @@ export async function getGitHubServersWithTokens(): Promise<
         hasToken: !!token,
       };
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    console.error('Failed to get GitHub servers with tokens:', error);
     return [];
   }
 }
@@ -51,8 +47,8 @@ export async function getActiveGitHubServer(): Promise<(GitHubServer & { token?:
     // Return first server with token
     const serversWithTokens = await getGitHubServersWithTokens();
     return serversWithTokens.find(s => s.hasToken);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    console.error('Failed to get active GitHub server:', error);
     return undefined;
   }
 }
