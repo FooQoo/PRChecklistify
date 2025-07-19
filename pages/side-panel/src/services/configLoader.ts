@@ -71,9 +71,13 @@ export function loadLLMServiceConfig(): LLMProvider[] {
 /**
  * Gets LLM provider by ID
  */
-export function getLLMProviderById(providerId: string): LLMProvider | undefined {
+export function getLLMProviderById(providerId: string): LLMProvider {
   const providers = loadLLMServiceConfig();
-  return providers.find(provider => provider.id === providerId);
+  const provider = providers.find(provider => provider.id === providerId);
+  if (!provider) {
+    throw new Error(`LLM provider not found: ${providerId}`);
+  }
+  return provider;
 }
 
 /**

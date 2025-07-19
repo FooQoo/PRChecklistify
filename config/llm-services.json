@@ -33,7 +33,7 @@
       {
         "id": "gemini",
         "name": "Google Gemini",
-        "apiEndpoint": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "apiEndpoint": "https://generativelanguage.googleapis.com/v1beta",
         "tokenRegistrationUrl": "https://aistudio.google.com/app/apikey",
         "defaultModel": "gemini-2.5-flash",
         "models": [

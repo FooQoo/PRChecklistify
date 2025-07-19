@@ -9,7 +9,7 @@ import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT } from './modelCl
 export interface GeminiConfig {
   apiKey: string;
   model: string;
-  endpoint?: string;
+  endpoint: string;
 }
 
 class GeminiClient implements ModelClient {
@@ -84,7 +84,7 @@ class GeminiClient implements ModelClient {
 }
 
 // Create and export Gemini client instance
-export const createGeminiClient = async (endpoint?: string): Promise<GeminiClient> => {
+export const createGeminiClient = async (endpoint: string): Promise<GeminiClient> => {
   const apiKey = await geminiApiKeyStorage.get();
   if (!apiKey) {
     throw new Error('Gemini API key not found');

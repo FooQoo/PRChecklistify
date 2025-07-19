@@ -54,11 +54,11 @@ export async function createModelClient(): Promise<ModelClient | null> {
 
   switch (clientType) {
     case ModelClientType.OpenAI:
-      return await createOpenAIClient(providerConfig?.apiEndpoint);
+      return await createOpenAIClient(providerConfig.apiEndpoint);
     case ModelClientType.Gemini:
-      return await createGeminiClient(providerConfig?.apiEndpoint);
+      return await createGeminiClient(providerConfig.apiEndpoint);
     case ModelClientType.Claude:
-      return await createClaudeClient(providerConfig?.apiEndpoint);
+      return await createClaudeClient(providerConfig.apiEndpoint);
     default:
       return null;
   }

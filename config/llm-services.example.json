@@ -6,15 +6,26 @@
         "name": "OpenAI",
         "apiEndpoint": "https://api.openai.com/v1",
         "tokenRegistrationUrl": "https://platform.openai.com/api-keys",
+        "defaultModel": "gpt-4o",
         "models": [
           {
             "id": "gpt-4o",
-            "name": "GPT-4o",
+            "name": "gpt-4o",
             "maxTokens": 128000
           },
           {
-            "id": "gpt-4o-mini",
-            "name": "GPT-4o Mini",
+            "id": "gpt-4.1",
+            "name": "gpt-4.1",
+            "maxTokens": 128000
+          },
+          {
+            "id": "o4-mini",
+            "name": "o4-mini",
+            "maxTokens": 128000
+          },
+          {
+            "id": "o3",
+            "name": "o3",
             "maxTokens": 128000
           }
         ]
@@ -22,12 +33,28 @@
       {
         "id": "gemini",
         "name": "Google Gemini",
-        "apiEndpoint": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "apiEndpoint": "https://generativelanguage.googleapis.com/v1beta",
         "tokenRegistrationUrl": "https://aistudio.google.com/app/apikey",
+        "defaultModel": "gemini-2.5-flash",
         "models": [
           {
+            "id": "gemini-2.5-pro",
+            "name": "gemini-2.5-pro",
+            "maxTokens": 1048576
+          },
+          {
+            "id": "gemini-2.5-flash",
+            "name": "gemini-2.5-flash",
+            "maxTokens": 1048576
+          },
+          {
             "id": "gemini-1.5-pro",
-            "name": "Gemini 1.5 Pro",
+            "name": "gemini-1.5-pro",
+            "maxTokens": 1048576
+          },
+          {
+            "id": "gemini-2.0-flash",
+            "name": "gemini-2.0-flash",
             "maxTokens": 1048576
           }
         ]
@@ -37,10 +64,16 @@
         "name": "Anthropic Claude",
         "apiEndpoint": "https://api.anthropic.com/v1",
         "tokenRegistrationUrl": "https://console.anthropic.com/settings/keys",
+        "defaultModel": "claude-sonnet-4-20250514",
         "models": [
           {
-            "id": "claude-3-5-sonnet-20241022",
-            "name": "Claude 3.5 Sonnet",
+            "id": "claude-sonnet-4-20250514",
+            "name": "claude-sonnet-4-20250514",
+            "maxTokens": 200000
+          },
+          {
+            "id": "claude-3-7-sonnet-20250219",
+            "name": "claude-3-7-sonnet-20250219",
             "maxTokens": 200000
           }
         ]
