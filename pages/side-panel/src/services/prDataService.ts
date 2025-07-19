@@ -147,28 +147,27 @@ export const prDataStorage = new PRDataStorage();
 // Service to fetch PR data from GitHub
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
   try {
-    // ドメインベースでGitHubサーバーを自動切り替え
+    // ドメインからサーバーIDを取得してGitHubクライアントを作成
+    let github: GithubClient;
     if (identifier.domain) {
       try {
         const serverId = await getServerIdByDomain(identifier.domain);
-
         if (serverId) {
-          // 現在のアクティブサーバーIDを取得
-          const result = await chrome.storage.local.get('activeServerId');
-          const currentActiveServerId = result.activeServerId;
-
-          if (serverId !== currentActiveServerId) {
-            console.log(`Auto-switching to server ${serverId} for domain ${identifier.domain}`);
-            // アクティブサーバーIDを更新
-            await chrome.storage.local.set({ activeServerId: serverId });
-          }
+          console.log(`Using server ${serverId} for domain ${identifier.domain}`);
+          github = await GithubClient.create(serverId);
+        } else {
+          // ドメインに対応するサーバーが見つからない場合はデフォルト
+          github = await GithubClient.create();
         }
       } catch (error) {
-        console.error('Failed to auto-switch GitHub server:', error);
+        console.error('Failed to get server for domain:', error);
+        // エラーの場合はデフォルトサーバーを使用
+        github = await GithubClient.create();
       }
+    } else {
+      // ドメイン情報がない場合はデフォルトサーバーを使用
+      github = await GithubClient.create();
     }
-
-    const github = await GithubClient.create();
     const { owner, repo } = identifier;
 
     // PRデータ取得

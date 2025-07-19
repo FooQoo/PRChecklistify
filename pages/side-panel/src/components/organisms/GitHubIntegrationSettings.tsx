@@ -12,12 +12,10 @@ interface GitHubIntegrationSettingsProps {
 
 const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
-  const { setToken, removeToken, setActiveServer, getActiveServerId, isGithubTokensLoaded } = useGithubTokensAtom();
+  const { setToken, removeToken, isGithubTokensLoaded } = useGithubTokensAtom();
 
   const [servers, setServers] = useState<Array<GitHubServer & { token?: string; hasToken: boolean }>>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const activeServerId = getActiveServerId();
 
   // Load servers from external config
   useEffect(() => {
@@ -50,8 +48,6 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
 
   const handleSetToken = async (serverId: string, token: string) => {
     await setToken(serverId, token);
-    // トークンが設定されたら自動的にそのサーバーをアクティブにする
-    await setActiveServer(serverId);
     await refreshServers();
   };
 
@@ -104,9 +100,9 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
                 <div className="mb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      {server.id === activeServerId && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          Active
+                      {server.hasToken && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                          Configured
                         </span>
                       )}
                     </div>

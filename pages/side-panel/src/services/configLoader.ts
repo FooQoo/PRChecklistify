@@ -44,31 +44,13 @@ export async function getGitHubServersWithTokens(): Promise<
 }
 
 /**
- * Gets the active server with token
+ * Gets the first available server with token (fallback when no specific server is requested)
  */
 export async function getActiveGitHubServer(): Promise<(GitHubServer & { token?: string }) | undefined> {
   try {
-    const { githubTokensStorage } = await import('@extension/storage');
-    const tokensConfig = await githubTokensStorage.get();
-
-    if (!tokensConfig.activeServerId) {
-      // Return first server with token if no active server
-      const serversWithTokens = await getGitHubServersWithTokens();
-      return serversWithTokens.find(s => s.hasToken);
-    }
-
-    const servers = await loadGitHubServerConfig();
-    const activeServer = servers.find(s => s.id === tokensConfig.activeServerId);
-
-    if (activeServer) {
-      const token = tokensConfig.tokens.find(t => t.serverId === activeServer.id)?.token;
-      return {
-        ...activeServer,
-        token,
-      };
-    }
-
-    return undefined;
+    // Return first server with token
+    const serversWithTokens = await getGitHubServersWithTokens();
+    return serversWithTokens.find(s => s.hasToken);
   } catch (error) {
     console.error('Failed to get active GitHub server:', error);
     return undefined;
