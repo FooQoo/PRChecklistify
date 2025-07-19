@@ -55,7 +55,7 @@ const DefaultView: React.FC = () => {
     const prInfo = extractPRInfoFromKey(prKey);
     if (!prInfo) return;
     // PR情報を抽出してナビゲーション
-    navigateToPrFromHistory(prInfo.owner, prInfo.repo, prInfo.prNumber);
+    navigateToPrFromHistory(prInfo.domain, prInfo.owner, prInfo.repo, prInfo.prNumber);
   };
 
   // 表示する最近のPR数を制御
