@@ -60,11 +60,6 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
     await refreshServers();
   };
 
-  // GitHub トークンのバリデーション
-  const validateGitHubToken = (token: string): boolean => {
-    return token.startsWith('ghp_') || token.startsWith('github_pat_');
-  };
-
   // トークンのマスク表示
   const getMaskedToken = (token: string): string => {
     if (!token || token.length < 10) return '****';
@@ -125,7 +120,6 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
                   type="password"
                   onSave={token => handleSetToken(server.id, token)}
                   onRemove={server.hasToken ? () => handleRemoveToken(server.id) : undefined}
-                  validator={validateGitHubToken}
                   errorMessage="Invalid GitHub token format"
                   successMessage={t('settingsSavedSuccess')}
                   removeText={t('remove')}
