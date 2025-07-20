@@ -1,7 +1,8 @@
 import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
-import { fetchPRData, GitHubAuthenticationError, prDataStorage } from '../services/prDataService';
+import { fetchPRData, prDataStorage } from '../services/prDataService';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
 import type { ErrorKeyType } from './usePRData';
+import { GitHubError } from '@src/errors/GitHubError';
 
 export const loadPRDataFromAnySource = async (
   prKey: string,
@@ -39,10 +40,8 @@ export const loadPRDataFromAnySource = async (
       }
     }
   } catch (error) {
-    if (error instanceof GitHubAuthenticationError) {
-      setError('githubAuthenticationError');
-    } else {
-      setError('errorOccurredWhileLoadingPrData');
+    if (GitHubError.isGitHubError(error)) {
+      setError(error.i18nKey as ErrorKeyType);
     }
   }
 };
@@ -69,13 +68,11 @@ export const fetchAndSetPRData = async (
       setPRData(newData);
       await prDataStorage.savePRDataToStorage(prKey, newData);
     } else {
-      setError('failedToRefreshPrData');
+      setError('failedToLoadPrData');
     }
   } catch (error) {
-    if (error instanceof GitHubAuthenticationError) {
-      setError('githubAuthenticationError');
-    } else {
-      setError('errorOccurredWhileRefreshingPrData');
+    if (GitHubError.isGitHubError(error)) {
+      setError(error.i18nKey as ErrorKeyType);
     }
   } finally {
     setIsLoading(false);

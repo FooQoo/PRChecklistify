@@ -483,5 +483,32 @@
   },
   "llmServiceError": {
     "message": "An error occurred with the LLM service. Please try again."
+  },
+  "githubTokenNotFound": {
+    "message": "GitHub token not found. Please check your settings."
+  },
+  "githubTokenInvalid": {
+    "message": "GitHub token is invalid. Please check your settings."
+  },
+  "githubServerConfigNotFound": {
+    "message": "GitHub server configuration not found."
+  },
+  "githubRateLimitExceeded": {
+    "message": "GitHub API rate limit exceeded. Please wait a moment and try again."
+  },
+  "githubNetworkError": {
+    "message": "Network error occurred while connecting to GitHub."
+  },
+  "githubRepositoryAccessDenied": {
+    "message": "Access denied to the repository."
+  },
+  "githubPullRequestNotFound": {
+    "message": "The specified pull request was not found."
+  },
+  "githubFileNotFound": {
+    "message": "The specified file was not found."
+  },
+  "githubApiError": {
+    "message": "An error occurred with the GitHub API. Please try again."
   }
 }

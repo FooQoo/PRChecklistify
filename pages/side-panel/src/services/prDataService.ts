@@ -2,6 +2,7 @@
 /* eslint-disable no-useless-catch */
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
 import { GithubClient } from './github';
+import { GitHubError } from '@src/errors/GitHubError';
 import { instructionPathStorage } from '@extension/storage';
 import { getServerIdByDomain } from '../utils/prUtils';
 import { prChatHistoryStorage, type FileChatHistories } from './prChatHistoryService';
@@ -184,10 +185,9 @@ class PRDataStorage {
 export const prDataStorage = new PRDataStorage();
 
 // Service to fetch PR data from GitHub
-export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | null> => {
+export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData> => {
   try {
     // ドメインからサーバーIDを取得してGitHubクライアントを作成
-
     const serverId = await getServerIdByDomain(identifier.domain);
     const github: GithubClient = await GithubClient.create(serverId);
     const { owner, repo } = identifier;
@@ -203,17 +203,9 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       filesData.map(async file => {
         let decodedContent;
         if (file.contents_url) {
-          try {
-            const contentUrlParts = file.contents_url.split('/contents/');
-            if (contentUrlParts.length > 1) {
-              try {
-                decodedContent = await github.fetchBlob(owner, repo, file.sha);
-              } catch (e) {
-                /* empty */
-              }
-            }
-          } catch (e) {
-            /* empty */
+          const contentUrlParts = file.contents_url.split('/contents/');
+          if (contentUrlParts.length > 1) {
+            decodedContent = await github.fetchBlob(owner, repo, file.sha);
           }
         }
         return {
@@ -231,44 +223,34 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
     // レビューデータを取得
     let instructions = undefined;
     let readme = undefined;
-    try {
-      const customPath = await instructionPathStorage.get();
-      if (customPath) {
-        try {
-          const { data } = await github.fetchFileContent(owner, repo, customPath);
-          if ('content' in data && typeof data.content === 'string') {
-            const base64 = data.content.replace(/\n/g, '');
-            instructions = atob(base64);
-          }
-        } catch {
-          instructions = undefined;
+    const customPath = await instructionPathStorage.get();
+    if (customPath) {
+      try {
+        const { data } = await github.fetchFileContent(owner, repo, customPath);
+        if ('content' in data && typeof data.content === 'string') {
+          const base64 = data.content.replace(/\n/g, '');
+          instructions = atob(base64);
         }
+      } catch {
+        instructions = undefined;
       }
-      readme = await github.fetchReadmeContent(owner, repo);
-    } catch (error) {
-      /* empty */
     }
+    readme = await github.fetchReadmeContent(owner, repo);
 
-    // PRレビューコメント（pulls.listReviewComments）を取得
-    let userComments: PRUserComment[] = [];
-    try {
-      const { data: reviewCommentsData } = await github.fetchPullRequestReviewComments(identifier);
+    const { data: reviewCommentsData } = await github.fetchPullRequestReviewComments(identifier);
 
-      userComments = reviewCommentsData.map(comment => ({
-        id: comment.id,
-        user: {
-          login: comment.user?.login || '',
-          avatar_url: comment.user?.avatar_url || '',
-        },
-        path: comment.path || '',
-        body: comment.body || '',
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        url: comment.html_url,
-      }));
-    } catch (e) {
-      /* empty */
-    }
+    const userComments = reviewCommentsData.map(comment => ({
+      id: comment.id,
+      user: {
+        login: comment.user?.login || '',
+        avatar_url: comment.user?.avatar_url || '',
+      },
+      path: comment.path || '',
+      body: comment.body || '',
+      created_at: comment.created_at,
+      updated_at: comment.updated_at,
+      url: comment.html_url,
+    }));
 
     return {
       id: prData.id,
@@ -307,23 +289,6 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData | nu
       userComments, // ここでレビューコメントを格納
     };
   } catch (error) {
-    // GitHub API認証エラーの場合は専用のエラーを投げる
-    if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
-      throw new GitHubAuthenticationError();
-    } else {
-      // その他のエラーはそのまま投げる
-      throw new Error('Failed to fetch PR data');
-    }
+    throw GitHubError.create(error);
   }
 };
-
-// GitHub認証エラー用のカスタムエラークラス
-export class GitHubAuthenticationError extends Error {
-  constructor() {
-    super('GitHub authentication failed. Please check your access token.');
-    this.name = 'GitHubAuthenticationError';
-
-    // プロトタイプチェーンを正しく設定（TypeScriptでのError継承のベストプラクティス）
-    Object.setPrototypeOf(this, GitHubAuthenticationError.prototype);
-  }
-}

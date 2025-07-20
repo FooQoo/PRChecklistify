@@ -2,7 +2,8 @@ import { Octokit } from '@octokit/rest';
 import type { PRIdentifier } from '../types';
 import type { GitHubServer } from '@extension/storage';
 import { githubTokensStorage } from '@extension/storage';
-import { getActiveGitHubServer, loadGitHubServerConfig } from './configLoader';
+import { loadGitHubServerConfig } from './configLoader';
+import { GitHubError } from '@src/errors/GitHubError';
 
 export class GithubClient {
   private octokit: Octokit;
@@ -13,24 +14,23 @@ export class GithubClient {
     this.server = server;
   }
 
-  static async create(serverId?: string): Promise<GithubClient> {
+  static async create(serverId: string): Promise<GithubClient> {
     let server: (GitHubServer & { token?: string }) | undefined;
 
-    if (serverId) {
-      // Get specific server
-      const servers = await loadGitHubServerConfig();
-      const targetServer = servers.find(s => s.id === serverId);
-      if (targetServer) {
-        const token = await githubTokensStorage.getToken(serverId);
-        server = { ...targetServer, token };
-      }
-    } else {
-      // Get active server
-      server = await getActiveGitHubServer();
+    // Get specific server
+    const servers = await loadGitHubServerConfig();
+    const targetServer = servers.find(s => s.id === serverId);
+    if (targetServer) {
+      const token = await githubTokensStorage.getToken(serverId);
+      server = { ...targetServer, token };
     }
 
-    if (!server || !server.token) {
-      throw new Error('No GitHub server configuration found or no token available');
+    if (!server) {
+      throw GitHubError.createServerConfigNotFoundError();
+    }
+
+    if (!server.token) {
+      throw GitHubError.createTokenNotFoundError();
     }
 
     const octokit = new Octokit({
@@ -47,22 +47,61 @@ export class GithubClient {
     return new GithubClient(octokit, server);
   }
 
+  private handleError(error: unknown): never {
+    if (error && typeof error === 'object' && 'status' in error) {
+      const status = (error as { status: number }).status;
+      switch (status) {
+        case 401:
+          throw GitHubError.createTokenInvalidError(error);
+        case 403:
+          if (error && typeof error === 'object' && 'message' in error) {
+            const message = (error as { message: string }).message;
+            if (message.includes('rate limit')) {
+              throw GitHubError.createRateLimitError(error);
+            }
+          }
+          throw GitHubError.createRepositoryAccessError(error);
+        case 404:
+          throw GitHubError.createFileNotFoundError(error);
+        default:
+          throw GitHubError.createApiError(error);
+      }
+    }
+    throw GitHubError.createNetworkError(error);
+  }
+
   getServer(): GitHubServer & { token?: string } {
     return this.server;
   }
 
   async fetchPullRequest(identifier: PRIdentifier) {
-    const { owner, repo, prNumber } = identifier;
-    return this.octokit.pulls.get({ owner, repo, pull_number: Number(prNumber) });
+    try {
+      const { owner, repo, prNumber } = identifier;
+      return this.octokit.pulls.get({ owner, repo, pull_number: Number(prNumber) });
+    } catch (error) {
+      console.error('Error fetching pull request:', error);
+      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
+        throw GitHubError.createPullRequestNotFoundError(error);
+      }
+      this.handleError(error);
+    }
   }
 
   async fetchPullRequestFiles(identifier: PRIdentifier) {
-    const { owner, repo, prNumber } = identifier;
-    return this.octokit.pulls.listFiles({ owner, repo, pull_number: Number(prNumber) });
+    try {
+      const { owner, repo, prNumber } = identifier;
+      return this.octokit.pulls.listFiles({ owner, repo, pull_number: Number(prNumber) });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async fetchFileContent(owner: string, repo: string, path: string) {
-    return this.octokit.repos.getContent({ owner, repo, path });
+    try {
+      return this.octokit.repos.getContent({ owner, repo, path });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   /**
@@ -79,8 +118,11 @@ export class GithubClient {
         return atob(base64);
       }
       return undefined;
-    } catch {
-      return undefined;
+    } catch (error) {
+      if (GitHubError.isGitHubError(error) && error.i18nKey === 'githubFileNotFound') {
+        return undefined;
+      }
+      throw error;
     }
   }
 
@@ -93,8 +135,11 @@ export class GithubClient {
         return atob(base64);
       }
       return undefined;
-    } catch {
-      return undefined;
+    } catch (error) {
+      if (GitHubError.isGitHubError(error) && error.i18nKey === 'githubFileNotFound') {
+        return undefined;
+      }
+      throw error;
     }
   }
 
@@ -105,26 +150,34 @@ export class GithubClient {
    * @param file_sha ファイルのSHA
    */
   async fetchBlob(owner: string, repo: string, file_sha: string) {
-    const blob = await this.octokit.git.getBlob({ owner, repo, file_sha });
-    const base64 = blob.data.content.replace(/\n/g, '');
-    const decodedContent = atob(base64);
-    // 各行で200文字を超える場合はtruncateする
-    return decodedContent
-      .split('\n')
-      .map(line => line.slice(0, 200))
-      .join('\n');
+    try {
+      const blob = await this.octokit.git.getBlob({ owner, repo, file_sha });
+      const base64 = blob.data.content.replace(/\n/g, '');
+      const decodedContent = atob(base64);
+      // 各行で200文字を超える場合はtruncateする
+      return decodedContent
+        .split('\n')
+        .map(line => line.slice(0, 200))
+        .join('\n');
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   /**
    * PRのレビューコメント（pulls.listReviewComments）を取得
    */
   async fetchPullRequestReviewComments(identifier: PRIdentifier) {
-    const { owner, repo, prNumber } = identifier;
-    return this.octokit.pulls.listReviewComments({
-      owner,
-      repo,
-      pull_number: Number(prNumber),
-      per_page: 100,
-    });
+    try {
+      const { owner, repo, prNumber } = identifier;
+      return this.octokit.pulls.listReviewComments({
+        owner,
+        repo,
+        pull_number: Number(prNumber),
+        per_page: 100,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 }
