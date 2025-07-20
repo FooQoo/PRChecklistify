@@ -4,8 +4,12 @@ import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUse
 import { GithubClient } from './github';
 import { instructionPathStorage } from '@extension/storage';
 import { getServerIdByDomain } from '../utils/prUtils';
+import { prChatHistoryStorage, type FileChatHistories } from './prChatHistoryService';
 
 type RecentPR = { title: string; key: string; timestamp: number };
+type ChatMessage = { sender: string; message: string };
+type AllFileChatHistories = Record<string, ChatMessage[]>;
+type SingleFileChatHistory = ChatMessage[];
 
 // PRデータをローカルストレージに保存・取得するためのユーティリティ
 class PRDataStorage {
@@ -65,37 +69,32 @@ class PRDataStorage {
     }
   }
 
-  // ファイルチャット履歴を保存
-  async saveFileChatHistoriesToStorage(
-    prKey: string,
-    histories: Record<string, { sender: string; message: string }[]>,
-  ): Promise<void> {
+  // ファイルチャット履歴を保存（新しいprChatHistoryServiceを使用）
+  async saveFileChatHistoriesToStorage(prKey: string, histories: AllFileChatHistories): Promise<void> {
     try {
-      const savedData = await this.getAllFromStorage();
-      const existingIndex = savedData.findIndex(item => item.key === prKey);
-      if (existingIndex >= 0) {
-        const prev = savedData[existingIndex];
-        savedData[existingIndex] = {
-          ...prev,
-          fileChatHistories: histories,
-          timestamp: Date.now(),
-        };
-        await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
-      }
+      await prChatHistoryStorage.saveFileChatHistories(prKey, histories as FileChatHistories);
     } catch (error) {
       throw error;
     }
   }
 
-  // ファイルチャット履歴を取得
-  async getFileChatHistoriesFromStorage(
-    prKey: string,
-  ): Promise<Record<string, { sender: string; message: string }[]> | undefined> {
+  // ファイルチャット履歴を取得（新しいprChatHistoryServiceを使用）
+  async getFileChatHistoriesFromStorage(prKey: string, filename: string): Promise<SingleFileChatHistory> {
     try {
-      const result = await this.getFromStorage(prKey);
-      return result?.fileChatHistories;
+      const histories = await prChatHistoryStorage.getSingleFileChatHistory(prKey, filename);
+      return histories || [];
     } catch (error) {
-      return undefined;
+      return [];
+    }
+  }
+
+  // 全ファイルのチャット履歴を取得（必要に応じて使用）
+  async getAllFileChatHistoriesFromStorage(prKey: string): Promise<AllFileChatHistories> {
+    try {
+      const histories = await prChatHistoryStorage.getFileChatHistories(prKey);
+      return histories || {};
+    } catch (error) {
+      return {};
     }
   }
 
