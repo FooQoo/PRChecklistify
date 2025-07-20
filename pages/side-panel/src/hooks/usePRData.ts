@@ -15,8 +15,7 @@ export type ErrorKeyType =
   | 'failedToLoadPrData'
   | 'errorOccurredWhileLoadingPrData'
   | 'failedToRefreshPrData'
-  | 'failedToSaveAnalysisResult'
-  | 'failedToSaveChecklist'
+  | 'error'
   | null;
 
 // PRデータを管理するためのカスタムフック
