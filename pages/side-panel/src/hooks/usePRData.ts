@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult, Checklist } from '../types';
-import { GitHubAuthenticationError, prDataStorage } from '../services/prDataService';
+import { prDataStorage } from '../services/prDataService';
+import { GitHubError } from '@src/errors/GitHubError';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { loadPRDataFromAnySource, fetchAndSetPRData } from './prDataLoader';
 import { getApprovedFiles, getApprovalPercentage } from '../utils/prApprovalUtils';
@@ -9,11 +10,13 @@ import { getApprovedFiles, getApprovalPercentage } from '../utils/prApprovalUtil
 const currentPrDataAtom = atom<PRData | null>(null);
 
 export type ErrorKeyType =
+  | 'githubTokenNotFound'
   | 'githubAuthenticationError'
   | 'failedToLoadPrData'
   | 'errorOccurredWhileLoadingPrData'
   | 'failedToRefreshPrData'
-  | 'errorOccurredWhileRefreshingPrData'
+  | 'failedToSaveAnalysisResult'
+  | 'failedToSaveChecklist'
   | null;
 
 // PRデータを管理するためのカスタムフック
@@ -88,10 +91,8 @@ export function usePRData(prKey: string) {
       await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading);
       return prData;
     } catch (error) {
-      if (error instanceof GitHubAuthenticationError) {
-        setError('githubAuthenticationError');
-      } else {
-        setError('failedToLoadPrData');
+      if (GitHubError.isGitHubError(error)) {
+        setError(error.i18nKey as ErrorKeyType);
       }
       return null;
     } finally {

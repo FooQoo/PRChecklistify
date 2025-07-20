@@ -473,5 +473,32 @@
   },
   "llmServiceError": {
     "message": "LLM 서비스에서 오류가 발생했습니다. 다시 시도해 주세요."
+  },
+  "githubTokenNotFound": {
+    "message": "GitHub 토큰을 찾을 수 없습니다. 설정을 확인해 주세요."
+  },
+  "githubTokenInvalid": {
+    "message": "GitHub 토큰이 유효하지 않습니다. 설정을 확인해 주세요."
+  },
+  "githubServerConfigNotFound": {
+    "message": "GitHub 서버 구성을 찾을 수 없습니다."
+  },
+  "githubRateLimitExceeded": {
+    "message": "GitHub API 속도 제한에 도달했습니다. 잠시 기다렸다가 다시 시도해 주세요."
+  },
+  "githubNetworkError": {
+    "message": "GitHub에 연결하는 중 네트워크 오류가 발생했습니다."
+  },
+  "githubRepositoryAccessDenied": {
+    "message": "리포지토리에 대한 액세스가 거부되었습니다."
+  },
+  "githubPullRequestNotFound": {
+    "message": "지정된 풀 리퀘스트를 찾을 수 없습니다."
+  },
+  "githubFileNotFound": {
+    "message": "지정된 파일을 찾을 수 없습니다."
+  },
+  "githubApiError": {
+    "message": "GitHub API에서 오류가 발생했습니다. 다시 시도해 주세요."
   }
 }

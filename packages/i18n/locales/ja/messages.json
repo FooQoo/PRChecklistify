@@ -483,5 +483,32 @@
   },
   "llmServiceError": {
     "message": "LLMサービスでエラーが発生しました。もう一度お試しください。"
+  },
+  "githubTokenNotFound": {
+    "message": "GitHubトークンが見つかりません。設定を確認してください。"
+  },
+  "githubTokenInvalid": {
+    "message": "GitHubトークンが無効です。設定を確認してください。"
+  },
+  "githubServerConfigNotFound": {
+    "message": "GitHubサーバー設定が見つかりません。"
+  },
+  "githubRateLimitExceeded": {
+    "message": "GitHub APIのレート制限に達しました。しばらく待ってから再度お試しください。"
+  },
+  "githubNetworkError": {
+    "message": "GitHubへの接続でネットワークエラーが発生しました。"
+  },
+  "githubRepositoryAccessDenied": {
+    "message": "リポジトリへのアクセス権限がありません。"
+  },
+  "githubPullRequestNotFound": {
+    "message": "指定されたプルリクエストが見つかりません。"
+  },
+  "githubFileNotFound": {
+    "message": "指定されたファイルが見つかりません。"
+  },
+  "githubApiError": {
+    "message": "GitHub APIでエラーが発生しました。もう一度お試しください。"
   }
 }

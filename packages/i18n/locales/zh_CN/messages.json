@@ -474,5 +474,32 @@
   },
   "llmServiceError": {
     "message": "LLM服务发生错误。请重试。"
+  },
+  "githubTokenNotFound": {
+    "message": "未找到GitHub令牌。请检查设置。"
+  },
+  "githubTokenInvalid": {
+    "message": "GitHub令牌无效。请检查设置。"
+  },
+  "githubServerConfigNotFound": {
+    "message": "未找到GitHub服务器配置。"
+  },
+  "githubRateLimitExceeded": {
+    "message": "GitHub API速率限制已达到。请稍等片刻后重试。"
+  },
+  "githubNetworkError": {
+    "message": "连接到GitHub时发生网络错误。"
+  },
+  "githubRepositoryAccessDenied": {
+    "message": "访问仓库被拒绝。"
+  },
+  "githubPullRequestNotFound": {
+    "message": "未找到指定的Pull Request。"
+  },
+  "githubFileNotFound": {
+    "message": "未找到指定的文件。"
+  },
+  "githubApiError": {
+    "message": "GitHub API发生错误。请重试。"
   }
 }
