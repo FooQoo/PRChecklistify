@@ -252,7 +252,11 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       <div className="font-semibold text-xs mb-1">
                         {chat.sender === 'You' ? t('you') : t('aiReviewer')}
                       </div>
-                      <MarkdownRenderer content={chat.message} className="text-left" />
+                      <MarkdownRenderer
+                        content={chat.message}
+                        className="text-left"
+                        codeTheme={chat.sender === 'You' ? 'blue' : 'default'}
+                      />
                     </div>
                   </div>
                 ))
@@ -262,7 +266,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                   <div className="inline-block max-w-[85%] rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-800">
                     <div className="font-semibold text-xs mb-1">{t('aiReviewer')}</div>
                     <div className="relative">
-                      <MarkdownRenderer content={streamedMessage} />
+                      <MarkdownRenderer content={streamedMessage} codeTheme="default" />
                       <div className="mt-1">
                         <span className="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                         <span

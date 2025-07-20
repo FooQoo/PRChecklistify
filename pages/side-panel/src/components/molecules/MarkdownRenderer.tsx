@@ -5,14 +5,39 @@ import remarkGfm from 'remark-gfm';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  codeTheme?: 'default' | 'blue';
 }
 
 /**
  * マークダウンを美しくレンダリングするコンポーネント
  * @param content - レンダリングするマークダウン文字列
  * @param className - 追加のCSSクラス（オプション）
+ * @param codeTheme - コードブロックのテーマ（default | blue）
  */
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '' }) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  className = '',
+  codeTheme = 'default',
+}) => {
+  // コードブロックのテーマ設定
+  const getCodeBlockStyles = (theme: string) => {
+    switch (theme) {
+      case 'blue':
+        return 'bg-blue-100';
+      default:
+        return 'bg-gray-800';
+    }
+  };
+
+  const getInlineCodeStyles = (theme: string) => {
+    switch (theme) {
+      case 'blue':
+        return 'bg-blue-100';
+      default:
+        return 'bg-gray-100';
+    }
+  };
+
   return (
     <div className={`markdown-body ${className}`}>
       <ReactMarkdown
@@ -59,9 +84,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
           // コードブロックのカスタマイズ
           code: ({ className, ...props }) =>
             className?.includes('language-') ? (
-              <code className="block bg-gray-800 text-white p-4 rounded-md overflow-x-auto text-sm my-4" {...props} />
+              <code
+                className={`block p-4 rounded-md overflow-x-auto text-sm my-4 ${getCodeBlockStyles(codeTheme)}`}
+                {...props}
+              />
             ) : (
-              <code className="bg-gray-100 px-1 py-0.5 rounded text-sm" {...props} />
+              <code className={`px-1 py-0.5 rounded text-sm ${getInlineCodeStyles(codeTheme)}`} {...props} />
             ),
           pre: ({ ...props }) => <pre className="bg-transparent p-0" {...props} />,
 
