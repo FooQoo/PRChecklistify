@@ -537,5 +537,17 @@
   },
   "githubApiError": {
     "message": "GitHub APIでエラーが発生しました。もう一度お試しください。"
+  },
+  "estimatedReviewTime": {
+    "message": "推定レビュー時間"
+  },
+  "approved": {
+    "message": "承認済み"
+  },
+  "files": {
+    "message": "ファイル"
+  },
+  "hours": {
+    "message": "時間"
   }
 }

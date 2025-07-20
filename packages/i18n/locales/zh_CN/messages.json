@@ -528,5 +528,17 @@
   },
   "githubApiError": {
     "message": "GitHub API发生错误。请重试。"
+  },
+  "estimatedReviewTime": {
+    "message": "预计审查时间"
+  },
+  "approved": {
+    "message": "已批准"
+  },
+  "files": {
+    "message": "文件"
+  },
+  "hours": {
+    "message": "小时"
   }
 }

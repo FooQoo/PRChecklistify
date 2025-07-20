@@ -527,5 +527,17 @@
   },
   "githubApiError": {
     "message": "GitHub API에서 오류가 발생했습니다. 다시 시도해 주세요."
+  },
+  "estimatedReviewTime": {
+    "message": "예상 검토 시간"
+  },
+  "approved": {
+    "message": "승인됨"
+  },
+  "files": {
+    "message": "파일"
+  },
+  "hours": {
+    "message": "시간"
   }
 }

@@ -100,9 +100,11 @@ const GitHubPRView = () => {
         <h4 className="font-bold mb-1">Review Progress:</h4>
         <div className="flex justify-between mb-1 text-sm">
           <span>
-            Approved: {approvedFilesCount}/{prData.files.length} files
+            {t('approved')}: {approvedFilesCount}/{prData.files.length} {t('files')}
           </span>
-          <span>Estimated review time: {reviewTime || 0} hours</span>
+          <span>
+            {t('estimatedReviewTime')}: {reviewTime || 0} {t('hours')}
+          </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div
