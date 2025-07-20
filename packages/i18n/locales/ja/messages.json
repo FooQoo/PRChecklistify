@@ -55,6 +55,21 @@
   "githubIntegration": {
     "message": "GitHub連携"
   },
+  "go": {
+    "message": "移動"
+  },
+  "invalidGitHubPrUrl": {
+    "message": "有効なGitHub PR URLを入力してください"
+  },
+  "recentPullRequests": {
+    "message": "最近のプルリクエスト"
+  },
+  "showAll": {
+    "message": "すべて表示"
+  },
+  "showLess": {
+    "message": "表示を減らす"
+  },
   "aiProvider": {
     "message": "利用するAI"
   },
