@@ -88,6 +88,9 @@ class ClaudeClient implements ModelClient {
         }
       }
     } catch (error) {
+      if (LLMError.isLLMError(error)) {
+        throw error; // Re-throw LLMError for consistent handling
+      }
       handleLLMError(error);
     }
   }

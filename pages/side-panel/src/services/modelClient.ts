@@ -12,9 +12,15 @@ import { LLMError } from '@src/errors/LLMError';
 // Re-export ModelClientType for backward compatibility
 export { ModelClientType } from '@extension/storage';
 
+const invalidApiKeyErrorMessage = [
+  'Incorrect API key provided', // openai
+  'API key not valid', // gemini
+  'invalid x-api-key', // claude
+];
+
 // Error handling for LLM services with i18n support
 export function handleLLMError(error: unknown): never {
-  if (APICallError.isInstance(error) && error.message.includes('API key not valid')) {
+  if (APICallError.isInstance(error) && invalidApiKeyErrorMessage.some(msg => error.message.includes(msg))) {
     throw LLMError.createAPIKeyError(error);
   }
 

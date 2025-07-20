@@ -81,11 +81,15 @@ class OpenAIClient implements ModelClient {
 
           case 'error': {
             const error = part.error;
+            console.error('OpenAI stream error:', error);
             handleLLMError(error);
           }
         }
       }
     } catch (error) {
+      if (LLMError.isLLMError(error)) {
+        throw error; // Re-throw LLMError for consistent handling
+      }
       handleLLMError(error);
     }
   }
