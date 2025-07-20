@@ -244,6 +244,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                         setShowCompleteModal(true);
                       }
                     }}
+                    onExpand={() => setTimeout(scrollToBottom, 0)}
                     defaultExpanded={false}
                   />
                 </div>
