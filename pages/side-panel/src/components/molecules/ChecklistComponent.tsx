@@ -9,6 +9,7 @@ interface ChecklistComponentProps {
   onToggle: (itemIndex: number) => void;
   className?: string;
   defaultExpanded?: boolean;
+  onExpand?: () => void;
 }
 
 // チェックリスト項目コンポーネント
