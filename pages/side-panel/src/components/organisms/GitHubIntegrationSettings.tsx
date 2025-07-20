@@ -2,9 +2,9 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useGithubTokensAtom } from '../../hooks/useGithubTokensAtom';
 import { useI18n } from '@extension/i18n';
-import { TextInput } from '../atoms';
 import { getGitHubServersWithTokens } from '../../services/configLoader';
 import type { GitHubServer } from '@extension/storage';
+import { TextInput } from '../molecules';
 
 interface GitHubIntegrationSettingsProps {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '@extension/i18n';
-import { useNavigation } from '../context/NavigationContext';
 import { isGitHubPRPage, extractPRInfoFromKey } from '../utils/prUtils';
+import { useNavigation } from './NavigationContext';
 
 const DefaultView: React.FC = () => {
   const { t } = useI18n();
