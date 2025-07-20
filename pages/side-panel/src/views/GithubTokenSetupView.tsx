@@ -37,15 +37,10 @@ const GithubTokenSetupView: React.FC = () => {
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full">
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-4">{t('githubIntegration')} Setup</h2>
-          <p className="text-sm mb-4 text-gray-600">
-            To use PR Checklistify, you need to configure GitHub server access with Personal Access Tokens. These tokens
-            should have <span className="font-bold">repo</span> scope permissions.
-          </p>
+          <p className="text-sm mb-4 text-gray-600" dangerouslySetInnerHTML={{ __html: t('githubSetupDescription') }} />
           {hasGitHubToken && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-800">
-                ✓ GitHub tokens configured. You can continue to the next step or configure additional servers.
-              </p>
+              <p className="text-sm text-green-800">✓ {t('githubTokensConfigured')}</p>
             </div>
           )}
         </div>

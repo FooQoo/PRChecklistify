@@ -103,6 +103,12 @@
   "githubTokenStorageNotice": {
     "message": "您的GitHub令牌存储在本地，仅用于访问PR数据。"
   },
+  "githubSetupDescription": {
+    "message": "要使用PR Checklistify，您需要使用个人访问令牌配置GitHub服务器访问。这些令牌应具有<strong>repo</strong>范围权限。"
+  },
+  "githubTokensConfigured": {
+    "message": "GitHub令牌已配置。您可以继续下一步。"
+  },
   "createGithubToken": {
     "message": "在GitHub上创建个人访问令牌 →"
   },
