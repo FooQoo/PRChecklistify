@@ -109,6 +109,9 @@
   "githubTokensConfigured": {
     "message": "GitHub令牌已配置。您可以继续下一步。"
   },
+  "continueSetup": {
+    "message": "继续设置"
+  },
   "createGithubToken": {
     "message": "在GitHub上创建个人访问令牌 →"
   },

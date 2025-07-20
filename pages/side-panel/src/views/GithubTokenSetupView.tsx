@@ -58,7 +58,7 @@ const GithubTokenSetupView: React.FC = () => {
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}>
-            Continue Setup
+            {t('continueSetup')}
           </button>
         </div>
 

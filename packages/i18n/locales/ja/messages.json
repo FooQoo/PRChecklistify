@@ -109,6 +109,9 @@
   "githubTokensConfigured": {
     "message": "GitHubトークンが設定されています。次のステップに進むことができます。"
   },
+  "continueSetup": {
+    "message": "セットアップを続ける"
+  },
   "createGithubToken": {
     "message": "GitHubで個人用アクセス トークンを作成 →"
   },

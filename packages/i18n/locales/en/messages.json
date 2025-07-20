@@ -109,6 +109,9 @@
   "githubTokensConfigured": {
     "message": "GitHub tokens configured. You can continue to the next step."
   },
+  "continueSetup": {
+    "message": "Continue Setup"
+  },
   "createGithubToken": {
     "message": "Create a personal access token on GitHub →"
   },
