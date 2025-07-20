@@ -56,7 +56,7 @@ export interface ModelClient {
 }
 
 // Factory function to create appropriate client
-export async function createModelClient(): Promise<ModelClient | null> {
+export async function createModelClient(): Promise<ModelClient> {
   // Get the preferred client type from storage, default to OpenAI if not set
   const clientType = (await modelClientTypeStorage.get()) || ModelClientType.OpenAI;
 
@@ -70,8 +70,6 @@ export async function createModelClient(): Promise<ModelClient | null> {
       return await createGeminiClient(providerConfig.apiEndpoint);
     case ModelClientType.Claude:
       return await createClaudeClient(providerConfig.apiEndpoint);
-    default:
-      return null;
   }
 }
 
