@@ -1,10 +1,10 @@
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import DefaultView from '../views/DefaultView';
-import GitHubPRView from '../views/GitHubPRView';
-import SettingsView from '../views/SettingsView';
-import GithubTokenSetupView from '../views/GithubTokenSetupView';
-import { NavigationProvider } from '../context/NavigationContext';
-import Layout from '../layouts/Layout';
+import DefaultView from './DefaultView';
+import GitHubPRView from './GitHubPRView';
+import SettingsView from './SettingsView';
+import GithubTokenSetupView from './GithubTokenSetupView';
+import { NavigationProvider } from './NavigationContext';
+import Layout from '../components/templates/Layout';
 import AiTokenSetupView from '@src/views/AiTokenSetupView';
 
 // ルート定義

@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Header, Footer, SettingsButton } from '../components';
+import { Header, Footer, SettingsButton } from '..';
 
 const Layout = () => {
   const location = useLocation();

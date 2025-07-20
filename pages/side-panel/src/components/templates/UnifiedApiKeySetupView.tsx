@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useNavigation } from '../../context/NavigationContext';
 import { useI18n } from '@extension/i18n';
 import { useOpenaiKeyAtom } from '../../hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '../../hooks/useGeminiKeyAtom';
@@ -13,6 +12,7 @@ import { TextInput, Button } from '../atoms';
 import { getAllLLMProviders, getLLMProviderById } from '../../services/configLoader';
 
 import type { ModelClientType } from '../../services/modelClient';
+import { useNavigation } from '@src/views/NavigationContext';
 
 interface UnifiedApiKeySetupViewProps {
   mode?: 'setup' | 'settings';
