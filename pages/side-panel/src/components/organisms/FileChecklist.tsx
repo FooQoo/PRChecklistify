@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import type { PRData, Checklist, PRAnalysisResult } from '../../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
-import { fetchers } from '@src/services/aiService';
+import { aiService } from '@src/services/aiService';
 import type { Language } from '@extension/storage';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
@@ -308,7 +308,7 @@ const FileChecklist = ({
         });
       }, 100);
 
-      const checklist = await fetchers.generateChecklist(prData, file, language);
+      const checklist = await aiService.generateChecklist(prData, file, language);
       await saveAnalysisResultChecklist(checklist);
     } catch (error) {
       setError(getLocalizedErrorMessage(error, t));

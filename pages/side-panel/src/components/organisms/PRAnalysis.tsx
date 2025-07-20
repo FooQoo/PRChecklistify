@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
 import type { Checklist, PRAnalysisResult, PRData } from '@src/types';
-import { fetchers } from '@src/services/aiService';
+import { aiService } from '@src/services/aiService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
@@ -48,7 +48,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
     let streamed = '';
     await refreshData();
     try {
-      await fetchers.generateSummaryStream(
+      await aiService.streamPRSummary(
         prData,
         language,
         (token: string) => {

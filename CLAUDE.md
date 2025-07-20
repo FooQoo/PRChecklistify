@@ -141,7 +141,16 @@ The extension integrates with multiple AI providers:
 - **Gemini**: Google's AI models
 - **Claude**: Anthropic's models
 
-Services are abstracted through a unified `modelClient` interface in `repositories/ai/modelClient.ts`.
+### Architecture
+- **Repository Layer**: `repositories/ai/modelClient.ts` - Unified interface for AI providers
+- **Service Layer**: `services/aiService.ts` - Business logic for AI operations using singleton pattern
+- **Usage**: Import `aiService` singleton instance for all AI operations
+
+### AI Service Methods
+- `generateAnalysis()` - Generate AI analysis for PR files
+- `generateChecklist()` - Generate checklists for PR files  
+- `streamFileChat()` - Stream chat responses for file discussions
+- `streamPRSummary()` - Stream PR summary generation
 
 ## Chrome Extension Architecture
 
@@ -232,7 +241,7 @@ repositories/
 #### Services Structure (pages/side-panel/src/services/)
 ```
 services/
-├── aiService.ts               # AIサービスビジネスロジック
+├── aiService.ts               # AI operations (singleton class-based service)
 ├── prChatHistoryService.ts    # PRチャット履歴管理
 └── prDataService.ts           # PRデータ処理サービス
 ```

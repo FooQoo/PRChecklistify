@@ -3,7 +3,7 @@ import type { PRFile, PRAnalysisResult, Checklist, PRData } from '../../types';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
 import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
-import { fetchers } from '@src/services/aiService';
+import { aiService } from '@src/services/aiService';
 import { prDataStorage } from '@src/services/prDataService';
 
 interface FileChatModalProps {
@@ -109,7 +109,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
     try {
       const allDiffs = Object.fromEntries(prData.files.map(f => [f.filename, f.patch || '']));
 
-      await fetchers.fileChatStream(
+      await aiService.streamFileChat(
         prData,
         file,
         updatedHistoryWithUser,
