@@ -1,18 +1,18 @@
-import { useMemo } from 'react';
-import { useNavigation } from '../../context/NavigationContext';
 import { useI18n } from '@extension/i18n';
-import { useOpenaiKeyAtom } from '../../hooks/useOpenaiKeyAtom';
-import { useGeminiKeyAtom } from '../../hooks/useGeminiKeyAtom';
-import { useClaudeKeyAtom } from '../../hooks/useClaudeKeyAtom';
-import { useOpenaiModelAtom } from '../../hooks/useOpenaiModelAtom';
-import { useGeminiModelAtom } from '../../hooks/useGeminiModelAtom';
-import { useClaudeModelAtom } from '../../hooks/useClaudeModelAtom';
-import { useModelClientTypeAtom } from '../../hooks/useModelClientTypeAtom';
-import { isGeminiApiEnabled } from '../../utils/envUtils';
-import { TextInput, Button } from '../atoms';
-import { getAllLLMProviders, getLLMProviderById } from '../../services/configLoader';
+import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
+import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
+import { useClaudeKeyAtom } from '@src/hooks/useClaudeKeyAtom';
+import { useOpenaiModelAtom } from '@src/hooks/useOpenaiModelAtom';
+import { useGeminiModelAtom } from '@src/hooks/useGeminiModelAtom';
+import { useClaudeModelAtom } from '@src/hooks/useClaudeModelAtom';
+import { useModelClientTypeAtom } from '@src/hooks/useModelClientTypeAtom';
+import { isGeminiApiEnabled } from '@src/utils/envUtils';
+import { Button } from '@src/components/atoms';
+import { ApiProviderSelector } from '@src/components/molecules';
+import { ApiKeyConfiguration } from '@src/components/organisms';
 
-import type { ModelClientType } from '../../services/modelClient';
+import type { ModelClientType } from '@src/services/modelClient';
+import { useNavigation } from '@src/views/NavigationContext';
 
 interface UnifiedApiKeySetupViewProps {
   mode?: 'setup' | 'settings';
@@ -31,52 +31,12 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   const { modelClientType, setTypeAndStorage } = useModelClientTypeAtom();
 
   const geminiEnabled = isGeminiApiEnabled();
-  const llmProviders = getAllLLMProviders();
-
-  // 現在のプロバイダー情報をメモ化
-  const currentProvider = useMemo(() => {
-    if (modelClientType && llmProviders.length > 0) {
-      return getLLMProviderById(modelClientType) || null;
-    }
-    return null;
-  }, [modelClientType, llmProviders]);
-
-  // モデルオプションを統一形式で取得するヘルパー関数
-  const getUnifiedModelOptions = (provider: ModelClientType) => {
-    const providerInfo = getLLMProviderById(provider);
-    if (providerInfo && providerInfo.models) {
-      return providerInfo.models.map(model => ({
-        key: model.id,
-        value: model.id,
-        label: model.name,
-      }));
-    }
-    return [];
-  };
 
   // プロバイダー選択時にストレージへ保存
   const handleProviderChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProvider = e.target.value as ModelClientType;
     await setTypeAndStorage(newProvider);
   };
-
-  // APIキーのマスク表示
-  const getMaskedApiKey = (key: string): string => {
-    if (!key || key.length < 10) return '****';
-    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
-  };
-
-  // プロバイダーオプションをJSONから取得
-  const getProviderOptions = () => {
-    return llmProviders
-      .filter(provider => provider.id !== 'gemini' || geminiEnabled)
-      .map(provider => ({
-        id: provider.id,
-        name: provider.name,
-      }));
-  };
-
-  const providerOptions = getProviderOptions();
 
   // 現在のプロバイダーのAPIキーが設定されているかどうかを確認
   const isApiKeySet = () => {
@@ -92,188 +52,54 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
     }
   };
 
+  // API設定のpropsを取得
+  const getApiConfigProps = () => {
+    switch (modelClientType) {
+      case 'openai':
+        return {
+          apiKey: openaiKey,
+          currentModel: openaiModel,
+          onApiKeySave: setOpenaiKeyAndStorage,
+          onApiKeyRemove: clearOpenaiKey,
+          onModelChange: (e: React.ChangeEvent<HTMLSelectElement>) => setOpenaiModelAndStorage(e.target.value),
+        };
+      case 'gemini':
+        return {
+          apiKey: geminiKey,
+          currentModel: geminiModel,
+          onApiKeySave: setGeminiKeyAndStorage,
+          onApiKeyRemove: clearGeminiKey,
+          onModelChange: (e: React.ChangeEvent<HTMLSelectElement>) => setGeminiModelAndStorage(e.target.value),
+        };
+      case 'claude':
+        return {
+          apiKey: claudeKey,
+          currentModel: claudeModel,
+          onApiKeySave: setClaudeKeyAndStorage,
+          onApiKeyRemove: clearClaudeKey,
+          onModelChange: (e: React.ChangeEvent<HTMLSelectElement>) => setClaudeModelAndStorage(e.target.value),
+        };
+      default:
+        return {
+          apiKey: undefined,
+          currentModel: '',
+          onApiKeySave: async () => {},
+          onApiKeyRemove: async () => {},
+          onModelChange: () => {},
+        };
+    }
+  };
+
+  const apiConfigProps = getApiConfigProps();
+
   // 設定画面の構造に合わせた統合レイアウト
   const renderContent = () => (
     <div className="space-y-4">
-      {/* プロバイダー選択 */}
-      <div className="mb-4">
-        <label htmlFor="provider-select" className="block text-sm font-medium text-gray-700 mb-1">
-          {t('selectAiProvider')}
-        </label>
-        <select
-          id="provider-select"
-          value={modelClientType}
-          onChange={handleProviderChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          {providerOptions.map(option => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ApiProviderSelector modelClientType={modelClientType} onProviderChange={handleProviderChange} />
 
       {/* 選択されたプロバイダーの詳細設定 */}
-      {modelClientType === 'openai' && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold mb-4">{t('openaiIntegration')}</h3>
-          <TextInput
-            label={t('openaiApiKey')}
-            value={openaiKey}
-            placeholder="******"
-            type="password"
-            onSave={async key => {
-              await setOpenaiKeyAndStorage(key);
-              if (onToast) onToast(t('apiKeySavedSuccess'), 'success');
-            }}
-            onRemove={clearOpenaiKey}
-            errorMessage={t('invalidApiKeyFormat')}
-            successMessage={t('apiKeySavedSuccess')}
-            removeText={t('remove')}
-            saveText={t('save')}
-            savingText={t('saving')}
-            keySetText={t('apiKeyIsSet')}
-            keyNotSetText={t('apiKeyNotSet')}
-            getMaskedValue={getMaskedApiKey}
-            onToast={onToast}
-          />
-          <div className="mb-4">
-            <label htmlFor="openai-model" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('modelVersion')}
-            </label>
-            <select
-              id="openai-model"
-              value={openaiModel}
-              onChange={e => setOpenaiModelAndStorage(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {getUnifiedModelOptions('openai' as ModelClientType).map(model => (
-                <option key={model.key} value={model.value}>
-                  {model.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="text-xs text-gray-500">
-            <p>
-              {t('openaiKeyStorageNotice')}
-              <a
-                href={currentProvider?.tokenRegistrationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-500 hover:text-blue-700 ml-1">
-                {t('getOpenAIKey')}
-              </a>
-            </p>
-          </div>
-        </div>
-      )}
-
-      {modelClientType === 'gemini' && geminiEnabled && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold mb-4">{t('geminiIntegration')}</h3>
-          <TextInput
-            label={t('geminiApiKey')}
-            value={geminiKey}
-            placeholder="******"
-            type="password"
-            onSave={async key => {
-              await setGeminiKeyAndStorage(key);
-              if (onToast) onToast(t('geminiApiKeySavedSuccess'), 'success');
-            }}
-            onRemove={clearGeminiKey}
-            errorMessage={t('invalidGeminiApiKeyFormat')}
-            successMessage={t('geminiApiKeySavedSuccess')}
-            removeText={t('remove')}
-            saveText={t('save')}
-            savingText={t('saving')}
-            keySetText={t('geminiApiKeyIsSet')}
-            keyNotSetText={t('geminiApiKeyNotSet')}
-            getMaskedValue={getMaskedApiKey}
-            onToast={onToast}
-          />
-          <div className="mb-4">
-            <label htmlFor="gemini-model" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('modelVersion')}
-            </label>
-            <select
-              id="gemini-model"
-              value={geminiModel}
-              onChange={e => setGeminiModelAndStorage(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {getUnifiedModelOptions('gemini' as ModelClientType).map(model => (
-                <option key={model.key} value={model.value}>
-                  {model.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="text-xs text-gray-500">
-            <p>
-              {t('geminiKeyStorageNotice')}
-              <a
-                href={currentProvider?.tokenRegistrationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-500 hover:text-blue-700 ml-1">
-                {t('getGeminiKey')}
-              </a>
-            </p>
-          </div>
-        </div>
-      )}
-
-      {modelClientType === 'claude' && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold mb-4">{t('claudeIntegration')}</h3>
-          <TextInput
-            label={t('claudeApiKey')}
-            value={claudeKey}
-            placeholder="******"
-            type="password"
-            onSave={async key => {
-              await setClaudeKeyAndStorage(key);
-              if (onToast) onToast(t('claudeApiKeySavedSuccess'), 'success');
-            }}
-            onRemove={clearClaudeKey}
-            errorMessage={t('invalidClaudeApiKeyFormat')}
-            successMessage={t('claudeApiKeySavedSuccess')}
-            removeText={t('remove')}
-            saveText={t('save')}
-            savingText={t('saving')}
-            keySetText={t('claudeApiKeyIsSet')}
-            keyNotSetText={t('claudeApiKeyNotSet')}
-            getMaskedValue={getMaskedApiKey}
-            onToast={onToast}
-          />
-          <div className="mb-4">
-            <label htmlFor="claude-model" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('modelVersion')}
-            </label>
-            <select
-              id="claude-model"
-              value={claudeModel}
-              onChange={e => setClaudeModelAndStorage(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {getUnifiedModelOptions('claude' as ModelClientType).map(model => (
-                <option key={model.key} value={model.value}>
-                  {model.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="text-xs text-gray-500">
-            <p>
-              {t('claudeKeyStorageNotice')}
-              <a
-                href={currentProvider?.tokenRegistrationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-500 hover:text-blue-700 ml-1">
-                {t('getClaudeKey')}
-              </a>
-            </p>
-          </div>
-        </div>
+      {modelClientType === 'gemini' && !geminiEnabled ? null : (
+        <ApiKeyConfiguration modelClientType={modelClientType} {...apiConfigProps} onToast={onToast} />
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type React from 'react';
 import { createContext, useContext, useEffect } from 'react';
-import { router } from '../routes/AppRoutes';
+import { router } from '../views/AppRoutes';
 import { atom, useAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { currentPageAtom } from '@src/atoms/currentPageAtom';

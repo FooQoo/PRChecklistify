@@ -1,6 +1,7 @@
 import { useI18n } from '@extension/i18n';
 import { useInstructionPathAtom } from '../../hooks/useInstructionPathAtom';
-import { TextInput } from '../atoms';
+import { TextInput } from '../molecules';
+
 interface InstructionPathSettingsProps {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }

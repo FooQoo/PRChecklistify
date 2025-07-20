@@ -130,6 +130,9 @@
   "resetToDefault": {
     "message": "重置为默认值"
   },
+  "apiConfiguration": {
+    "message": "API配置"
+  },
   "openaiIntegration": {
     "message": "OpenAI集成"
   },
@@ -141,6 +144,9 @@
   },
   "analysisLanguageDescription": {
     "message": "选择要使用的语言。"
+  },
+  "apiKey": {
+    "message": "API密钥"
   },
   "openaiApiKey": {
     "message": "OpenAI API密钥"
@@ -172,8 +178,14 @@
   "failedToRemoveApiKey": {
     "message": "删除API密钥失败"
   },
+  "keyStorageNotice": {
+    "message": "API密钥保存在本地，仅在扩展中使用。"
+  },
   "openaiKeyStorageNotice": {
     "message": "OpenAI API密钥保存在本地，仅在扩展中使用。"
+  },
+  "getApiKey": {
+    "message": "获取API密钥"
   },
   "getOpenAIKey": {
     "message": "从OpenAI获取您的API密钥"

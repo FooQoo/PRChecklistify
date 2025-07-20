@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import '@src/SidePanel.css';
 import { withErrorBoundary, withSuspense } from '@extension/shared';
 import { useAtom } from 'jotai';
-import AppRouter from './routes/AppRoutes';
+import AppRouter from './views/AppRoutes';
 import { currentPageAtom } from './atoms/currentPageAtom';
 import { useI18n } from '@extension/i18n';
 

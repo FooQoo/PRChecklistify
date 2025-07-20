@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
-import type { PRData, PRAnalysisResult, Checklist } from '../types';
-import { prDataStorage } from '../services/prDataService';
+import type { PRData, PRAnalysisResult, Checklist } from '@src/types';
+import { prDataStorage } from '@src/services/prDataService';
 import { GitHubError } from '@src/errors/GitHubError';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { loadPRDataFromAnySource, fetchAndSetPRData } from './prDataLoader';
-import { getApprovedFiles, getApprovalPercentage } from '../utils/prApprovalUtils';
+import { getApprovedFiles, getApprovalPercentage } from '@src/utils/prApprovalUtils';
 
 const currentPrDataAtom = atom<PRData | null>(null);
 
@@ -15,8 +15,7 @@ export type ErrorKeyType =
   | 'failedToLoadPrData'
   | 'errorOccurredWhileLoadingPrData'
   | 'failedToRefreshPrData'
-  | 'failedToSaveAnalysisResult'
-  | 'failedToSaveChecklist'
+  | 'error'
   | null;
 
 // PRデータを管理するためのカスタムフック

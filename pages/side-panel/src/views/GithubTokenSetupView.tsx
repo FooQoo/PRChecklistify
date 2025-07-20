@@ -1,10 +1,10 @@
 import type React from 'react';
 import { useState } from 'react';
 import { useI18n } from '@extension/i18n';
-import { useNavigation } from '@src/context/NavigationContext';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 import { useGithubTokensAtom } from '@src/hooks/useGithubTokensAtom';
 import GitHubIntegrationSettings from '@src/components/organisms/GitHubIntegrationSettings';
+import { useNavigation } from './NavigationContext';
 
 const GithubTokenSetupView: React.FC = () => {
   const { navigateToHome, navigateToOpenAiTokenSetup } = useNavigation();
