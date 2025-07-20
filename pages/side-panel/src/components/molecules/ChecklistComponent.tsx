@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Checklist } from '../../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { useI18n } from '@extension/i18n';
@@ -92,7 +92,6 @@ const ChecklistComponent = ({
   onToggle,
   className = '',
   defaultExpanded = true,
-  onExpand,
 }: ChecklistComponentProps) => {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -109,14 +108,6 @@ const ChecklistComponent = ({
   const toggleExpanded = () => {
     setExpanded(!expanded);
   };
-
-  useEffect(() => {
-    if (expanded && onExpand) {
-      setTimeout(() => {
-        onExpand();
-      }, 0);
-    }
-  }, [expanded, onExpand]);
 
   return (
     <div className={`space-y-2 ${className}`}>
