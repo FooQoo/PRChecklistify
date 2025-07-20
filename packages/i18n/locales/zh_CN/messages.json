@@ -55,6 +55,21 @@
   "githubIntegration": {
     "message": "GitHub集成"
   },
+  "go": {
+    "message": "前往"
+  },
+  "invalidGitHubPrUrl": {
+    "message": "请输入有效的 GitHub PR URL"
+  },
+  "recentPullRequests": {
+    "message": "最近的拉取请求"
+  },
+  "showAll": {
+    "message": "显示全部"
+  },
+  "showLess": {
+    "message": "收起"
+  },
   "aiProvider": {
     "message": "AI提供者"
   },

@@ -89,15 +89,15 @@ const DefaultView: React.FC = () => {
               className={`px-4 py-2 rounded-r-md ${
                 isValid ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}>
-              Go
+              {t('go')}
             </button>
           </div>
-          {prUrl && !isValid && <p className="mt-1 text-sm text-red-500">Please enter a valid GitHub PR URL</p>}
+          {prUrl && !isValid && <p className="mt-1 text-sm text-red-500">{t('invalidGitHubPrUrl')}</p>}
         </div>
 
         {recentPRs.length > 0 && (
           <div className="recent-prs mb-6">
-            <h2 className="text-lg font-semibold mb-2">Recent Pull Requests</h2>
+            <h2 className="text-lg font-semibold mb-2">{t('recentPullRequests')}</h2>
             <ul className="divide-y divide-gray-200">
               {displayedPRs.map((pr, index) => {
                 const prInfo = extractPRInfoFromKey(pr.key);
@@ -123,7 +123,7 @@ const DefaultView: React.FC = () => {
                 onClick={() => setShowAllRecent(true)}
                 className="group mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center hover:scale-100 hover:shadow-none">
                 <span className="inline-block transition-transform group-hover:-translate-y-0.5">
-                  Show All ({recentPRs.length})
+                  {t('showAll')} ({recentPRs.length})
                 </span>
               </button>
             )}
@@ -131,7 +131,7 @@ const DefaultView: React.FC = () => {
               <button
                 onClick={() => setShowAllRecent(false)}
                 className="group mt-2 text-sm text-blue-500 hover:text-blue-700 w-full text-center hover:scale-100 hover:shadow-none">
-                <span className="inline-block transition-transform group-hover:-translate-y-0.5">Show Less</span>
+                <span className="inline-block transition-transform group-hover:-translate-y-0.5">{t('showLess')}</span>
               </button>
             )}
           </div>

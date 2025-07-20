@@ -39,6 +39,21 @@
   "githubIntegration": {
     "message": "GitHub 연동"
   },
+  "go": {
+    "message": "이동"
+  },
+  "invalidGitHubPrUrl": {
+    "message": "유효한 GitHub PR URL을 입력해주세요"
+  },
+  "recentPullRequests": {
+    "message": "최근 풀 리퀘스트"
+  },
+  "showAll": {
+    "message": "모두 보기"
+  },
+  "showLess": {
+    "message": "간략히 보기"
+  },
   "aiProvider": {
     "message": "AI 제공자"
   },

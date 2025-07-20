@@ -61,7 +61,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
   if (isLoading || !isGithubTokensLoaded) {
     return (
       <div className="animate-pulse">
-        <h2 className="text-lg font-semibold mb-4">GitHub Integration</h2>
+        <h2 className="text-lg font-semibold mb-4">{t('githubIntegration')}</h2>
         <div className="h-20 bg-gray-200 rounded-lg"></div>
       </div>
     );

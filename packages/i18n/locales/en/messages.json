@@ -55,6 +55,21 @@
   "githubIntegration": {
     "message": "GitHub Integration"
   },
+  "go": {
+    "message": "Go"
+  },
+  "invalidGitHubPrUrl": {
+    "message": "Please enter a valid GitHub PR URL"
+  },
+  "recentPullRequests": {
+    "message": "Recent Pull Requests"
+  },
+  "showAll": {
+    "message": "Show All"
+  },
+  "showLess": {
+    "message": "Show Less"
+  },
   "aiProvider": {
     "message": "AI Provider"
   },
