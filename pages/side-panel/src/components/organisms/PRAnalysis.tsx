@@ -185,7 +185,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                           ...prev,
                           [file.filename]: [...(prev[file.filename] || []), { sender: 'AI', message: aiMsg }],
                         }));
-                      } catch {
+                      } catch (error) {
                         setChatHistories(prev => ({
                           ...prev,
                           [file.filename]: [
@@ -193,6 +193,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                             { sender: 'AI', message: aiMsg || t('aiResponseInterrupted') },
                           ],
                         }));
+                        throw error;
                       } finally {
                         if (streamOpts?.onDone) streamOpts.onDone();
                       }
