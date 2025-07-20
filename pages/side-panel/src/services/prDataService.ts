@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-useless-catch */
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
-import { GithubClient } from './github';
+import { GithubClient } from '../repositories/github/github';
 import { GitHubError } from '@src/errors/GitHubError';
 import { instructionPathStorage } from '@extension/storage';
 import { getServerIdByDomain } from '../utils/prUtils';

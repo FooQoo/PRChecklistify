@@ -1,8 +1,8 @@
 import { Octokit } from '@octokit/rest';
-import type { PRIdentifier } from '../types';
+import type { PRIdentifier } from '../../types';
 import type { GitHubServer } from '@extension/storage';
 import { githubTokensStorage } from '@extension/storage';
-import { loadGitHubServerConfig } from './configLoader';
+import { loadGitHubServerConfig } from '../../utils/configLoader';
 import { GitHubError } from '@src/errors/GitHubError';
 
 export class GithubClient {

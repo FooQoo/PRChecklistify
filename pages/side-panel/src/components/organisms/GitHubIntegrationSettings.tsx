@@ -2,7 +2,7 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useGithubTokensAtom } from '../../hooks/useGithubTokensAtom';
 import { useI18n } from '@extension/i18n';
-import { getGitHubServersWithTokens } from '../../services/configLoader';
+import { getGitHubServersWithTokens } from '../../utils/configLoader';
 import type { GitHubServer } from '@extension/storage';
 import { TextInput } from '../molecules';
 

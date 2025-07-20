@@ -1,5 +1,5 @@
 import type { PRData, PRIdentifier } from '../types';
-import { getGitHubServersWithTokens, loadGitHubServerConfig } from '../services/configLoader';
+import { getGitHubServersWithTokens, loadGitHubServerConfig } from './configLoader';
 
 // レビュー時間を計算する関数（単位：時間）
 export const calculateReviewTime = (prData: PRData): number => {

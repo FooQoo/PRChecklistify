@@ -1,6 +1,6 @@
 /* eslint-disable no-useless-catch */
 import type { PRData, PRFile, Language } from '@extension/shared';
-import { createModelClient } from './modelClient';
+import { createModelClient } from '../repositories/ai/modelClient';
 import { getLanguageLabel } from '@extension/storage';
 
 // Add SWR fetchers for use with useSWR

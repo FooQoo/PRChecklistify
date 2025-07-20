@@ -87,18 +87,21 @@ pnpm clean
 ### Main Application (pages/side-panel/src/)
 ```
 src/
-├── components/           # Atomic Design structure
-│   ├── atoms/           # Basic UI elements (Button, TextInput, etc.)
-│   ├── molecules/       # Component combinations (ApiKeySettings, etc.)
-│   ├── organisms/       # Complex components (FileChecklist, PRAnalysis, etc.)
-│   └── templates/       # Page-level components
-├── services/            # AI service integrations (OpenAI, Gemini, Claude)
+├── atoms/               # Jotai atoms for state management
+├── components/          # Atomic Design structure
+│   ├── atoms/          # Basic UI elements (Button, TextInput, etc.)
+│   ├── molecules/      # Component combinations (ApiKeySettings, etc.)
+│   ├── organisms/      # Complex components (FileChecklist, PRAnalysis, etc.)
+│   └── templates/      # Page-level components
+├── errors/              # Custom error classes
 ├── hooks/               # Custom React hooks for state management
-├── views/               # Route components
-├── routes/              # React Router configuration
-├── context/             # React Context providers
+├── repositories/        # Data access layer
+│   ├── ai/             # AI service implementations (OpenAI, Gemini, Claude)
+│   └── github/         # GitHub API client
+├── services/            # Business logic services
 ├── types/               # TypeScript type definitions
-└── utils/               # Utility functions
+├── utils/               # Utility functions
+└── views/               # Route components
 ```
 
 ### Key Technologies
@@ -138,7 +141,7 @@ The extension integrates with multiple AI providers:
 - **Gemini**: Google's AI models
 - **Claude**: Anthropic's models
 
-Services are abstracted through a unified `modelClient` interface in `services/modelClient.ts`.
+Services are abstracted through a unified `modelClient` interface in `repositories/ai/modelClient.ts`.
 
 ## Chrome Extension Architecture
 
@@ -214,20 +217,32 @@ components/
 - アトミックデザインの階層を厳密に守る
 - ファイル名はPascalCase、コンポーネント名と一致させる
 
+#### Repositories Structure (pages/side-panel/src/repositories/)
+```
+repositories/
+├── ai/                 # AIサービス実装
+│   ├── claude.ts       # Claude APIクライアント
+│   ├── gemini.ts       # Gemini APIクライアント
+│   ├── modelClient.ts  # AIサービス統合レイヤー
+│   └── openai.ts       # OpenAI APIクライアント
+└── github/
+    └── github.ts       # GitHub APIクライアント
+```
+
 #### Services Structure (pages/side-panel/src/services/)
 ```
 services/
-├── github.ts           # GitHub API クライアント
-├── openai.ts          # AI サービス実装
-├── modelClient.ts     # サービス統合レイヤー
-└── index.ts           # サービスのexport
+├── aiService.ts               # AIサービスビジネスロジック
+├── prChatHistoryService.ts    # PRチャット履歴管理
+└── prDataService.ts           # PRデータ処理サービス
 ```
 
 **規約:**
+- **Repositories**: データアクセス層、外部APIとの通信を担当
+- **Services**: ビジネスロジック、repositoriesを使用してアプリケーションロジックを実装
 - クラスベースの実装を推奨
 - エラーハンドリングはカスタムエラークラスを使用
 - static createメソッドでインスタンス生成
-- 外部APIとの通信はここに集約
 
 #### Hooks Structure (pages/side-panel/src/hooks/)
 ```
@@ -597,11 +612,13 @@ pnpm prettier      # フォーマットチェック
 3. `as const`でreturn typeを固定
 4. storageとの同期が必要な場合は明示的に実装
 
-#### 新しいserviceを作る時
-1. クラスベースで実装
-2. `static create`メソッドでインスタンス化
-3. エラーハンドリングを統一
-4. 適切な型定義を提供
+#### 新しいrepository/serviceを作る時
+1. **Repository**: データアクセス層、外部API通信を担当
+2. **Service**: ビジネスロジック、repositoryを使用してアプリケーションロジックを実装
+3. クラスベースで実装
+4. `static create`メソッドでインスタンス化
+5. エラーハンドリングを統一
+6. 適切な型定義を提供
 
 ---
 
