@@ -1,5 +1,5 @@
 import type { PRData, PRIdentifier } from '../types';
-import { getGitHubServersWithTokens } from '../services/configLoader';
+import { getGitHubServersWithTokens, loadGitHubServerConfig } from '../services/configLoader';
 
 // レビュー時間を計算する関数（単位：時間）
 export const calculateReviewTime = (prData: PRData): number => {
@@ -102,4 +102,21 @@ export const getServerIdByDomain = async (domain: string): Promise<string> => {
   });
 
   return server!.id;
+};
+
+// 指定したドメインが設定済みのGitHubサーバか確認する
+export const isRegisteredGitHubServer = (domain: string): boolean => {
+  try {
+    const servers = loadGitHubServerConfig();
+    return servers.some(server => {
+      try {
+        const serverDomain = new URL(server.webUrl).hostname;
+        return serverDomain === domain;
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return false;
+  }
 };

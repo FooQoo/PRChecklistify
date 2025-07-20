@@ -5,6 +5,7 @@ import { router } from '../routes/AppRoutes';
 import { atom, useAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { currentPageAtom } from '@src/atoms/currentPageAtom';
+import { isRegisteredGitHubServer } from '../utils/prUtils';
 import { useGithubTokensAtom } from '../hooks/useGithubTokensAtom';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
 import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
@@ -65,7 +66,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
     if (currentPage?.url) {
       const prInfo = extractPRInfo(currentPage.url);
-      if (prInfo) {
+      if (prInfo && isRegisteredGitHubServer(prInfo.domain)) {
         router.navigate(`/pr/${prInfo.domain}/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
       }
     }
@@ -113,10 +114,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     const prInfo = extractPRInfo(url);
     if (!prInfo) return;
     const { domain, owner, repo, prNumber } = prInfo;
+    if (!isRegisteredGitHubServer(domain)) return;
     router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
   const navigateToPrFromHistory = (domain: string, owner: string, repo: string, prNumber: string) => {
+    if (!isRegisteredGitHubServer(domain)) return;
     router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
