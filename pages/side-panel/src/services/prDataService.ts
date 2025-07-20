@@ -4,8 +4,12 @@ import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUse
 import { GithubClient } from './github';
 import { instructionPathStorage } from '@extension/storage';
 import { getServerIdByDomain } from '../utils/prUtils';
+import { prChatHistoryStorage, type FileChatHistories } from './prChatHistoryService';
 
 type RecentPR = { title: string; key: string; timestamp: number };
+type ChatMessage = { sender: string; message: string };
+type AllFileChatHistories = Record<string, ChatMessage[]>;
+type SingleFileChatHistory = ChatMessage[];
 
 // PRデータをローカルストレージに保存・取得するためのユーティリティ
 class PRDataStorage {
@@ -30,7 +34,11 @@ class PRDataStorage {
         // キャッシュサイズが最大に達していれば、最も古いものを削除
         if (savedData.length >= this.MAX_CACHE_SIZE) {
           savedData.sort((a, b) => b.timestamp - a.timestamp);
-          savedData.pop();
+          const removedItem = savedData.pop();
+          // 削除されたPRのチャット履歴も削除
+          if (removedItem) {
+            await prChatHistoryStorage.clearPRChatHistories(removedItem.key);
+          }
         }
         savedData.push({
           key: prKey,
@@ -65,6 +73,35 @@ class PRDataStorage {
     }
   }
 
+  // ファイルチャット履歴を保存（新しいprChatHistoryServiceを使用）
+  async saveFileChatHistoriesToStorage(prKey: string, histories: AllFileChatHistories): Promise<void> {
+    try {
+      await prChatHistoryStorage.saveFileChatHistories(prKey, histories as FileChatHistories);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ファイルチャット履歴を取得（新しいprChatHistoryServiceを使用）
+  async getFileChatHistoriesFromStorage(prKey: string, filename: string): Promise<SingleFileChatHistory> {
+    try {
+      const histories = await prChatHistoryStorage.getSingleFileChatHistory(prKey, filename);
+      return histories || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // 全ファイルのチャット履歴を取得（必要に応じて使用）
+  async getAllFileChatHistoriesFromStorage(prKey: string): Promise<AllFileChatHistories> {
+    try {
+      const histories = await prChatHistoryStorage.getFileChatHistories(prKey);
+      return histories || {};
+    } catch (error) {
+      return {};
+    }
+  }
+
   // 特定のPRデータを取得
   async getFromStorage(prKey: string): Promise<SavedPRData | null> {
     try {
@@ -96,6 +133,8 @@ class PRDataStorage {
       // キーでフィルタリング
       const filteredData = savedData.filter(item => item.key !== prKey);
       await chrome.storage.local.set({ [this.STORAGE_KEY]: filteredData });
+      // 削除されたPRのチャット履歴も削除
+      await prChatHistoryStorage.clearPRChatHistories(prKey);
     } catch (error) {
       throw error;
     }

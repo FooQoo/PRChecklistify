@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAtom } from 'jotai';
 import type { Checklist, PRAnalysisResult, PRData } from '../../types';
 import { fetchers } from '@src/services/aiService';
@@ -12,6 +12,7 @@ import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 interface PRAnalysisProps {
   prData: PRData;
   analysisResult: PRAnalysisResult | undefined;
+  prKey: string;
   refreshData: () => Promise<void>; // PRデータを再読み込みする関数
   saveAnalysisResultSummary: (summary: string) => Promise<void>;
   saveAnalysisResultChecklist: (fileChecklist: Checklist) => Promise<void>;
@@ -20,6 +21,7 @@ interface PRAnalysisProps {
 const PRAnalysis: React.FC<PRAnalysisProps> = ({
   prData,
   analysisResult,
+  prKey,
   refreshData,
   saveAnalysisResultSummary,
   saveAnalysisResultChecklist,
@@ -30,18 +32,6 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   const { language, t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
-  const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pr_file_chat_histories');
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
-
-  // チャット履歴をローカルストレージに保存
-  useEffect(() => {
-    localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
-  }, [chatHistories]);
 
   // PR説明文（summary）のみ生成（ストリームでテキストを受け取り、リアルタイム表示）
   const [streamedSummary, setStreamedSummary] = useState<string>('');
@@ -142,7 +132,9 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                     file={file}
                     onChecklistChange={handleChecklistChange}
                     analysisResult={analysisResult}
-                    onOpenChat={() => setChatModalOpen(file.filename)}
+                    onOpenChat={() => {
+                      setChatModalOpen(file.filename);
+                    }}
                     prData={prData}
                     language={language}
                     saveAnalysisResultChecklist={saveAnalysisResultChecklist}
@@ -151,54 +143,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                     open={chatModalOpen === file.filename}
                     onClose={() => setChatModalOpen(null)}
                     file={file}
-                    chatHistory={chatHistories[file.filename] || []}
-                    onResetChat={() => {
-                      setChatHistories(prev => ({
-                        ...prev,
-                        [file.filename]: [],
-                      }));
-                    }}
-                    onSendMessage={async (
-                      msg: string,
-                      streamOpts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
-                      context?: { allDiffs?: Record<string, string> },
-                    ) => {
-                      setChatHistories(prev => ({
-                        ...prev,
-                        [file.filename]: [...(prev[file.filename] || []), { sender: 'You', message: msg }],
-                      }));
-                      let aiMsg = '';
-                      try {
-                        await fetchers.fileChatStream(
-                          prData,
-                          file,
-                          [...(chatHistories[file.filename] || []), { sender: 'You', message: msg }],
-                          (token: string) => {
-                            aiMsg += token;
-                            if (streamOpts?.onToken) streamOpts.onToken(token);
-                          },
-                          language,
-                          { signal: streamOpts?.signal },
-                          context?.allDiffs,
-                        );
-                        setChatHistories(prev => ({
-                          ...prev,
-                          [file.filename]: [...(prev[file.filename] || []), { sender: 'AI', message: aiMsg }],
-                        }));
-                      } catch (error) {
-                        setChatHistories(prev => ({
-                          ...prev,
-                          [file.filename]: [
-                            ...(prev[file.filename] || []),
-                            { sender: 'AI', message: aiMsg || t('aiResponseInterrupted') },
-                          ],
-                        }));
-                        throw error;
-                      } finally {
-                        if (streamOpts?.onDone) streamOpts.onDone();
-                      }
-                    }}
-                    allDiffs={Object.fromEntries(prData.files.map(f => [f.filename, f.patch || '']))}
+                    prKey={prKey}
+                    prData={prData}
                     analysisResult={analysisResult}
                     onChecklistChange={updatedChecklist => handleChecklistChange(file.filename, updatedChecklist)}
                   />
