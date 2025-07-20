@@ -496,6 +496,7 @@ const handleClick = useCallback(() => {
 - 多言語対応は`useI18n`hookを使用
 - 翻訳キーはdot notation（例：`user.profile.name`）
 - 動的な値は適切にパラメータ化
+- **UI実装時のi18n対応**: 新しいUIコンポーネントを追加するときは、表示される全てのテキストに対してi18n対応を同時に実装する
 
 ## Development Philosophy & Best Practices
 

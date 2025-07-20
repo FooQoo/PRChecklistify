@@ -112,6 +112,9 @@
   "continueSetup": {
     "message": "继续设置"
   },
+  "allFilesApprovedReviewComplete": {
+    "message": "所有文件已通过审核！审核完成。"
+  },
   "createGithubToken": {
     "message": "在GitHub上创建个人访问令牌 →"
   },

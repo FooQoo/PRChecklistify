@@ -112,6 +112,9 @@
   "continueSetup": {
     "message": "セットアップを続ける"
   },
+  "allFilesApprovedReviewComplete": {
+    "message": "全ファイルのレビューが完了しました！"
+  },
   "createGithubToken": {
     "message": "GitHubで個人用アクセス トークンを作成 →"
   },

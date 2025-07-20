@@ -96,6 +96,9 @@
   "continueSetup": {
     "message": "설정 계속하기"
   },
+  "allFilesApprovedReviewComplete": {
+    "message": "모든 파일이 승인되었습니다! 리뷰가 완료되었습니다."
+  },
   "createGithubToken": {
     "message": "GitHub에서 개인 액세스 토큰 만들기 →"
   },

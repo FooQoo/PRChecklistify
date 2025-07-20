@@ -112,6 +112,9 @@
   "continueSetup": {
     "message": "Continue Setup"
   },
+  "allFilesApprovedReviewComplete": {
+    "message": "All files approved! Review complete."
+  },
   "createGithubToken": {
     "message": "Create a personal access token on GitHub →"
   },

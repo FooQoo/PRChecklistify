@@ -188,7 +188,7 @@ const GitHubPRView = () => {
                   d="M9 12l2 2 4-4m2.293-1.293a1 1 0 011.414 0l3.293 3.293a1 1 0 010 1.414l-9 9a1 1 0 01-1.414 0l-3.293-3.293a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
                 />
               </svg>
-              All files approved! Review complete.
+              {t('allFilesApprovedReviewComplete')}
             </div>
           )}
         </div>
