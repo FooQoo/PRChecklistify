@@ -479,7 +479,7 @@
     "message": "APIキーが見つかりません。設定を確認してください。"
   },
   "apiKeyInvalid": {
-    "message": "APIキーが不正です。もう一度お試しください。"
+    "message": "APIキーが不正です。設定を確認してください。"
   },
   "llmServiceError": {
     "message": "LLMサービスでエラーが発生しました。もう一度お試しください。"
