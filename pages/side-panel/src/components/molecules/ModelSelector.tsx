@@ -1,7 +1,7 @@
 import type React from 'react';
-import { getLLMProviderById } from '../../services/configLoader';
+import { getLLMProviderById } from '@src/services/configLoader';
 import { useI18n } from '@extension/i18n';
-import type { ModelClientType } from '../../services/modelClient';
+import type { ModelClientType } from '@src/services/modelClient';
 
 interface ModelSelectorProps {
   modelClientType: ModelClientType;

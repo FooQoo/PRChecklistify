@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
-import type { Checklist, PRAnalysisResult, PRData } from '../../types';
+import type { Checklist, PRAnalysisResult, PRData } from '@src/types';
 import { fetchers } from '@src/services/aiService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
-import { PRSummarySection } from '../molecules';
+import { PRSummarySection } from '@src/components/molecules';
 import { useI18n } from '@extension/i18n';
 import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 

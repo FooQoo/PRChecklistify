@@ -1,8 +1,8 @@
 import type React from 'react';
-import { getAllLLMProviders } from '../../services/configLoader';
-import { isGeminiApiEnabled } from '../../utils/envUtils';
+import { getAllLLMProviders } from '@src/services/configLoader';
+import { isGeminiApiEnabled } from '@src/utils/envUtils';
 import { useI18n } from '@extension/i18n';
-import type { ModelClientType } from '../../services/modelClient';
+import type { ModelClientType } from '@src/services/modelClient';
 
 interface ApiProviderSelectorProps {
   modelClientType: ModelClientType;

@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useState } from 'react';
-import { MarkdownRenderer } from '../molecules/MarkdownRenderer';
+import { MarkdownRenderer } from '@src/components/molecules/MarkdownRenderer';
 import { useI18n } from '@extension/i18n';
 
 interface ChecklistItemProps {

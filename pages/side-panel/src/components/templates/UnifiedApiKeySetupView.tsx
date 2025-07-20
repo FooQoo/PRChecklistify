@@ -1,17 +1,17 @@
 import { useI18n } from '@extension/i18n';
-import { useOpenaiKeyAtom } from '../../hooks/useOpenaiKeyAtom';
-import { useGeminiKeyAtom } from '../../hooks/useGeminiKeyAtom';
-import { useClaudeKeyAtom } from '../../hooks/useClaudeKeyAtom';
-import { useOpenaiModelAtom } from '../../hooks/useOpenaiModelAtom';
-import { useGeminiModelAtom } from '../../hooks/useGeminiModelAtom';
-import { useClaudeModelAtom } from '../../hooks/useClaudeModelAtom';
-import { useModelClientTypeAtom } from '../../hooks/useModelClientTypeAtom';
-import { isGeminiApiEnabled } from '../../utils/envUtils';
-import { Button } from '../atoms';
-import { ApiProviderSelector } from '../molecules';
-import { ApiKeyConfiguration } from '../organisms';
+import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';
+import { useGeminiKeyAtom } from '@src/hooks/useGeminiKeyAtom';
+import { useClaudeKeyAtom } from '@src/hooks/useClaudeKeyAtom';
+import { useOpenaiModelAtom } from '@src/hooks/useOpenaiModelAtom';
+import { useGeminiModelAtom } from '@src/hooks/useGeminiModelAtom';
+import { useClaudeModelAtom } from '@src/hooks/useClaudeModelAtom';
+import { useModelClientTypeAtom } from '@src/hooks/useModelClientTypeAtom';
+import { isGeminiApiEnabled } from '@src/utils/envUtils';
+import { Button } from '@src/components/atoms';
+import { ApiProviderSelector } from '@src/components/molecules';
+import { ApiKeyConfiguration } from '@src/components/organisms';
 
-import type { ModelClientType } from '../../services/modelClient';
+import type { ModelClientType } from '@src/services/modelClient';
 import { useNavigation } from '@src/views/NavigationContext';
 
 interface UnifiedApiKeySetupViewProps {

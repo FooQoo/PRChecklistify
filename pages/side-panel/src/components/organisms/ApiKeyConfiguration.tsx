@@ -1,9 +1,9 @@
 import type React from 'react';
 import { useI18n } from '@extension/i18n';
-import { TextInput } from '../molecules';
-import ModelSelector from '../molecules/ModelSelector';
-import { getLLMProviderById } from '../../services/configLoader';
-import type { ModelClientType } from '../../services/modelClient';
+import { TextInput } from '@src/components/molecules';
+import ModelSelector from '@src/components/molecules/ModelSelector';
+import { getLLMProviderById } from '@src/services/configLoader';
+import type { ModelClientType } from '@src/services/modelClient';
 
 interface ApiKeyConfigurationProps {
   modelClientType: ModelClientType;

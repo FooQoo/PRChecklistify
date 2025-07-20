@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { Checklist } from '../../types';
-import { ChecklistItem } from '../atoms';
+import type { Checklist } from '@src/types';
+import { ChecklistItem } from '@src/components/atoms';
 import { useI18n } from '@extension/i18n';
 
 interface ChecklistComponentProps {

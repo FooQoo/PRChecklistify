@@ -387,18 +387,30 @@ export interface Storage<T> {
 
 #### Import/Export Standards
 ```typescript
-// 良い例：型のimport
+// ✅ 推奨：絶対パス（@srcまたはエイリアス）
 import type React from 'react';
-import type { ComponentProps } from '../types';
-
-// 良い例：実装のimport
+import type { ComponentProps } from '@src/types';
 import { useState } from 'react';
-import { Button } from '../atoms';
+import { Button } from '@src/components/atoms';
+import { useI18n } from '@extension/i18n';
 
-// 良い例：indexファイルでの集約export
+// ✅ 型のimportには明示的にtype修飾子を使用
+import type { Checklist } from '@src/types';
+
+// ✅ indexファイルでの集約export
 export { default as Button } from './Button';
 export { default as TextInput } from './TextInput';
+
+// ❌ 避けるべき：相対パス（深いディレクトリ構造の場合）
+import { ComponentProps } from '../../../types';
+import { Button } from '../atoms';
 ```
+
+#### Import/Export Guidelines
+- **絶対パス優先**: `@src`、`@extension`等のエイリアスを活用
+- **相対パス使用可能**: 同一フォルダまたは1階層以内の場合のみ
+- **型Import**: `import type`を明示的に使用
+- **名前付きexport**: デフォルトexportより推奨（index.tsファイル以外）
 
 ### Code Quality Standards
 
