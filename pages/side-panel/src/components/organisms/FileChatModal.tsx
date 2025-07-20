@@ -252,7 +252,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       <div className="font-semibold text-xs mb-1">
                         {chat.sender === 'You' ? t('you') : t('aiReviewer')}
                       </div>
-                      <MarkdownRenderer content={chat.message} />
+                      <MarkdownRenderer content={chat.message} className="text-left" />
                     </div>
                   </div>
                 ))
