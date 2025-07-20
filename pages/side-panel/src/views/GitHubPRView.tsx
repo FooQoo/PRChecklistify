@@ -175,19 +175,6 @@ const GitHubPRView = () => {
           {/* 追加: 完了メッセージの表示 */}
           {currentApprovalPercentage === 100 && (
             <div className="complete-message p-4 mb-4 rounded bg-green-100 text-green-800">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 inline-block mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m2.293-1.293a1 1 0 011.414 0l3.293 3.293a1 1 0 010 1.414l-9 9a1 1 0 01-1.414 0l-3.293-3.293a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                />
-              </svg>
               {t('allFilesApprovedReviewComplete')}
             </div>
           )}
