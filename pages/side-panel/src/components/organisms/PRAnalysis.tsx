@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import type { Checklist, PRAnalysisResult, PRData } from '../../types';
 import { fetchers } from '@src/services/aiService';
-import { prDataStorage } from '../services/prDataService';
+import { prDataStorage } from '@src/services/prDataService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
