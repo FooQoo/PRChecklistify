@@ -34,7 +34,11 @@ class PRDataStorage {
         // キャッシュサイズが最大に達していれば、最も古いものを削除
         if (savedData.length >= this.MAX_CACHE_SIZE) {
           savedData.sort((a, b) => b.timestamp - a.timestamp);
-          savedData.pop();
+          const removedItem = savedData.pop();
+          // 削除されたPRのチャット履歴も削除
+          if (removedItem) {
+            await prChatHistoryStorage.clearPRChatHistories(removedItem.key);
+          }
         }
         savedData.push({
           key: prKey,
@@ -129,6 +133,8 @@ class PRDataStorage {
       // キーでフィルタリング
       const filteredData = savedData.filter(item => item.key !== prKey);
       await chrome.storage.local.set({ [this.STORAGE_KEY]: filteredData });
+      // 削除されたPRのチャット履歴も削除
+      await prChatHistoryStorage.clearPRChatHistories(prKey);
     } catch (error) {
       throw error;
     }
