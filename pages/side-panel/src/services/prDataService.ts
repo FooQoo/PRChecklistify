@@ -65,6 +65,40 @@ class PRDataStorage {
     }
   }
 
+  // ファイルチャット履歴を保存
+  async saveFileChatHistoriesToStorage(
+    prKey: string,
+    histories: Record<string, { sender: string; message: string }[]>,
+  ): Promise<void> {
+    try {
+      const savedData = await this.getAllFromStorage();
+      const existingIndex = savedData.findIndex(item => item.key === prKey);
+      if (existingIndex >= 0) {
+        const prev = savedData[existingIndex];
+        savedData[existingIndex] = {
+          ...prev,
+          fileChatHistories: histories,
+          timestamp: Date.now(),
+        };
+        await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ファイルチャット履歴を取得
+  async getFileChatHistoriesFromStorage(
+    prKey: string,
+  ): Promise<Record<string, { sender: string; message: string }[]> | undefined> {
+    try {
+      const result = await this.getFromStorage(prKey);
+      return result?.fileChatHistories;
+    } catch (error) {
+      return undefined;
+    }
+  }
+
   // 特定のPRデータを取得
   async getFromStorage(prKey: string): Promise<SavedPRData | null> {
     try {

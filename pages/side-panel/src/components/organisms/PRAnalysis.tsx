@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import type { Checklist, PRAnalysisResult, PRData } from '../../types';
 import { fetchers } from '@src/services/aiService';
+import { prDataStorage } from '../services/prDataService';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
@@ -11,6 +12,7 @@ import { useI18n } from '@extension/i18n';
 interface PRAnalysisProps {
   prData: PRData;
   analysisResult: PRAnalysisResult | undefined;
+  prKey: string;
   refreshData: () => Promise<void>; // PRデータを再読み込みする関数
   saveAnalysisResultSummary: (summary: string) => Promise<void>;
   saveAnalysisResultChecklist: (fileChecklist: Checklist) => Promise<void>;
@@ -19,6 +21,7 @@ interface PRAnalysisProps {
 const PRAnalysis: React.FC<PRAnalysisProps> = ({
   prData,
   analysisResult,
+  prKey,
   refreshData,
   saveAnalysisResultSummary,
   saveAnalysisResultChecklist,
@@ -29,18 +32,26 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   const { language, t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [chatModalOpen, setChatModalOpen] = useState<string | null>(null);
-  const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pr_file_chat_histories');
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
+  const [chatHistories, setChatHistories] = useState<Record<string, { sender: string; message: string }[]>>({});
 
-  // チャット履歴をローカルストレージに保存
+  // ストレージからチャット履歴を読み込み
   useEffect(() => {
-    localStorage.setItem('pr_file_chat_histories', JSON.stringify(chatHistories));
-  }, [chatHistories]);
+    prDataStorage
+      .getFileChatHistoriesFromStorage(prKey)
+      .then(saved => {
+        if (saved) {
+          setChatHistories(saved);
+        }
+      })
+      .catch(() => {
+        /* empty */
+      });
+  }, [prKey]);
+
+  // チャット履歴をストレージに保存
+  useEffect(() => {
+    prDataStorage.saveFileChatHistoriesToStorage(prKey, chatHistories);
+  }, [chatHistories, prKey]);
 
   // PR説明文（summary）のみ生成（ストリームでテキストを受け取り、リアルタイム表示）
   const [streamedSummary, setStreamedSummary] = useState<string>('');

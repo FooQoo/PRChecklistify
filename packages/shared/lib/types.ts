@@ -74,6 +74,7 @@ export interface SavedPRData {
   data: PRData;
   timestamp: number;
   analysisResult?: PRAnalysisResult;
+  fileChatHistories?: Record<string, { sender: string; message: string }[]>;
 }
 
 // 現在のページ情報の型
