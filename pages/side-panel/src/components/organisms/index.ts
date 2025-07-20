@@ -3,3 +3,4 @@ export { default as InstructionPathSettings } from './InstructionPathSettings';
 export { default as FileChecklist } from './FileChecklist';
 export { default as FileChatModal } from './FileChatModal';
 export { default as PRAnalysis } from './PRAnalysis';
+export { default as ApiKeyConfiguration } from './ApiKeyConfiguration';

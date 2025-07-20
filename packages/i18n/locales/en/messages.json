@@ -115,6 +115,9 @@
   "resetToDefault": {
     "message": "Reset to default"
   },
+  "apiConfiguration": {
+    "message": "API Configuration"
+  },
   "openaiIntegration": {
     "message": "OpenAI Integration"
   },
@@ -126,6 +129,9 @@
   },
   "analysisLanguageDescription": {
     "message": "Select the language to use."
+  },
+  "apiKey": {
+    "message": "API Key"
   },
   "openaiApiKey": {
     "message": "OpenAI API Key"
@@ -160,8 +166,14 @@
   "failedToRemoveApiKey": {
     "message": "Failed to remove API key"
   },
+  "keyStorageNotice": {
+    "message": "Your API key is stored locally and only used by the extension."
+  },
   "openaiKeyStorageNotice": {
     "message": "Your OpenAI API key is stored locally and only used by the extension."
+  },
+  "getApiKey": {
+    "message": "Get your API key"
   },
   "getOpenAIKey": {
     "message": "Get your API key from OpenAI"

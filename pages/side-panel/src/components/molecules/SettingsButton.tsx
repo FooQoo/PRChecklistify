@@ -1,5 +1,5 @@
-import { useNavigation } from '../../context/NavigationContext';
 import { useI18n } from '@extension/i18n';
+import { useNavigation } from '@src/views/NavigationContext';
 
 interface SettingsButtonProps {
   className?: string;

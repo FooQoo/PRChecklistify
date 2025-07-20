@@ -99,6 +99,9 @@
   "resetToDefault": {
     "message": "기본값으로 재설정"
   },
+  "apiConfiguration": {
+    "message": "API 설정"
+  },
   "openaiIntegration": {
     "message": "OpenAI 연동"
   },
@@ -125,6 +128,9 @@
   },
   "noChecklistItems": {
     "message": "체크리스트 항목이 없습니다"
+  },
+  "apiKey": {
+    "message": "API 키"
   },
   "openaiApiKey": {
     "message": "OpenAI API 키"
@@ -156,8 +162,14 @@
   "failedToRemoveApiKey": {
     "message": "API 키 제거에 실패했습니다"
   },
+  "keyStorageNotice": {
+    "message": "API 키는 로컬에 저장되며 확장 기능에서만 사용됩니다."
+  },
   "openaiKeyStorageNotice": {
     "message": "OpenAI API 키는 로컬에 저장되며 확장 기능에서만 사용됩니다."
+  },
+  "getApiKey": {
+    "message": "API 키 얻기"
   },
   "getOpenAIKey": {
     "message": "OpenAI에서 API 키 얻기"

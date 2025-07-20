@@ -115,6 +115,9 @@
   "resetToDefault": {
     "message": "デフォルトにリセット"
   },
+  "apiConfiguration": {
+    "message": "API設定"
+  },
   "openaiIntegration": {
     "message": "OpenAI連携"
   },
@@ -126,6 +129,9 @@
   },
   "analysisLanguageDescription": {
     "message": "利用する言語を選択してください。"
+  },
+  "apiKey": {
+    "message": "APIキー"
   },
   "openaiApiKey": {
     "message": "OpenAI APIキー"
@@ -160,8 +166,14 @@
   "failedToRemoveApiKey": {
     "message": "APIキーの削除に失敗しました"
   },
+  "keyStorageNotice": {
+    "message": "APIキーはローカルに保存され、拡張機能でのみ使用されます。"
+  },
   "openaiKeyStorageNotice": {
     "message": "OpenAI APIキーはローカルに保存され、拡張機能でのみ使用されます。"
+  },
+  "getApiKey": {
+    "message": "APIキーを取得する"
   },
   "getOpenAIKey": {
     "message": "OpenAIからAPIキーを取得する"
