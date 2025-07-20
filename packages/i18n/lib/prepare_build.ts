@@ -18,5 +18,4 @@ import { IS_DEV } from '@extension/env';
   if (IS_DEV) {
     setRelatedLocaleImports();
   }
-  console.log('I18n build complete');
 })();
