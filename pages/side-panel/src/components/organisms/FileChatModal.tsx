@@ -1,22 +1,17 @@
-import { useState, useRef, useEffect } from 'react';
-import type { PRFile, PRAnalysisResult, Checklist } from '../../types';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import type { PRFile, PRAnalysisResult, Checklist, PRData } from '../../types';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
 import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
+import { fetchers } from '@src/services/aiService';
+import { prDataStorage } from '@src/services/prDataService';
 
 interface FileChatModalProps {
   open: boolean;
   onClose: () => void;
   file: PRFile;
-  chatHistory: { sender: string; message: string }[];
-  onSendMessage: (
-    msg: string,
-    opts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
-    context?: { allDiffs?: Record<string, string> },
-  ) => Promise<void>;
-  onResetChat?: () => void;
-  // 他ファイルのdiff情報を渡す
-  allDiffs?: Record<string, string>;
+  prKey: string;
+  prData: PRData;
   // 分析結果とチェックリスト変更ハンドラー
   analysisResult?: PRAnalysisResult;
   onChecklistChange: (updatedChecklist: Checklist) => void;
@@ -26,19 +21,18 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   open,
   onClose,
   file,
-  chatHistory,
-  onSendMessage,
-  onResetChat,
-  allDiffs,
+  prKey,
+  prData,
   onChecklistChange,
   analysisResult,
 }) => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamedMessage, setStreamedMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [chatHistory, setChatHistory] = useState<{ sender: string; message: string }[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // チャットコンテナへの参照を追加
@@ -48,38 +42,105 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   // AI分析結果を取得
   const aiAnalysis = analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
 
-  // チャットを一番下までスクロールする関数
-  const scrollToBottom = () => {
+  // チャットを一番下までスクロールする関数（メモ化）
+  const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  };
+  }, []);
 
-  // モーダルが開かれた時に自動スクロール
+  // モーダル開閉とチャット履歴読み込み処理を統合
+  useEffect(() => {
+    if (!open) return;
+
+    setError(null);
+
+    // チャット履歴をストレージから読み込み
+    if (file.filename) {
+      prDataStorage
+        .getFileChatHistoriesFromStorage(prKey, file.filename)
+        .then(saved => {
+          setChatHistory(saved);
+          // 履歴読み込み完了後にスクロール
+          setTimeout(scrollToBottom, 0);
+        })
+        .catch(() => {
+          setChatHistory([]);
+          setTimeout(scrollToBottom, 0);
+        });
+    }
+  }, [open, prKey, file.filename, scrollToBottom]);
+
+  // チャット履歴とストリーミングメッセージの変更時にスクロール
   useEffect(() => {
     if (open) {
-      // setTimeout を使って、DOMが完全に更新された後にスクロールを実行
-      setTimeout(scrollToBottom, 0);
-      setError(null);
+      scrollToBottom();
     }
-  }, [open]);
+  }, [chatHistory, streamedMessage, open, scrollToBottom]);
 
-  // チャット履歴が更新された時に自動スクロール
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatHistory]);
+  // チャット履歴をストレージに保存する関数
+  const saveChatHistoryToStorage = (newHistory: { sender: string; message: string }[]) => {
+    prDataStorage
+      .getAllFileChatHistoriesFromStorage(prKey)
+      .then(existingHistories => {
+        const updated = {
+          ...existingHistories,
+          [file.filename]: newHistory,
+        };
+        return prDataStorage.saveFileChatHistoriesToStorage(prKey, updated);
+      })
+      .catch(() => {
+        // エラーの場合は新しい履歴だけ保存
+        const updated = { [file.filename]: newHistory };
+        return prDataStorage.saveFileChatHistoriesToStorage(prKey, updated);
+      });
+  };
 
-  // ストリーミングメッセージが更新された時に自動スクロール
-  useEffect(() => {
-    scrollToBottom();
-  }, [streamedMessage]);
+  // チャットメッセージ送信処理
+  const handleSendMessage = async (
+    msg: string,
+    opts?: { onToken?: (token: string) => void; signal?: AbortSignal; onDone?: () => void },
+  ) => {
+    const newUserMessage = { sender: 'You', message: msg };
+    const updatedHistoryWithUser = [...chatHistory, newUserMessage];
+    setChatHistory(updatedHistoryWithUser);
 
-  // ローカルでリセット機能を処理する
+    let aiMsg = '';
+    try {
+      const allDiffs = Object.fromEntries(prData.files.map(f => [f.filename, f.patch || '']));
+
+      await fetchers.fileChatStream(
+        prData,
+        file,
+        updatedHistoryWithUser,
+        (token: string) => {
+          aiMsg += token;
+          if (opts?.onToken) opts.onToken(token);
+        },
+        language,
+        { signal: opts?.signal },
+        allDiffs,
+      );
+
+      const newAiMessage = { sender: 'AI', message: aiMsg };
+      const finalHistory = [...updatedHistoryWithUser, newAiMessage];
+      setChatHistory(finalHistory);
+      saveChatHistoryToStorage(finalHistory);
+    } catch (error) {
+      const newAiMessage = { sender: 'AI', message: aiMsg || t('aiResponseInterrupted') };
+      const finalHistory = [...updatedHistoryWithUser, newAiMessage];
+      setChatHistory(finalHistory);
+      saveChatHistoryToStorage(finalHistory);
+      throw error;
+    } finally {
+      if (opts?.onDone) opts.onDone();
+    }
+  };
+
+  // チャットリセット処理
   const handleResetChat = () => {
-    if (onResetChat) {
-      // 親コンポーネントから提供されたリセット関数を使用
-      onResetChat();
-    }
+    setChatHistory([]);
+    saveChatHistoryToStorage([]);
   };
 
   if (!open) return null;
@@ -312,19 +373,15 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       setError(null);
                       abortControllerRef.current = new AbortController();
                       try {
-                        await onSendMessage(
-                          message,
-                          {
-                            onToken: (token: string) => setStreamedMessage(prev => prev + token),
-                            signal: abortControllerRef.current.signal,
-                            onDone: () => {
-                              setStreaming(false);
-                              // メッセージ送信完了時にも一番下までスクロール
-                              setTimeout(scrollToBottom, 0);
-                            },
+                        await handleSendMessage(message, {
+                          onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                          signal: abortControllerRef.current.signal,
+                          onDone: () => {
+                            setStreaming(false);
+                            // メッセージ送信完了時にも一番下までスクロール
+                            setTimeout(scrollToBottom, 0);
                           },
-                          { allDiffs },
-                        );
+                        });
                       } catch (err) {
                         setStreaming(false);
                         setError(getLocalizedErrorMessage(err, t));
@@ -378,19 +435,15 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     setError(null);
                     abortControllerRef.current = new AbortController();
                     try {
-                      await onSendMessage(
-                        currentInput,
-                        {
-                          onToken: (token: string) => setStreamedMessage(prev => prev + token),
-                          signal: abortControllerRef.current.signal,
-                          onDone: () => {
-                            setStreaming(false);
-                            // メッセージ送信完了時にも一番下までスクロール
-                            setTimeout(scrollToBottom, 0);
-                          },
+                      await handleSendMessage(currentInput, {
+                        onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                        signal: abortControllerRef.current.signal,
+                        onDone: () => {
+                          setStreaming(false);
+                          // メッセージ送信完了時にも一番下までスクロール
+                          setTimeout(scrollToBottom, 0);
                         },
-                        { allDiffs },
-                      );
+                      });
                     } catch (err) {
                       setStreaming(false);
                       setError(getLocalizedErrorMessage(err, t));
