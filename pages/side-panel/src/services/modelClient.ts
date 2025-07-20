@@ -5,10 +5,27 @@ import { createGeminiClient } from './gemini';
 import { createClaudeClient } from './claude';
 import { getLLMProviderById } from './configLoader';
 import { modelClientTypeStorage, ModelClientType, type Language, getLanguageLabel } from '@extension/storage';
+import { APICallError } from 'ai';
 import { z } from 'zod';
+import { LLMError } from '@src/errors/LLMError';
 
 // Re-export ModelClientType for backward compatibility
 export { ModelClientType } from '@extension/storage';
+
+const invalidApiKeyErrorMessage = [
+  'Incorrect API key provided', // openai
+  'API key not valid', // gemini
+  'invalid x-api-key', // claude
+];
+
+// Error handling for LLM services with i18n support
+export function handleLLMError(error: unknown): never {
+  if (APICallError.isInstance(error) && invalidApiKeyErrorMessage.some(msg => error.message.includes(msg))) {
+    throw LLMError.createAPIKeyError(error);
+  }
+
+  throw LLMError.createServiceError(error);
+}
 
 // 共通のシステムプロンプト
 export const SYSTEM_PROMPT =
@@ -45,7 +62,7 @@ export interface ModelClient {
 }
 
 // Factory function to create appropriate client
-export async function createModelClient(): Promise<ModelClient | null> {
+export async function createModelClient(): Promise<ModelClient> {
   // Get the preferred client type from storage, default to OpenAI if not set
   const clientType = (await modelClientTypeStorage.get()) || ModelClientType.OpenAI;
 
@@ -59,8 +76,6 @@ export async function createModelClient(): Promise<ModelClient | null> {
       return await createGeminiClient(providerConfig.apiEndpoint);
     case ModelClientType.Claude:
       return await createClaudeClient(providerConfig.apiEndpoint);
-    default:
-      return null;
   }
 }
 

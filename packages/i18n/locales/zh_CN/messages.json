@@ -465,5 +465,14 @@
   },
   "errorOccurredWhileRefreshingPrData": {
     "message": "刷新PR数据时发生错误"
+  },
+  "apiKeyNotFound": {
+    "message": "未找到API密钥。请检查设置。"
+  },
+  "apiKeyInvalid": {
+    "message": "API密钥无效。请检查设置。"
+  },
+  "llmServiceError": {
+    "message": "LLM服务发生错误。请重试。"
   }
 }

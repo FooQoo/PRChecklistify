@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { PRFile, PRAnalysisResult, Checklist } from '../../types';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
+import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 
 interface FileChatModalProps {
   open: boolean;
@@ -36,6 +37,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamedMessage, setStreamedMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -58,6 +60,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
     if (open) {
       // setTimeout を使って、DOMが完全に更新された後にスクロールを実行
       setTimeout(scrollToBottom, 0);
+      setError(null);
     }
   }, [open]);
 
@@ -78,21 +81,6 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
       onResetChat();
     }
   };
-
-  // チェックリストが全てOKになったら自動で完了モーダルを表示
-  // useEffect(() => {
-  //   if (aiAnalysis && aiAnalysis.checklistItems && aiAnalysis.checklistItems.length > 0 && checklistItems) {
-  //     const checklistLength = aiAnalysis.checklistItems.length;
-  //     const items = aiAnalysis.checklistItems.map((_, idx) => {
-  //       const key = `item_${idx}`;
-  //       return checklistItems[key] || aiAnalysis.checklistItems[idx].status;
-  //     });
-  //     const allChecked = items.length === checklistLength && items.every(s => s === 'OK');
-  //     if (allChecked && !showCompleteModal) {
-  //       setShowCompleteModal(true);
-  //     }
-  //   }
-  // }, [aiAnalysis, checklistItems, showCompleteModal]);
 
   if (!open) return null;
   return (
@@ -173,6 +161,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                 </button>
               )}
             </div>
+            {error && <div className="bg-red-100 border border-red-300 text-red-700 text-sm px-3 py-2">{error}</div>}
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 pb-20 bg-white min-h-0">
               {/* チャット履歴 */}
               {chatHistory.length === 0 ? (
@@ -306,7 +295,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
                   }
                 }}
-                onKeyDown={e => {
+                onKeyDown={async e => {
                   // Ctrl+Enter（Macの場合はCmd+Enter）で送信
                   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                     e.preventDefault();
@@ -319,20 +308,26 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                       }
                       setStreaming(true);
                       setStreamedMessage('');
+                      setError(null);
                       abortControllerRef.current = new AbortController();
-                      onSendMessage(
-                        message,
-                        {
-                          onToken: (token: string) => setStreamedMessage(prev => prev + token),
-                          signal: abortControllerRef.current.signal,
-                          onDone: () => {
-                            setStreaming(false);
-                            // メッセージ送信完了時にも一番下までスクロール
-                            setTimeout(scrollToBottom, 0);
+                      try {
+                        await onSendMessage(
+                          message,
+                          {
+                            onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                            signal: abortControllerRef.current.signal,
+                            onDone: () => {
+                              setStreaming(false);
+                              // メッセージ送信完了時にも一番下までスクロール
+                              setTimeout(scrollToBottom, 0);
+                            },
                           },
-                        },
-                        { allDiffs },
-                      );
+                          { allDiffs },
+                        );
+                      } catch (err) {
+                        setStreaming(false);
+                        setError(getLocalizedErrorMessage(err, t));
+                      }
                     }
                   } else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
                     // 通常のEnterキーは改行として動作（デフォルト動作）
@@ -379,20 +374,26 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
                     }
                     setStreaming(true);
                     setStreamedMessage('');
+                    setError(null);
                     abortControllerRef.current = new AbortController();
-                    await onSendMessage(
-                      currentInput,
-                      {
-                        onToken: (token: string) => setStreamedMessage(prev => prev + token),
-                        signal: abortControllerRef.current.signal,
-                        onDone: () => {
-                          setStreaming(false);
-                          // メッセージ送信完了時にも一番下までスクロール
-                          setTimeout(scrollToBottom, 0);
+                    try {
+                      await onSendMessage(
+                        currentInput,
+                        {
+                          onToken: (token: string) => setStreamedMessage(prev => prev + token),
+                          signal: abortControllerRef.current.signal,
+                          onDone: () => {
+                            setStreaming(false);
+                            // メッセージ送信完了時にも一番下までスクロール
+                            setTimeout(scrollToBottom, 0);
+                          },
                         },
-                      },
-                      { allDiffs },
-                    );
+                        { allDiffs },
+                      );
+                    } catch (err) {
+                      setStreaming(false);
+                      setError(getLocalizedErrorMessage(err, t));
+                    }
                   }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

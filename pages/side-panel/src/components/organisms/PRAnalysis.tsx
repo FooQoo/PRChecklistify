@@ -8,6 +8,7 @@ import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';
 import { MarkdownRenderer } from '../molecules';
 import { useI18n } from '@extension/i18n';
+import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 
 interface PRAnalysisProps {
   prData: PRData;
@@ -81,8 +82,8 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
       );
       // ストリーム完了後に保存（文字列として）
       saveAnalysisResultSummary(streamed);
-    } catch {
-      setError(t('failedToGenerateSummary'));
+    } catch (error) {
+      setError(getLocalizedErrorMessage(error, t));
     } finally {
       setGenerating(false);
       setSummaryGenerating(false);
@@ -195,7 +196,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                           ...prev,
                           [file.filename]: [...(prev[file.filename] || []), { sender: 'AI', message: aiMsg }],
                         }));
-                      } catch {
+                      } catch (error) {
                         setChatHistories(prev => ({
                           ...prev,
                           [file.filename]: [
@@ -203,6 +204,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                             { sender: 'AI', message: aiMsg || t('aiResponseInterrupted') },
                           ],
                         }));
+                        throw error;
                       } finally {
                         if (streamOpts?.onDone) streamOpts.onDone();
                       }

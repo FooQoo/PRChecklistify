@@ -74,7 +74,6 @@ export const fetchers = {
     ];
 
     const client = await createModelClient();
-    if (!client) throw new Error('Failed to create model client');
     await client.streamChatCompletion(messages, onToken, options);
   },
 
@@ -83,7 +82,6 @@ export const fetchers = {
     try {
       if (!prData || !file) throw new Error('Invalid PR data or file');
       const client = await createModelClient();
-      if (!client) throw new Error('Failed to create model client');
       return await client.analyzePR(prData, file, _language);
     } catch (error) {
       throw error;
@@ -100,7 +98,6 @@ export const fetchers = {
     try {
       if (!prData) throw new Error('Invalid PR data provided');
       const client = await createModelClient();
-      if (!client) throw new Error('Failed to create model client');
       const diff = prData.files.map(file => file.patch || '').join('\n\n');
       // --- 追加: PRレビューコメントを整形して追記 ---
       let commentsText = '';
