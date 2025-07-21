@@ -95,7 +95,11 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   // 設定画面の構造に合わせた統合レイアウト
   const renderContent = () => (
     <div className="space-y-4">
-      <ApiProviderSelector modelClientType={modelClientType} onProviderChange={handleProviderChange} />
+      <ApiProviderSelector
+        modelClientType={modelClientType}
+        onProviderChange={handleProviderChange}
+        onToast={onToast}
+      />
 
       {/* 選択されたプロバイダーの詳細設定 */}
       {modelClientType === 'gemini' && !geminiEnabled ? null : (

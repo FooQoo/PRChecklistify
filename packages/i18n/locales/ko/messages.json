@@ -66,6 +66,12 @@
   "settingsSavedSuccess": {
     "message": "설정이 성공적으로 저장되었습니다!"
   },
+  "modelChangedSuccess": {
+    "message": "모델이 성공적으로 변경되었습니다!"
+  },
+  "aiProviderChangedSuccess": {
+    "message": "AI 공급업체가 성공적으로 변경되었습니다!"
+  },
   "githubToken": {
     "message": "GitHub 개인 액세스 토큰"
   },

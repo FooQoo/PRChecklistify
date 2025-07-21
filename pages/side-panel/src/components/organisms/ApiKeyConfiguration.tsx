@@ -164,6 +164,7 @@ const ApiKeyConfiguration: React.FC<ApiKeyConfigurationProps> = ({
         modelClientType={modelClientType}
         currentModel={currentModel}
         onModelChange={onModelChange}
+        onToast={onToast}
         htmlId={`${modelClientType}-model`}
       />
       <div className="text-xs text-gray-500">

@@ -82,6 +82,12 @@
   "settingsSavedSuccess": {
     "message": "設定が正常に保存されました！"
   },
+  "modelChangedSuccess": {
+    "message": "モデルが正常に変更されました！"
+  },
+  "aiProviderChangedSuccess": {
+    "message": "AIプロバイダーが正常に変更されました！"
+  },
   "githubToken": {
     "message": "GitHub個人アクセストークン"
   },

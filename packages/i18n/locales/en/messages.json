@@ -82,6 +82,12 @@
   "settingsSavedSuccess": {
     "message": "Settings saved successfully!"
   },
+  "modelChangedSuccess": {
+    "message": "Model changed successfully!"
+  },
+  "aiProviderChangedSuccess": {
+    "message": "AI provider changed successfully!"
+  },
   "githubToken": {
     "message": "GitHub Personal Access Token"
   },

@@ -82,6 +82,12 @@
   "settingsSavedSuccess": {
     "message": "设置已成功保存！"
   },
+  "modelChangedSuccess": {
+    "message": "模型已成功更改！"
+  },
+  "aiProviderChangedSuccess": {
+    "message": "AI提供商已成功更改！"
+  },
   "githubToken": {
     "message": "GitHub个人访问令牌"
   },
