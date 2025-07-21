@@ -1,3 +1,4 @@
+import { IS_DEV } from '@extension/env';
 import { readFileSync } from 'node:fs';
 
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
@@ -29,10 +30,10 @@ const manifest = {
     type: 'module',
   },
   action: {
-    default_icon: 'icon-34.png',
+    default_icon: IS_DEV ? 'icon-34-test.png' : 'icon-34.png',
   },
   icons: {
-    128: 'icon-128.png',
+    128: IS_DEV ? 'icon-128-test.png' : 'icon-128.png',
   },
   side_panel: {
     default_path: 'side-panel/index.html',
