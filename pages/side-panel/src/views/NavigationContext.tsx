@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect } from 'react';
 import { router } from '../views/AppRoutes';
 import { atom, useAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
-import { currentPageAtom } from '@src/atoms/currentPageAtom';
+import { currentPageAtom } from '@src/hooks/useCurrentPage';
 import { isRegisteredGitHubServer } from '../utils/prUtils';
 import { useGithubTokensAtom } from '../hooks/useGithubTokensAtom';
 import { useOpenaiKeyAtom } from '@src/hooks/useOpenaiKeyAtom';

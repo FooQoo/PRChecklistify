@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useI18n } from '@extension/i18n';
 import { isGitHubPRPage, extractPRInfoFromKey } from '../utils/prUtils';
 import { useNavigation } from './NavigationContext';
+import { createPRDataStorageService } from '../di';
 
 const DefaultView: React.FC = () => {
   const { t } = useI18n();
@@ -14,16 +15,22 @@ const DefaultView: React.FC = () => {
   // 最近表示したPRの履歴を読み込む
   useEffect(() => {
     const loadRecentPRs = async () => {
-      try {
-        const result = await chrome.storage.local.get('recentPRs');
-        if (result.recentPRs && Array.isArray(result.recentPRs)) {
-          // タイムスタンプで並べ替え（最新順）
-          const sortedPRs = [...result.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
-          setRecentPRs(sortedPRs);
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        /* empty */
+      // 新しいストレージサービスを使用
+      const storageService = createPRDataStorageService();
+      const recentPRData = await storageService.getRecentPRs();
+
+      if (recentPRData && Array.isArray(recentPRData)) {
+        // RecentPR[]形式からDefaultView用の形式に変換
+        const convertedPRs = recentPRData.map(pr => ({
+          url: '', // 後でprKey から生成する必要がある場合は生成
+          title: pr.title,
+          timestamp: pr.timestamp,
+          key: pr.key,
+        }));
+
+        // タイムスタンプで並べ替え（最新順）
+        const sortedPRs = convertedPRs.sort((a, b) => b.timestamp - a.timestamp);
+        setRecentPRs(sortedPRs);
       }
     };
 

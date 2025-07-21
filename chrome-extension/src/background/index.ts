@@ -6,28 +6,5 @@ chrome.action.onClicked.addListener(async tab => {
   await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
 });
 
-// Listen for tab updates to detect URL changes (for page reloads)
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url) {
-    // Store the current URL in storage for the side panel to access
-    chrome.storage.local.set({
-      currentPage: {
-        url: tab.url,
-      },
-    });
-  }
-});
-
-// Listen for tab activation (when user switches between tabs)
-chrome.tabs.onActivated.addListener(async activeInfo => {
-  // Get information about the newly activated tab
-  const tab = await chrome.tabs.get(activeInfo.tabId);
-
-  if (tab.url) {
-    chrome.storage.local.set({
-      currentPage: {
-        url: tab.url,
-      },
-    });
-  }
-});
+// Note: currentPage is now handled directly by the side panel via chrome.tabs.query
+// No need for background script to track tab changes for currentPage

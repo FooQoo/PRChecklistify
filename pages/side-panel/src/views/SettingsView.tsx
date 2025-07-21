@@ -7,9 +7,6 @@ import { useNavigation } from './NavigationContext';
 const SettingsView: React.FC = () => {
   const { navigateToHome } = useNavigation();
   const { language, setLanguage, t } = useI18n();
-  const [, setOpenaiApiEndpoint] = useState('');
-  const [, setHasCustomOpenaiEndpoint] = useState(false);
-  const [, setRecentPRs] = useState<{ url: string; title: string; timestamp: number }[]>([]);
   const [toast, setToast] = useState<{
     visible: boolean;
     message: string;
@@ -20,31 +17,6 @@ const SettingsView: React.FC = () => {
     type: 'success',
   });
   const [pendingLanguageToast, setPendingLanguageToast] = useState(false);
-
-  // Load settings on mount
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        // Load OpenAI API endpoint
-        const result = await chrome.storage.local.get('openaiApiEndpoint');
-        if (result.openaiApiEndpoint) {
-          setOpenaiApiEndpoint(result.openaiApiEndpoint);
-          setHasCustomOpenaiEndpoint(true);
-        }
-
-        // Load recent PRs
-        const prResult = await chrome.storage.local.get('recentPRs');
-        if (prResult.recentPRs && Array.isArray(prResult.recentPRs)) {
-          const sortedPRs = [...prResult.recentPRs].sort((a, b) => b.timestamp - a.timestamp);
-          setRecentPRs(sortedPRs);
-        }
-      } catch {
-        showToast('Failed to load settings', 'error');
-      }
-    };
-
-    loadSettings();
-  }, []);
 
   // Show toast message
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
