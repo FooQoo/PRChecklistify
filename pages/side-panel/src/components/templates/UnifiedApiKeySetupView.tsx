@@ -7,7 +7,7 @@ import { useGeminiModelAtom } from '@src/hooks/useGeminiModelAtom';
 import { useClaudeModelAtom } from '@src/hooks/useClaudeModelAtom';
 import { useModelClientTypeAtom } from '@src/hooks/useModelClientTypeAtom';
 import { isGeminiApiEnabled } from '@src/utils/envUtils';
-import { Button } from '@src/components/atoms';
+import { Button, CenteredCard } from '@src/components/atoms';
 import { ApiProviderSelector } from '@src/components/molecules';
 import { ApiKeyConfiguration } from '@src/components/organisms';
 
@@ -107,17 +107,15 @@ const UnifiedApiKeySetupView: React.FC<UnifiedApiKeySetupViewProps> = ({ mode = 
   // セットアップモード用のレイアウト
   if (mode === 'setup') {
     return (
-      <div className="flex items-center justify-center h-screen p-6 bg-gray-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-          <h2 className="text-xl font-bold mb-4">{t('apiKeySetup')}</h2>
-          {renderContent()}
-          <div className="mt-6 flex justify-end">
-            <Button onClick={navigateToHome} variant="primary" disabled={!isApiKeySet()}>
-              {t('next')}
-            </Button>
-          </div>
+      <CenteredCard cardClassName="max-w-md">
+        <h2 className="text-xl font-bold mb-4">{t('apiKeySetup')}</h2>
+        {renderContent()}
+        <div className="mt-6 flex justify-end">
+          <Button onClick={navigateToHome} variant="primary" disabled={!isApiKeySet()}>
+            {t('next')}
+          </Button>
         </div>
-      </div>
+      </CenteredCard>
     );
   }
 
