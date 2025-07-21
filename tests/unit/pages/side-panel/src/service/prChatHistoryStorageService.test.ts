@@ -5,7 +5,7 @@ import {
   type IPRChatHistoryRepository,
   type ChatMessage,
   type FileChatHistories,
-} from '../../pages/side-panel/src/services/prChatHistoryStorageService';
+} from '../../../../../../pages/side-panel/src/services/prChatHistoryStorageService';
 
 // Mock repository implementation matching IPRChatHistoryRepository
 const createMockChatHistoryRepository = (

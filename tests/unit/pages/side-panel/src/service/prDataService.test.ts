@@ -1,9 +1,9 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { PRDataService } from '../../pages/side-panel/src/services/prDataService';
-import type { GithubClient } from '../../pages/side-panel/src/repositories/github/github';
-import { GithubClient as GithubClientImpl } from '../../pages/side-panel/src/repositories/github/github';
-import { getServerIdByDomain } from '../../pages/side-panel/src/utils/prUtils';
+import { PRDataService } from '../../../../../../pages/side-panel/src/services/prDataService';
+import type { GithubClient } from '../../../../../../pages/side-panel/src/repositories/github/github';
+import { GithubClient as GithubClientImpl } from '../../../../../../pages/side-panel/src/repositories/github/github';
+import { getServerIdByDomain } from '../../../../../../pages/side-panel/src/utils/prUtils';
 
 // Mock GitHub client
 const createMockGithubClient = (overrides: Partial<GithubClient> = {}): GithubClient =>

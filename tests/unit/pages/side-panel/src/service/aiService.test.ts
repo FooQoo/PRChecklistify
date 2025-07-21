@@ -1,8 +1,8 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { AIService } from '../../pages/side-panel/src/services/aiService';
-import type { ModelClient } from '../../pages/side-panel/src/repositories/ai/modelClient';
-import type { PRData, PRFile, Checklist } from '../../pages/side-panel/src/types';
+import { AIService } from '../../../../../../pages/side-panel/src/services/aiService';
+import type { ModelClient } from '../../../../../../pages/side-panel/src/repositories/ai/modelClient';
+import type { PRData, PRFile, Checklist } from '../../../../../../pages/side-panel/src/types';
 
 // Mock model client
 const createMockModelClient = (overrides: Partial<ModelClient> = {}): ModelClient => ({

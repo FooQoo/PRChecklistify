@@ -5,8 +5,8 @@ import {
   type IPRDataRepository,
   type IPRChatHistoryRepository,
   type IRecentPRRepository,
-} from '../../pages/side-panel/src/services/prDataStorageService';
-import type { PRData, SavedPRData, PRAnalysisResult } from '../../pages/side-panel/src/types';
+} from '../../../../../../pages/side-panel/src/services/prDataStorageService';
+import type { PRData, SavedPRData, PRAnalysisResult } from '../../../../../../pages/side-panel/src/types';
 
 // Mock types for repositories with proper type definitions
 interface ChatMessage {
