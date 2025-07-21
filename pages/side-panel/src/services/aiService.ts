@@ -1,4 +1,5 @@
 import type { PRData, PRFile, Language } from '@extension/shared';
+import type { ModelClient } from '../repositories/ai/modelClient';
 import { createModelClient } from '../repositories/ai/modelClient';
 import { getLanguageLabel } from '@extension/storage';
 import { LLMError } from '@src/errors/LLMError';
@@ -13,16 +14,7 @@ export interface ChatMessage {
 }
 
 export class AIService {
-  private static instance: AIService;
-
-  private constructor() {}
-
-  static getInstance(): AIService {
-    if (!AIService.instance) {
-      AIService.instance = new AIService();
-    }
-    return AIService.instance;
-  }
+  constructor(private readonly modelClientFactory: () => Promise<ModelClient> = createModelClient) {}
 
   private validatePRData(prData: PRData): void {
     if (!prData || !prData.files || !Array.isArray(prData.files)) {
@@ -31,7 +23,7 @@ export class AIService {
   }
 
   private async getModelClient() {
-    const client = await createModelClient();
+    const client = await this.modelClientFactory();
     if (!client) {
       throw LLMError.createServiceError();
     }
@@ -182,5 +174,6 @@ export class AIService {
   }
 }
 
-// Export singleton instance for easy access
-export const aiService = AIService.getInstance();
+export const createAIService = (factory: () => Promise<ModelClient> = createModelClient) => new AIService(factory);
+
+export const aiService = createAIService();

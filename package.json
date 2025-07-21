@@ -32,7 +32,8 @@
     "copy_env": "bash bash-scripts/copy_env.sh",
     "set-global-env": "bash bash-scripts/set_global_env.sh",
     "postinstall": "pnpm build:eslint && pnpm copy_env",
-    "module-manager": "pnpm -F module-manager start"
+    "module-manager": "pnpm -F module-manager start",
+    "test": "tsx --tsconfig pages/side-panel/tsconfig.json --test \"tests/unit/**/*.test.ts\""
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
