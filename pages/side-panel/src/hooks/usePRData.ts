@@ -81,7 +81,23 @@ export function usePRData(prKey: string) {
   const refreshData = async () => {
     if (!prKey) return;
 
-    await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading);
+    // PRデータと分析結果の両方をストレージから読み込み
+    try {
+      const savedData = await prDataStorageService.getFromStorage(prKey);
+      if (savedData) {
+        setPRData(savedData.data);
+        if (savedData.analysisResult) {
+          setAnalysisResult(savedData.analysisResult);
+        }
+      } else {
+        // ストレージにデータがない場合はAPIから取得
+        await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading);
+      }
+    } catch (err) {
+      // エラーの場合はAPIから取得を試行
+      console.warn('Failed to load from storage, falling back to API:', err);
+      await fetchAndSetPRData(prKey, setPRData, setError, setIsLoading);
+    }
   };
 
   // PRデータをAPIから再取得して状態を更新する関数
