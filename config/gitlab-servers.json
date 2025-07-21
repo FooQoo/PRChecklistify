@@ -1,0 +1,12 @@
+{
+  "gitlab": {
+    "servers": [
+      {
+        "id": "gitlab-com",
+        "name": "GitLab.com",
+        "apiUrl": "https://gitlab.com/api/v4",
+        "webUrl": "https://gitlab.com"
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
-import type { GitHubServer } from '@extension/storage';
-import { githubTokensStorage } from '@extension/storage';
+import type { GitHubServer, GitLabServer } from '@extension/storage';
+import { githubTokensStorage, gitlabTokensStorage } from '@extension/storage';
 import type { LLMProvider } from '../types';
 
 /**
@@ -41,6 +41,31 @@ export async function getActiveGitHubServer(): Promise<(GitHubServer & { token?:
     return serversWithTokens.find(s => s.hasToken);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    return undefined;
+  }
+}
+
+export function loadGitLabServerConfig(): GitLabServer[] {
+  const config = __GITLAB_CONFIG__;
+  return config.gitlab.servers as GitLabServer[];
+}
+
+export async function getGitLabServersWithTokens(): Promise<
+  Array<GitLabServer & { token?: string; hasToken: boolean }>
+> {
+  const servers = loadGitLabServerConfig();
+  const tokensConfig = await gitlabTokensStorage.get();
+  return servers.map(server => {
+    const token = tokensConfig.tokens.find(t => t.serverId === server.id)?.token;
+    return { ...server, token, hasToken: !!token };
+  });
+}
+
+export async function getActiveGitLabServer(): Promise<(GitLabServer & { token?: string }) | undefined> {
+  try {
+    const serversWithTokens = await getGitLabServersWithTokens();
+    return serversWithTokens.find(s => s.hasToken);
+  } catch {
     return undefined;
   }
 }

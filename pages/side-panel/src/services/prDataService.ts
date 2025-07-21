@@ -2,15 +2,30 @@
 /* eslint-disable no-useless-catch */
 import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
 import { GithubClient } from '../repositories/github/github';
+import { GitLabClient } from '../repositories/gitlab/gitlab';
 import { GitHubError } from '@src/errors/GitHubError';
 import { instructionPathStorage } from '@extension/storage';
-import { getServerIdByDomain } from '../utils/prUtils';
+import {
+  getServerIdByDomain,
+  getGitLabServerIdByDomain,
+  isRegisteredGitHubServer,
+  isRegisteredGitLabServer,
+} from '../utils/prUtils';
 import { prChatHistoryStorage, type FileChatHistories } from './prChatHistoryService';
 
 type RecentPR = { title: string; key: string; timestamp: number };
 type ChatMessage = { sender: string; message: string };
 type AllFileChatHistories = Record<string, ChatMessage[]>;
 type SingleFileChatHistory = ChatMessage[];
+
+interface GitHostClient {
+  fetchPullRequest(identifier: PRIdentifier): Promise<unknown>;
+  fetchPullRequestFiles(identifier: PRIdentifier): Promise<unknown>;
+  fetchBlob(owner: string, repo: string, file_sha: string): Promise<unknown>;
+  fetchFileContent(owner: string, repo: string, path: string): Promise<unknown>;
+  fetchReadmeContent(owner: string, repo: string): Promise<string | undefined>;
+  fetchPullRequestReviewComments(identifier: PRIdentifier): Promise<unknown>;
+}
 
 // PRデータをローカルストレージに保存・取得するためのユーティリティ
 class PRDataStorage {
@@ -184,19 +199,27 @@ class PRDataStorage {
 // シングルトンとしてエクスポート
 export const prDataStorage = new PRDataStorage();
 
-// Service to fetch PR data from GitHub
+// Service to fetch PR/MR data from GitHub or GitLab
 export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData> => {
   try {
-    // ドメインからサーバーIDを取得してGitHubクライアントを作成
-    const serverId = await getServerIdByDomain(identifier.domain);
-    const github: GithubClient = await GithubClient.create(serverId);
+    const domain = identifier.domain;
+    let client: GitHostClient;
+    if (isRegisteredGitHubServer(domain)) {
+      const serverId = await getServerIdByDomain(domain);
+      client = await GithubClient.create(serverId);
+    } else if (isRegisteredGitLabServer(domain)) {
+      const serverId = await getGitLabServerIdByDomain(domain);
+      client = await GitLabClient.create(serverId);
+    } else {
+      throw new Error('Unsupported git host');
+    }
     const { owner, repo } = identifier;
 
     // PRデータ取得
-    const { data: prData } = await github.fetchPullRequest(identifier);
+    const { data: prData } = await client.fetchPullRequest(identifier);
 
     // 変更されたファイル一覧を取得
-    const { data: filesData } = await github.fetchPullRequestFiles(identifier);
+    const { data: filesData } = await client.fetchPullRequestFiles(identifier);
 
     // 各ファイルのcontents_urlからbase64デコードした内容を取得
     const filesWithDecodedContent = await Promise.all(
@@ -205,7 +228,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData> => 
         if (file.contents_url) {
           const contentUrlParts = file.contents_url.split('/contents/');
           if (contentUrlParts.length > 1) {
-            decodedContent = await github.fetchBlob(owner, repo, file.sha);
+            decodedContent = await client.fetchBlob(owner, repo, file.sha);
           }
         }
         return {
@@ -226,7 +249,7 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData> => 
     const customPath = await instructionPathStorage.get();
     if (customPath) {
       try {
-        const { data } = await github.fetchFileContent(owner, repo, customPath);
+        const { data } = await client.fetchFileContent(owner, repo, customPath);
         if ('content' in data && typeof data.content === 'string') {
           const base64 = data.content.replace(/\n/g, '');
           instructions = atob(base64);
@@ -235,9 +258,9 @@ export const fetchPRData = async (identifier: PRIdentifier): Promise<PRData> => 
         instructions = undefined;
       }
     }
-    readme = await github.fetchReadmeContent(owner, repo);
+    readme = await client.fetchReadmeContent(owner, repo);
 
-    const { data: reviewCommentsData } = await github.fetchPullRequestReviewComments(identifier);
+    const { data: reviewCommentsData } = await client.fetchPullRequestReviewComments(identifier);
 
     const userComments = reviewCommentsData.map(comment => ({
       id: comment.id,

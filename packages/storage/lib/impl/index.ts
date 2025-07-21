@@ -7,4 +7,5 @@ export * from './openaiModelStorage.js';
 export * from './geminiModelStorage.js';
 export * from './claudeModelStorage.js';
 export * from './githubTokensStorage.js';
+export * from './gitlabTokensStorage.js';
 export * from './modelClientTypeStorage.js';

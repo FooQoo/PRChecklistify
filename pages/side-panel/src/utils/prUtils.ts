@@ -1,5 +1,10 @@
 import type { PRData, PRIdentifier } from '../types';
-import { getGitHubServersWithTokens, loadGitHubServerConfig } from './configLoader';
+import {
+  getGitHubServersWithTokens,
+  loadGitHubServerConfig,
+  getGitLabServersWithTokens,
+  loadGitLabServerConfig,
+} from './configLoader';
 
 // レビュー時間を計算する関数（単位：時間）
 export const calculateReviewTime = (prData: PRData): number => {
@@ -29,6 +34,11 @@ export const isGitHubPRPage = (url: string): boolean => {
   // ドメイン名に依存しないパターンマッチング
   const prRegex = /https?:\/\/[^/]+\/[^/]+\/[^/]+\/pull\/\d+/;
   return prRegex.test(url);
+};
+
+export const isGitLabMRPage = (url: string): boolean => {
+  const mrRegex = /https?:\/\/[^/]+\/[^/]+\/[^/]+\/(?:-\/)?merge_requests\/\d+/;
+  return mrRegex.test(url);
 };
 
 /**
@@ -83,6 +93,19 @@ export const parsePRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
   }
 };
 
+export const parseMRUrlToPRIdentifier = (url: string): PRIdentifier | null => {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+    const pathMatch = urlObj.pathname.match(/^\/([^/]+)\/([^/]+)\/(?:-\/)?merge_requests\/(\d+)/);
+    if (!pathMatch) return null;
+    const [, owner, repo, prNumber] = pathMatch;
+    return { owner, repo, prNumber, domain };
+  } catch {
+    return null;
+  }
+};
+
 /**
  * ドメインからサーバーIDを取得する
  * @param domain ドメイン名
@@ -104,9 +127,34 @@ export const getServerIdByDomain = async (domain: string): Promise<string> => {
   return server!.id;
 };
 
+export const getGitLabServerIdByDomain = async (domain: string): Promise<string> => {
+  const servers = await getGitLabServersWithTokens();
+  const server = servers.find(s => {
+    try {
+      const serverDomain = new URL(s.webUrl).hostname;
+      return serverDomain === domain;
+    } catch {
+      return false;
+    }
+  });
+  return server!.id;
+};
+
 // 指定したドメインが設定済みのGitHubサーバか確認する
 export const isRegisteredGitHubServer = (domain: string): boolean => {
   const servers = loadGitHubServerConfig();
+  return servers.some(server => {
+    try {
+      const serverDomain = new URL(server.webUrl).hostname;
+      return serverDomain === domain;
+    } catch {
+      return false;
+    }
+  });
+};
+
+export const isRegisteredGitLabServer = (domain: string): boolean => {
+  const servers = loadGitLabServerConfig();
   return servers.some(server => {
     try {
       const serverDomain = new URL(server.webUrl).hostname;

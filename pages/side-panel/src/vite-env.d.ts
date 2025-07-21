@@ -12,6 +12,17 @@ declare const __GITHUB_CONFIG__: {
   };
 };
 
+declare const __GITLAB_CONFIG__: {
+  gitlab: {
+    servers: Array<{
+      id: string;
+      name: string;
+      apiUrl: string;
+      webUrl: string;
+    }>;
+  };
+};
+
 // ビルド時に注入されるFooter設定の型定義
 declare const __FOOTER_CONFIG__: {
   footer: {

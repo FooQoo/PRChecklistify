@@ -31,6 +31,7 @@ AIを活用してPRの内容を自動解析し、確認すべき項目をチェ�
 ### AI-Powered PR Analysis
 - **Automatic Code Analysis**: AI models analyze PR content and generate relevant checklists
 - **Multi-Provider Support**: Works with OpenAI, Google Gemini, and Anthropic Claude
+- **Git Hosting Support**: Compatible with GitHub and GitLab, including on-premise instances
 - **Smart Suggestions**: Context-aware checklist items based on code changes
 
 ### Interactive Review Experience
@@ -79,7 +80,7 @@ pnpm dev:firefox
 ## Usage
 
 ### Getting Started
-1. Navigate to any GitHub Pull Request page
+1. Navigate to a GitHub Pull Request or GitLab Merge Request page
 2. Open the Chrome side panel (extension icon in toolbar)
 3. Configure your AI API key in the settings
 4. Click "Analyze PR" to generate an AI-powered checklist
@@ -207,7 +208,8 @@ pages/side-panel/src/
 ├── hooks/                   # Custom React hooks
 ├── repositories/            # Data access layer
 │   ├── ai/                  # AI service clients
-│   └── github/              # GitHub API client
+│   ├── github/              # GitHub API client
+│   └── gitlab/              # GitLab API client
 ├── services/                # Business logic services
 ├── types/                   # TypeScript definitions
 ├── utils/                   # Utility functions
