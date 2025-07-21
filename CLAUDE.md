@@ -1,207 +1,207 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このファイルは、Claude Code (claude.ai/code) がこのリポジトリで作業する際のガイドラインを提供します。
 
-## Overview
+## 概要
 
-PR Checklistify is a Chrome extension that streamlines Pull Request reviews by automatically generating checklists. It's built with React + TypeScript + Vite in a monorepo structure using Turborepo.
+PR Checklistify は、プルリクエストのレビューを効率化する Chrome 拡張機能です。チェックリストを自動生成し、レビュー漏れを防ぎます。React と TypeScript、Vite を用い、Turborepo によるモノレポ構成で構築されています。
 
-## Development Commands
+## 開発コマンド
 
-### Environment Setup
+### 環境構築
 ```bash
-# Install dependencies
+# 依存関係のインストール
 pnpm install
 
-# Create required .env file for side-panel
+# サイドパネル用の .env ファイルを作成
 echo 'VITE_OPENAI_API_ENDPOINT=https://api.openai.com/v1' > pages/side-panel/.env
 echo 'VITE_GEMINI_API_ENDPOINT=https://generativelanguage.googleapis.com/v1beta/openai/' >> pages/side-panel/.env
 echo 'VITE_GITHUB_API_DOMAIN=https://api.github.com' >> pages/side-panel/.env
 ```
 
-### Build & Development
+### ビルドと開発
 ```bash
-# Development (Chrome)
+# 開発用 (Chrome)
 pnpm dev
 
-# Development (Firefox)
+# 開発用 (Firefox)
 pnpm dev:firefox
 
-# Build (Chrome)
+# ビルド (Chrome)
 pnpm build
 
-# Build (Firefox)
+# ビルド (Firefox)
 pnpm build:firefox
 
-# Build production zip
+# プロダクション用 zip を作成
 pnpm zip
 ```
 
-### Code Quality
+### コード品質チェック
 ```bash
-# Type checking
+# 型チェック
 pnpm type-check
 
-# Linting
+# Lint 実行
 pnpm lint
 
-# Lint with fixes
+# 自動修正付き Lint
 pnpm lint:fix
 
-# Format code
+# コード整形
 pnpm prettier
 ```
 
-### Testing
+### テスト
 ```bash
-# Run E2E tests
+# E2E テスト実行
 pnpm e2e
 
-# Run E2E tests for Firefox
+# Firefox 向け E2E テスト実行
 pnpm e2e:firefox
 ```
 
-### Clean Commands
+### クリーンコマンド
 ```bash
-# Clean build files
+# ビルド成果物の削除
 pnpm clean:bundle
 
-# Clean node_modules
+# node_modules の削除
 pnpm clean:node_modules
 
-# Clean turbo cache
+# Turbo キャッシュの削除
 pnpm clean:turbo
 
-# Clean all
+# 全て削除
 pnpm clean
 ```
 
-## Architecture
+## アーキテクチャ
 
-### Monorepo Structure
-- **chrome-extension/**: Extension manifest and background scripts
-- **pages/side-panel/**: Main React application (side panel UI)
-- **packages/**: Shared libraries and utilities
-- **tests/e2e/**: End-to-end tests using WebDriver
+### モノレポ構成
+- **chrome-extension/**: 拡張機能のマニフェストとバックグラウンドスクリプト
+- **pages/side-panel/**: メインの React アプリケーション（サイドパネル UI）
+- **packages/**: 共有ライブラリとユーティリティ
+- **tests/e2e/**: WebDriver を用いた E2E テスト
 
-### Main Application (pages/side-panel/src/)
+### メインアプリケーション (pages/side-panel/src/)
 ```
 src/
-├── atoms/               # Jotai atoms for state management
-├── components/          # Atomic Design structure
-│   ├── atoms/          # Basic UI elements (Button, TextInput, etc.)
-│   ├── molecules/      # Component combinations (ApiKeySettings, etc.)
-│   ├── organisms/      # Complex components (FileChecklist, PRAnalysis, etc.)
-│   └── templates/      # Page-level components
-├── errors/              # Custom error classes
-├── hooks/               # Custom React hooks for state management
-├── repositories/        # Data access layer
-│   ├── ai/             # AI service implementations (OpenAI, Gemini, Claude)
-│   └── github/         # GitHub API client
-├── services/            # Business logic services
-├── types/               # TypeScript type definitions
-├── utils/               # Utility functions
-└── views/               # Route components
+├── atoms/               # Jotai の状態管理用アトム
+├── components/          # Atomic Design 構造
+│   ├── atoms/          # 基本的な UI 要素 (Button, TextInput など)
+│   ├── molecules/      # コンポーネントの組み合わせ (ApiKeySettings など)
+│   ├── organisms/      # 複雑なコンポーネント (FileChecklist, PRAnalysis など)
+│   └── templates/      # ページレベルのコンポーネント
+├── errors/              # カスタムエラークラス
+├── hooks/               # 状態管理用の React フック
+├── repositories/        # データアクセス層
+│   ├── ai/             # AI サービス実装 (OpenAI, Gemini, Claude)
+│   └── github/         # GitHub API クライアント
+├── services/            # ビジネスロジックサービス
+├── types/               # TypeScript 型定義
+├── utils/               # ユーティリティ関数
+└── views/               # ルートコンポーネント
 ```
 
-### Key Technologies
-- **React 19** with functional components and hooks
-- **TypeScript** for type safety
-- **Tailwind CSS** for styling
-- **Jotai** for state management
-- **React Router** with memory router
-- **Chrome Storage API** for persistence
-- **AI SDK** for OpenAI/Gemini/Claude integrations
+### 主な技術
+- **React 19**: 関数コンポーネントとフック
+- **TypeScript**: 型安全性の確保
+- **Tailwind CSS**: スタイリング
+- **Jotai**: 状態管理
+- **React Router**: メモリルーター
+- **Chrome Storage API**: 永続化
+- **AI SDK**: OpenAI/Gemini/Claude 連携
 
-### State Management
-- Uses Jotai atoms for global state
-- Storage atoms automatically sync with Chrome Storage API
-- Hooks follow pattern: `use[Noun]Atom` (e.g., `useGithubTokenAtom`)
-- Setters: `set[Noun]AndStorage`, Clearers: `clear[Noun]`
+### 状態管理
+- グローバル状態には Jotai のアトムを使用
+- ストレージアトムは自動的に Chrome Storage API と同期
+- フックは `use[Noun]Atom` パターンで命名（例: `useGithubTokenAtom`）
+- セッターは `set[Noun]AndStorage`、クリアは `clear[Noun]`
 
-## Naming Conventions
+## 命名規則
 
-### Components & Files
-- **Components**: PascalCase (e.g., `SidePanel`, `FileChatModal`)
-- **Files**: PascalCase for components, camelCase for services/utils
-- **Atoms**: camelCase + "Atom" suffix (e.g., `currentPageAtom`)
-- **Hooks**: "use" prefix (e.g., `usePRData`)
-- **Routes**: lowercase with hyphens (e.g., `/github-token-setup`)
+### コンポーネントとファイル
+- **コンポーネント**: PascalCase（例: `SidePanel`, `FileChatModal`）
+- **ファイル**: コンポーネントは PascalCase、サービスやユーティリティは camelCase
+- **アトム**: camelCase + "Atom" サフィックス（例: `currentPageAtom`）
+- **フック**: "use" プレフィックス（例: `usePRData`）
+- **ルート**: ケバブケース（例: `/github-token-setup`）
 
-### Code Style
-- **Functions/Variables**: camelCase
-- **Constants**: UPPER_SNAKE_CASE
-- **Props Interfaces**: ComponentName + "Props"
-- **CSS Classes**: Tailwind utility classes preferred
+### コードスタイル
+- **関数・変数**: camelCase
+- **定数**: UPPER_SNAKE_CASE
+- **Props インターフェース**: ComponentName + "Props"
+- **CSS クラス**: Tailwind のユーティリティクラスを推奨
 
-## AI Service Integration
+## AI サービス統合
 
-The extension integrates with multiple AI providers:
-- **OpenAI**: GPT models via OpenAI API
-- **Gemini**: Google's AI models
-- **Claude**: Anthropic's models
+この拡張機能は複数の AI プロバイダーを利用できます:
+- **OpenAI**: OpenAI API 経由の GPT モデル
+- **Gemini**: Google の AI モデル
+- **Claude**: Anthropic のモデル
 
-### Architecture
-- **Repository Layer**: `repositories/ai/modelClient.ts` - Unified interface for AI providers
-- **Service Layer**: `services/aiService.ts` - Business logic for AI operations using singleton pattern
-- **Usage**: Import `aiService` singleton instance for all AI operations
+### アーキテクチャ
+- **リポジトリ層**: `repositories/ai/modelClient.ts` - 各 AI プロバイダーを統合するインターフェース
+- **サービス層**: `services/aiService.ts` - シングルトンパターンで AI 処理を提供
+- **使用方法**: すべての AI 操作で `aiService` シングルトンをインポート
 
-### AI Service Methods
-- `generateAnalysis()` - Generate AI analysis for PR files
-- `generateChecklist()` - Generate checklists for PR files  
-- `streamFileChat()` - Stream chat responses for file discussions
-- `streamPRSummary()` - Stream PR summary generation
+### AI サービスメソッド
+- `generateAnalysis()` - PR ファイルの解析を生成
+- `generateChecklist()` - PR ファイルのチェックリストを生成
+- `streamFileChat()` - ファイルディスカッションのチャットをストリーミング
+- `streamPRSummary()` - PR サマリーをストリーミング生成
 
-## Chrome Extension Architecture
+## Chrome 拡張機能の構成
 
-### Background Script
-- Handles extension icon clicks to open side panel
-- Monitors tab changes and updates current page URL in storage
-- Located in `chrome-extension/src/background/index.ts`
+### バックグラウンドスクリプト
+- 拡張機能アイコンのクリックでサイドパネルを開く
+- タブ変更を監視して現在のページ URL をストレージに保存
+- `chrome-extension/src/background/index.ts` に配置
 
-### Side Panel
-- Main React application rendered in Chrome's side panel
-- Communicates with background script via Chrome Storage API
-- Handles PR analysis and checklist generation
+### サイドパネル
+- Chrome のサイドパネルに表示されるメインの React アプリケーション
+- Chrome Storage API を介してバックグラウンドスクリプトと通信
+- PR 解析とチェックリスト生成を担当
 
-## Development Notes
+## 開発ノート
 
-### Environment Variables
-- API endpoints configurable via `.env` files
-- OpenAI API compatibility for custom endpoints
-- GitHub API domain configurable for enterprise instances
+### 環境変数
+- API エンドポイントは `.env` で設定可能
+- OpenAI API 互換のカスタムエンドポイントに対応
+- GitHub Enterprise 用に API ドメインを設定可能
 
-### Storage
-- All sensitive data (API keys) stored securely via Chrome Storage API
-- Never hardcode API keys in source code
-- Use provided storage hooks for persistence
+### ストレージ
+- API キーなどの機密データは Chrome Storage API で安全に保存
+- ソースコードに API キーをハードコードしない
+- 永続化には提供されているストレージフックを使用
 
-#### Storage Key Naming Convention
-- **ALWAYS use camelCase** for all storage keys (e.g., `modelClientType`, `openaiApiKey`)
-- Never use kebab-case, snake_case, or PascalCase for storage keys
-- Examples of correct naming:
+#### ストレージキーの命名規則
+- **必ず camelCase** を使用（例: `modelClientType`, `openaiApiKey`）
+- kebab-case、snake_case、PascalCase は使用しない
+- 正しい例:
   - ✅ `modelClientType`
   - ✅ `openaiApiEndpoint`
   - ✅ `languagePreference`
   - ❌ `model-client-type`
   - ❌ `openai_api_endpoint`
   - ❌ `LanguagePreference`
-- Storage implementations in `packages/storage/lib/impl/` should use `createStorage()` with camelCase keys
-- When adding new storage, ensure the key follows this convention to maintain consistency
+- `packages/storage/lib/impl/` 内の実装では camelCase キーで `createStorage()` を使用
+- 新しいストレージを追加する際もこの規則を守ること
 
-### Error Handling
-- Components wrapped with error boundaries
-- Suspense for loading states
-- Graceful error handling throughout the application
+### エラーハンドリング
+- コンポーネントはエラーバウンダリでラップする
+- ローディング状態には Suspense を使用
+- アプリ全体で丁寧なエラーハンドリングを行う
 
-### Testing
-- E2E tests use WebDriver for browser automation
-- Tests run against built extension in both Chrome and Firefox
-- Test configuration in `tests/e2e/config/`
+### テスト
+- E2E テストは WebDriver を用いたブラウザー自動化
+- Chrome と Firefox のビルド済み拡張でテストを実行
+- 設定ファイルは `tests/e2e/config/` に配置
 
-## Coding Standards & Best Practices
+## コーディング規約とベストプラクティス
 
-### File & Folder Organization
+### ファイルとフォルダの構成
 
 #### Component Structure (pages/side-panel/src/components/)
 ```
