@@ -3,7 +3,7 @@ import { prDataService, prDataStorageService } from '@src/di';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
 import type { ErrorKeyType } from '@src/hooks/usePRData';
 import { GitHubError } from '@src/errors/GitHubError';
-import { createInitialPRAnalysisResult, updatePRAnalysisResultWithNewFiles } from '@src/utils/prAnalysisResultUtils';
+import { createInitialPRAnalysisResult } from '@src/utils/prAnalysisResultUtils';
 
 export const loadPRDataFromAnySource = async (
   prKey: string,
