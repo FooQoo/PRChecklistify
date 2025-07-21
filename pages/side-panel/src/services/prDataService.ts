@@ -1,199 +1,36 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-useless-catch */
-import type { PRData, SavedPRData, PRAnalysisResult, PRFile, PRIdentifier, PRUserComment } from '../types';
-import { GithubClient } from '../repositories/github/github';
+import type { PRData, PRFile, PRIdentifier } from '@src/types';
+import { GithubClient } from '@src/repositories/github/github';
 import { GitHubError } from '@src/errors/GitHubError';
 import { instructionPathStorage } from '@extension/storage';
-import { getServerIdByDomain } from '../utils/prUtils';
-import { prChatHistoryStorage, type FileChatHistories } from './prChatHistoryService';
+import { getServerIdByDomain } from '@src/utils/prUtils';
 
-type RecentPR = { title: string; key: string; timestamp: number };
-type ChatMessage = { sender: string; message: string };
-type AllFileChatHistories = Record<string, ChatMessage[]>;
-type SingleFileChatHistory = ChatMessage[];
+/**
+ * Service to fetch PR data from GitHub
+ */
+export class PRDataService {
+  private githubFactory: (serverId: string) => Promise<GithubClient>;
+  private getServerIdFn: (domain: string) => Promise<string>;
 
-class PRDataStorage {
-  private readonly STORAGE_KEY = 'prDataCache';
-  private readonly MAX_CACHE_SIZE = 20; // 最大キャッシュ数
-
-  // PRデータのみを保存
-  async savePRDataToStorage(prKey: string, prData: PRData): Promise<void> {
-    try {
-      const savedData = await this.getAllFromStorage();
-      const existingIndex = savedData.findIndex(item => item.key === prKey);
-      let analysisResult = undefined;
-      if (existingIndex >= 0) {
-        analysisResult = savedData[existingIndex].analysisResult;
-        savedData[existingIndex] = {
-          key: prKey,
-          data: prData,
-          timestamp: Date.now(),
-          analysisResult,
-        };
-      } else {
-        // キャッシュサイズが最大に達していれば、最も古いものを削除
-        if (savedData.length >= this.MAX_CACHE_SIZE) {
-          savedData.sort((a, b) => b.timestamp - a.timestamp);
-          const removedItem = savedData.pop();
-          // 削除されたPRのチャット履歴も削除
-          if (removedItem) {
-            await prChatHistoryStorage.clearPRChatHistories(removedItem.key);
-          }
-        }
-        savedData.push({
-          key: prKey,
-          data: prData,
-          timestamp: Date.now(),
-          analysisResult: undefined,
-        });
-      }
-      await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
-      await this.updateRecentPRs(prData.title, prKey);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // analysisResultのみを保存
-  async saveAnalysisResultToStorage(prKey: string, analysisResult: PRAnalysisResult): Promise<void> {
-    try {
-      const savedData = await this.getAllFromStorage();
-      const existingIndex = savedData.findIndex(item => item.key === prKey);
-      if (existingIndex >= 0) {
-        const prev = savedData[existingIndex];
-        savedData[existingIndex] = {
-          ...prev,
-          analysisResult,
-          timestamp: Date.now(),
-        };
-        await chrome.storage.local.set({ [this.STORAGE_KEY]: savedData });
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // ファイルチャット履歴を保存（新しいprChatHistoryServiceを使用）
-  async saveFileChatHistoriesToStorage(prKey: string, histories: AllFileChatHistories): Promise<void> {
-    try {
-      await prChatHistoryStorage.saveFileChatHistories(prKey, histories as FileChatHistories);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // ファイルチャット履歴を取得（新しいprChatHistoryServiceを使用）
-  async getFileChatHistoriesFromStorage(prKey: string, filename: string): Promise<SingleFileChatHistory> {
-    try {
-      const histories = await prChatHistoryStorage.getSingleFileChatHistory(prKey, filename);
-      return histories || [];
-    } catch (error) {
-      return [];
-    }
-  }
-
-  // 全ファイルのチャット履歴を取得（必要に応じて使用）
-  async getAllFileChatHistoriesFromStorage(prKey: string): Promise<AllFileChatHistories> {
-    try {
-      const histories = await prChatHistoryStorage.getFileChatHistories(prKey);
-      return histories || {};
-    } catch (error) {
-      return {};
-    }
-  }
-
-  // 特定のPRデータを取得
-  async getFromStorage(prKey: string): Promise<SavedPRData | null> {
-    try {
-      const result = await chrome.storage.local.get(this.STORAGE_KEY);
-      const savedData: SavedPRData[] = result[this.STORAGE_KEY] || [];
-
-      // キーでデータを検索
-      const prData = savedData.find(item => item.key === prKey) || null;
-      return prData;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  // すべてのPRデータを取得
-  async getAllFromStorage(): Promise<SavedPRData[]> {
-    try {
-      const result = await chrome.storage.local.get(this.STORAGE_KEY);
-      return result[this.STORAGE_KEY] || [];
-    } catch (error) {
-      return [];
-    }
-  }
-
-  // 特定のPRデータを削除
-  async removeFromStorage(prKey: string): Promise<void> {
-    try {
-      const savedData = await this.getAllFromStorage();
-      // キーでフィルタリング
-      const filteredData = savedData.filter(item => item.key !== prKey);
-      await chrome.storage.local.set({ [this.STORAGE_KEY]: filteredData });
-      // 削除されたPRのチャット履歴も削除
-      await prChatHistoryStorage.clearPRChatHistories(prKey);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // 最近表示したPRの履歴を更新
-  private async updateRecentPRs(title: string, prKey: string): Promise<void> {
-    try {
-      const result = await chrome.storage.local.get('recentPRs');
-      const recentPRs = result.recentPRs || [];
-
-      // 新しいPR情報
-      const newPRInfo = {
-        title,
-        key: prKey, // キーを追加
-        timestamp: Date.now(),
-      } as RecentPR;
-
-      // 既存のエントリーを確認（キーで検索）
-      const existingIndex = recentPRs.findIndex((pr: RecentPR) => {
-        return pr.key === prKey;
-      });
-
-      if (existingIndex >= 0) {
-        // 既存のものを更新
-        recentPRs[existingIndex] = newPRInfo;
-      } else {
-        // 新しいものを追加（最大10件まで）
-        if (recentPRs.length >= 10) {
-          // タイムスタンプで並べ替えて古いものを削除
-          recentPRs.sort((a: RecentPR, b: RecentPR) => b.timestamp - a.timestamp);
-          recentPRs.pop();
-        }
-
-        recentPRs.push(newPRInfo);
-      }
-
-      // 最後にタイムスタンプでソートして保存
-      recentPRs.sort((a: RecentPR, b: RecentPR) => b.timestamp - a.timestamp);
-      await chrome.storage.local.set({ recentPRs });
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
-  }
-}
-
-// シングルトンとしてエクスポート
-export const prDataStorage = new PRDataStorage();
-
-// Service to fetch PR data from GitHub
-export const createFetchPRData =
-  (
+  private constructor(
     githubFactory: (serverId: string) => Promise<GithubClient> = GithubClient.create,
     getServerIdFn: (domain: string) => Promise<string> = getServerIdByDomain,
-  ) =>
-  async (identifier: PRIdentifier): Promise<PRData> => {
+  ) {
+    this.githubFactory = githubFactory;
+    this.getServerIdFn = getServerIdFn;
+  }
+
+  static create(
+    githubFactory?: (serverId: string) => Promise<GithubClient>,
+    getServerIdFn?: (domain: string) => Promise<string>,
+  ): PRDataService {
+    return new PRDataService(githubFactory, getServerIdFn);
+  }
+
+  async fetchPRData(identifier: PRIdentifier): Promise<PRData> {
     try {
       // ドメインからサーバーIDを取得してGitHubクライアントを作成
-      const serverId = await getServerIdFn(identifier.domain);
-      const github: GithubClient = await githubFactory(serverId);
+      const serverId = await this.getServerIdFn(identifier.domain);
+      const github: GithubClient = await this.githubFactory(serverId);
       const { owner, repo } = identifier;
 
       // PRデータ取得
@@ -295,5 +132,8 @@ export const createFetchPRData =
     } catch (error) {
       throw GitHubError.create(error);
     }
-  };
-export const fetchPRData = createFetchPRData();
+  }
+}
+
+// シングルトンとしてエクスポート
+export const prDataService = PRDataService.create();

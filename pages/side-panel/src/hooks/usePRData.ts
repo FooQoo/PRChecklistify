@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult, Checklist } from '@src/types';
-import { prDataStorage } from '@src/services/prDataService';
+import { prDataStorageService } from '@src/services/prDataStorageService';
 import { GitHubError } from '@src/errors/GitHubError';
 import { generatingAtom } from '@src/atoms/generatingAtom';
-import { loadPRDataFromAnySource, fetchAndSetPRData } from './prDataLoader';
+import { loadPRDataFromAnySource, fetchAndSetPRData } from '@src/hooks/prDataLoader';
 import { getApprovedFiles, getApprovalPercentage } from '@src/utils/prApprovalUtils';
 
 const currentPrDataAtom = atom<PRData | null>(null);
@@ -48,7 +48,7 @@ export function usePRData(prKey: string) {
         summary,
       } as PRAnalysisResult;
       // ストレージ保存もこの中で
-      prDataStorage.saveAnalysisResultToStorage(prKey, newResult);
+      prDataStorageService.saveAnalysisResultToStorage(prKey, newResult);
       return newResult;
     });
   };
@@ -69,7 +69,7 @@ export function usePRData(prKey: string) {
         ...prev,
         fileAnalysis: newFileAnalysis,
       } as PRAnalysisResult;
-      prDataStorage.saveAnalysisResultToStorage(prKey, newResult);
+      prDataStorageService.saveAnalysisResultToStorage(prKey, newResult);
       return newResult;
     });
   };

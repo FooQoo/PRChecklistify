@@ -4,7 +4,7 @@ import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
 import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 import { aiService } from '@src/services/aiService';
-import { prDataStorage } from '@src/services/prDataService';
+import { prDataStorageService } from '@src/services/prDataStorageService';
 
 interface FileChatModalProps {
   open: boolean;
@@ -87,12 +87,12 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
           ...existingHistories,
           [file.filename]: newHistory,
         };
-        return prDataStorage.saveFileChatHistoriesToStorage(prKey, updated);
+        return prDataStorageService.saveFileChatHistoriesToStorage(prKey, updated);
       })
       .catch(() => {
         // エラーの場合は新しい履歴だけ保存
         const updated = { [file.filename]: newHistory };
-        return prDataStorage.saveFileChatHistoriesToStorage(prKey, updated);
+        return prDataStorageService.saveFileChatHistoriesToStorage(prKey, updated);
       });
   };
 

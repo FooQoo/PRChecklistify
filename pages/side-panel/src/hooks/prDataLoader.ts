@@ -1,7 +1,8 @@
-import type { PRData, PRAnalysisResult, PRIdentifier } from '../types';
-import { fetchPRData, prDataStorage } from '../services/prDataService';
+import type { PRData, PRAnalysisResult, PRIdentifier } from '@src/types';
+import { prDataService } from '@src/services/prDataService';
+import { prDataStorageService } from '@src/services/prDataStorageService';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
-import type { ErrorKeyType } from './usePRData';
+import type { ErrorKeyType } from '@src/hooks/usePRData';
 import { GitHubError } from '@src/errors/GitHubError';
 
 export const loadPRDataFromAnySource = async (
@@ -21,7 +22,7 @@ export const loadPRDataFromAnySource = async (
     domain: basicInfo.domain,
   };
   try {
-    const savedData = await prDataStorage.getFromStorage(prKey);
+    const savedData = await prDataStorageService.getFromStorage(prKey);
     if (savedData) {
       setPRData(savedData.data);
       if (savedData.analysisResult) {
@@ -30,10 +31,10 @@ export const loadPRDataFromAnySource = async (
         setAnalysisResult(undefined);
       }
     } else {
-      const newData = await fetchPRData(identifier);
+      const newData = await prDataService.fetchPRData(identifier);
       if (newData) {
         setPRData(newData);
-        await prDataStorage.savePRDataToStorage(prKey, newData);
+        await prDataStorageService.savePRDataToStorage(prKey, newData);
         setAnalysisResult(undefined);
       } else {
         setError('failedToLoadPrData');
@@ -63,10 +64,10 @@ export const fetchAndSetPRData = async (
   setIsLoading(true);
   setError(null);
   try {
-    const newData = await fetchPRData(identifier);
+    const newData = await prDataService.fetchPRData(identifier);
     if (newData) {
       setPRData(newData);
-      await prDataStorage.savePRDataToStorage(prKey, newData);
+      await prDataStorageService.savePRDataToStorage(prKey, newData);
     } else {
       setError('failedToLoadPrData');
     }
