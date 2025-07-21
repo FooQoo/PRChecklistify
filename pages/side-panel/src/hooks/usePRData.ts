@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAtom, atom } from 'jotai';
 import type { PRData, PRAnalysisResult, Checklist } from '@src/types';
-import { prDataStorageService } from '@src/services/prDataStorageService';
+import { prDataStorageService } from '@src/di';
 import { GitHubError } from '@src/errors/GitHubError';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { loadPRDataFromAnySource, fetchAndSetPRData } from '@src/hooks/prDataLoader';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAtom } from 'jotai';
 import type { Checklist, PRAnalysisResult, PRData } from '@src/types';
-import { aiService } from '@src/services/aiService';
+import { aiService } from '@src/di';
 import FileChatModal from './FileChatModal';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import FileChecklist from './FileChecklist';

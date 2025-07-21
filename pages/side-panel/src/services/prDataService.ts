@@ -1,8 +1,7 @@
 import type { PRData, PRFile, PRIdentifier } from '@src/types';
-import { GithubClient } from '@src/repositories/github/github';
+import type { GithubClient } from '@src/repositories/github/github';
 import { GitHubError } from '@src/errors/GitHubError';
 import { instructionPathStorage } from '@extension/storage';
-import { getServerIdByDomain } from '@src/utils/prUtils';
 
 /**
  * Service to fetch PR data from GitHub
@@ -11,19 +10,12 @@ export class PRDataService {
   private githubFactory: (serverId: string) => Promise<GithubClient>;
   private getServerIdFn: (domain: string) => Promise<string>;
 
-  private constructor(
-    githubFactory: (serverId: string) => Promise<GithubClient> = GithubClient.create,
-    getServerIdFn: (domain: string) => Promise<string> = getServerIdByDomain,
+  constructor(
+    githubFactory: (serverId: string) => Promise<GithubClient>,
+    getServerIdFn: (domain: string) => Promise<string>,
   ) {
     this.githubFactory = githubFactory;
     this.getServerIdFn = getServerIdFn;
-  }
-
-  static create(
-    githubFactory?: (serverId: string) => Promise<GithubClient>,
-    getServerIdFn?: (domain: string) => Promise<string>,
-  ): PRDataService {
-    return new PRDataService(githubFactory, getServerIdFn);
   }
 
   async fetchPRData(identifier: PRIdentifier): Promise<PRData> {
@@ -134,6 +126,3 @@ export class PRDataService {
     }
   }
 }
-
-// シングルトンとしてエクスポート
-export const prDataService = PRDataService.create();

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import type { PRData, Checklist, PRAnalysisResult } from '../../types';
 import { useSetAtom } from 'jotai';
 import { generatingAtom } from '@src/atoms/generatingAtom';
-import { aiService } from '@src/services/aiService';
+import { aiService } from '@src/di';
 import type { Language } from '@extension/storage';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';

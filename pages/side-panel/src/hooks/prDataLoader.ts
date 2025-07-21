@@ -1,6 +1,5 @@
 import type { PRData, PRAnalysisResult, PRIdentifier } from '@src/types';
-import { prDataService } from '@src/services/prDataService';
-import { prDataStorageService } from '@src/services/prDataStorageService';
+import { prDataService, prDataStorageService } from '@src/di';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
 import type { ErrorKeyType } from '@src/hooks/usePRData';
 import { GitHubError } from '@src/errors/GitHubError';

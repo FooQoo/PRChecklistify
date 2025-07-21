@@ -1,6 +1,5 @@
 import type { PRData, PRFile, Language } from '@extension/shared';
 import type { ModelClient } from '../repositories/ai/modelClient';
-import { createModelClient } from '../repositories/ai/modelClient';
 import { getLanguageLabel } from '@extension/storage';
 import { LLMError } from '@src/errors/LLMError';
 
@@ -14,7 +13,7 @@ export interface ChatMessage {
 }
 
 export class AIService {
-  constructor(private readonly modelClientFactory: () => Promise<ModelClient> = createModelClient) {}
+  constructor(private readonly modelClientFactory: () => Promise<ModelClient>) {}
 
   private validatePRData(prData: PRData): void {
     if (!prData || !prData.files || !Array.isArray(prData.files)) {
@@ -174,6 +173,4 @@ export class AIService {
   }
 }
 
-export const createAIService = (factory: () => Promise<ModelClient> = createModelClient) => new AIService(factory);
-
-export const aiService = createAIService();
+export const createAIService = (factory: () => Promise<ModelClient>) => new AIService(factory);

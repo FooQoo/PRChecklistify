@@ -3,8 +3,7 @@ import type { PRFile, PRAnalysisResult, Checklist, PRData } from '../../types';
 import { MarkdownRenderer, ChecklistComponent } from '../molecules';
 import { useI18n } from '@extension/i18n';
 import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
-import { aiService } from '@src/services/aiService';
-import { prDataStorageService } from '@src/services/prDataStorageService';
+import { aiService, prDataStorageService } from '@src/di';
 
 interface FileChatModalProps {
   open: boolean;
@@ -57,7 +56,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
 
     // チャット履歴をストレージから読み込み
     if (file.filename) {
-      prDataStorage
+      prDataStorageService
         .getFileChatHistoriesFromStorage(prKey, file.filename)
         .then(saved => {
           setChatHistory(saved);
@@ -80,7 +79,7 @@ const FileChatModal: React.FC<FileChatModalProps> = ({
 
   // チャット履歴をストレージに保存する関数
   const saveChatHistoryToStorage = (newHistory: { sender: string; message: string }[]) => {
-    prDataStorage
+    prDataStorageService
       .getAllFileChatHistoriesFromStorage(prKey)
       .then(existingHistories => {
         const updated = {

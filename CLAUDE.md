@@ -234,24 +234,37 @@ repositories/
 │   ├── gemini.ts       # Gemini APIクライアント
 │   ├── modelClient.ts  # AIサービス統合レイヤー
 │   └── openai.ts       # OpenAI APIクライアント
-└── github/
-    └── github.ts       # GitHub APIクライアント
+├── github/
+│   └── github.ts       # GitHub APIクライアント
+└── storage/            # ストレージアクセス層
+    ├── prDataRepository.ts        # PRデータCRUD操作
+    ├── prChatHistoryRepository.ts # チャット履歴CRUD操作
+    └── recentPRRepository.ts      # Recent PR CRUD操作
 ```
 
 #### Services Structure (pages/side-panel/src/services/)
 ```
 services/
-├── aiService.ts               # AI operations (singleton class-based service)
-├── prChatHistoryService.ts    # PRチャット履歴管理
-└── prDataService.ts           # PRデータ処理サービス
+├── aiService.ts                    # AI operations (singleton class-based service)
+├── prDataService.ts               # GitHub API連携サービス
+├── prDataStorageService.ts        # PRデータストレージ管理サービス
+└── prChatHistoryStorageService.ts # チャット履歴ストレージ管理サービス
 ```
 
-**規約:**
-- **Repositories**: データアクセス層、外部APIとの通信を担当
-- **Services**: ビジネスロジック、repositoriesを使用してアプリケーションロジックを実装
-- クラスベースの実装を推奨
-- エラーハンドリングはカスタムエラークラスを使用
-- static createメソッドでインスタンス生成
+**レイヤー責務の規約:**
+- **Repositories**: データアクセス層、シンプルなCRUD操作のみ
+  - 外部APIとの通信（GitHub API、AI API）
+  - ストレージの読み書き操作
+  - ビジネスロジックは含まない
+- **Services**: ビジネスロジック層
+  - Repositoriesを使用してアプリケーションロジックを実装
+  - キャッシュサイズ管理、データ整合性確保
+  - 複数repositoryの協調処理
+- **実装規約**:
+  - 必ずクラスベースで実装
+  - `static create()`メソッドでインスタンス生成
+  - シングルトンパターンでエクスポート
+  - エラーハンドリングはカスタムエラークラスを使用
 
 #### Hooks Structure (pages/side-panel/src/hooks/)
 ```
@@ -351,37 +364,90 @@ export function useDataAtom() {
 }
 ```
 
-#### Service Class Template
+#### Repository Class Template
 ```typescript
-// 良い例
-import { CustomError } from '@src/errors/CustomError';
+// 良い例：Repository層（データアクセスのみ）
+import { storage } from '@extension/storage';
+import type { DataType } from '@src/types';
 
-export class ServiceClass {
-  private client: ClientType;
-  
-  private constructor(client: ClientType) {
-    this.client = client;
-  }
-  
-  static async create(config: ConfigType): Promise<ServiceClass> {
-    // 初期化ロジック
-    const client = await initializeClient(config);
-    return new ServiceClass(client);
-  }
-  
-  private handleError(error: unknown): never {
-    // エラーハンドリングロジック
-    throw CustomError.createFromError(error);
-  }
-  
-  async publicMethod(): Promise<ReturnType> {
-    try {
-      // 実装
-    } catch (error) {
-      this.handleError(error);
+export class DataRepository {
+  /**
+   * Simple CRUD operations only - no business logic
+   */
+  async saveData(key: string, data: DataType): Promise<void> {
+    const allData = await storage.get();
+    const existingIndex = allData.findIndex(item => item.key === key);
+    
+    if (existingIndex >= 0) {
+      allData[existingIndex] = { key, data, timestamp: Date.now() };
+    } else {
+      allData.push({ key, data, timestamp: Date.now() });
     }
+    
+    await storage.set(allData);
+  }
+
+  async getData(key: string): Promise<DataType | null> {
+    const allData = await storage.get();
+    const found = allData.find(item => item.key === key);
+    return found?.data || null;
+  }
+
+  async removeData(key: string): Promise<void> {
+    const allData = await storage.get();
+    const filtered = allData.filter(item => item.key !== key);
+    await storage.set(filtered);
   }
 }
+
+// シングルトンとしてエクスポート
+export const dataRepository = new DataRepository();
+```
+
+#### Service Class Template
+```typescript
+// 良い例：Service層（ビジネスロジック）
+import { dataRepository } from '@src/repositories/storage/dataRepository';
+import { CustomError } from '@src/errors/CustomError';
+
+export class DataService {
+  private readonly MAX_CACHE_SIZE = 20;
+  
+  private constructor() {}
+  
+  static create(): DataService {
+    return new DataService();
+  }
+  
+  /**
+   * Business logic with cache management
+   */
+  async saveDataWithCacheManagement(key: string, data: DataType): Promise<void> {
+    try {
+      // ビジネスロジック：キャッシュサイズ管理
+      await this.manageCacheSize();
+      
+      // Repository層を使用してデータ保存
+      await dataRepository.saveData(key, data);
+      
+      // 関連データの更新
+      await this.updateRelatedData(key, data);
+    } catch (error) {
+      throw CustomError.createFromError(error);
+    }
+  }
+  
+  private async manageCacheSize(): Promise<void> {
+    // キャッシュサイズ管理のビジネスロジック
+  }
+  
+  private async updateRelatedData(key: string, data: DataType): Promise<void> {
+    // 関連データ更新のビジネスロジック
+  }
+}
+
+// シングルトンとしてエクスポート
+export const dataService = DataService.create();
 ```
 
 ### TypeScript Guidelines
@@ -411,7 +477,7 @@ export interface Storage<T> {
 
 #### Import/Export Standards
 ```typescript
-// ✅ 推奨：絶対パス（@srcまたはエイリアス）
+// ✅ 推奨：絶対パス（@srcまたはエイリアス）- 必須
 import type React from 'react';
 import type { ComponentProps } from '@src/types';
 import { useState } from 'react';
@@ -421,20 +487,25 @@ import { useI18n } from '@extension/i18n';
 // ✅ 型のimportには明示的にtype修飾子を使用
 import type { Checklist } from '@src/types';
 
-// ✅ indexファイルでの集約export
-export { default as Button } from './Button';
-export { default as TextInput } from './TextInput';
+// ✅ 直接パスでのimport（index.tsファイルは使用しない）
+import { prDataRepository } from '@src/repositories/storage/prDataRepository';
+import { prChatHistoryRepository } from '@src/repositories/storage/prChatHistoryRepository';
+import { recentPRRepository } from '@src/repositories/storage/recentPRRepository';
 
-// ❌ 避けるべき：相対パス（深いディレクトリ構造の場合）
+// ❌ 避けるべき：相対パス
 import { ComponentProps } from '../../../types';
 import { Button } from '../atoms';
+
+// ❌ 避けるべき：index.tsファイル経由のimport
+import { prDataRepository } from '@src/repositories/storage';
 ```
 
 #### Import/Export Guidelines
-- **絶対パス優先**: `@src`、`@extension`等のエイリアスを活用
-- **相対パス使用可能**: 同一フォルダまたは1階層以内の場合のみ
+- **絶対パス必須**: `@src`、`@extension`等のエイリアスを必ず使用
+- **相対パス禁止**: 一階層以内でも絶対パスを使用
 - **型Import**: `import type`を明示的に使用
-- **名前付きexport**: デフォルトexportより推奨（index.tsファイル以外）
+- **直接パス**: index.tsファイルを作らず、直接ファイルパスを指定
+- **名前付きexport**: デフォルトexportより推奨（コンポーネント以外）
 
 ### Code Quality Standards
 
@@ -461,6 +532,27 @@ createStorage('user-profile-data', defaultValue);
 
 // ❌ マジックナンバー
 setTimeout(callback, 5000);
+
+// ❌ 相対パスの使用
+import { Component } from '../../../components/Component';
+
+// ❌ index.tsファイル経由のimport
+import { repository } from '@src/repositories/storage';
+
+// ❌ Repository層にビジネスロジック
+export class BadRepository {
+  async saveWithValidation(data: DataType) {
+    // ❌ バリデーションはService層の責務
+    if (!this.validateData(data)) throw new Error('Invalid');
+    await storage.set(data);
+  }
+}
+
+// ❌ 関数ベースのサービス
+export const fetchData = async () => { /* */ };
+
+// ❌ 従来API互換性のための重複export
+export const legacyFetchData = (params) => newService.fetchData(params);
 ```
 
 **✅ 推奨パターン:**
@@ -484,6 +576,35 @@ createStorage('userProfileData', defaultValue);
 // ✅ 定数の定義
 const TIMEOUT_DURATION = 5000;
 setTimeout(callback, TIMEOUT_DURATION);
+
+// ✅ 絶対パスの使用
+import { Component } from '@src/components/atoms/Component';
+
+// ✅ 直接パスでのimport
+import { prDataRepository } from '@src/repositories/storage/prDataRepository';
+
+// ✅ Repository層は純粋なCRUD操作のみ
+export class GoodRepository {
+  async save(key: string, data: DataType): Promise<void> {
+    const allData = await storage.get();
+    allData.push({ key, data, timestamp: Date.now() });
+    await storage.set(allData);
+  }
+}
+
+// ✅ クラスベースのサービス
+export class DataService {
+  static create(): DataService {
+    return new DataService();
+  }
+  
+  async processData(data: DataType): Promise<void> {
+    // ビジネスロジック
+  }
+}
+
+// ✅ シンプルなAPI（互換性レイヤーなし）
+export const dataService = DataService.create();
 ```
 
 #### Performance & Optimization
@@ -622,12 +743,21 @@ pnpm prettier      # フォーマットチェック
 4. storageとの同期が必要な場合は明示的に実装
 
 #### 新しいrepository/serviceを作る時
-1. **Repository**: データアクセス層、外部API通信を担当
-2. **Service**: ビジネスロジック、repositoryを使用してアプリケーションロジックを実装
-3. クラスベースで実装
-4. `static create`メソッドでインスタンス化
-5. エラーハンドリングを統一
-6. 適切な型定義を提供
+1. **Repository**: データアクセス層、シンプルなCRUD操作のみ担当
+   - 外部API通信またはストレージアクセス
+   - ビジネスロジックは一切含まない
+   - キー生成、データ変換などの単純処理のみ
+2. **Service**: ビジネスロジック層、repositoryを使用してアプリケーションロジックを実装
+   - 複数repositoryの協調処理
+   - キャッシュ管理、データ整合性確保
+   - バリデーション、変換ロジック
+3. **実装規約**:
+   - 必ずクラスベースで実装
+   - `private constructor()` + `static create()`パターン
+   - シングルトンとしてエクスポート
+   - エラーハンドリングを統一
+   - 絶対パスでの直接import
+   - 適切な型定義を提供
 
 ---
 
