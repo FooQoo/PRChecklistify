@@ -52,7 +52,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.20.0",
     "@tailwindcss/typography": "^0.5.16",
-    "@types/chrome": "0.0.304",
+    "@types/chrome": "0.1.1",
     "@types/eslint-plugin-jsx-a11y": "^6.10.0",
     "@types/eslint__eslintrc": "^2.1.2",
     "@types/eslint__js": "^8.42.3",
