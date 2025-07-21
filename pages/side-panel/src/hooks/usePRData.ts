@@ -127,6 +127,7 @@ export function usePRData(prKey: string) {
   useEffect(() => {
     if (currentApprovalPercentage === 100 && previousApprovalPercentage !== null && previousApprovalPercentage < 100) {
       setIsJustCompleted(true);
+      setPreviousApprovalPercentage(currentApprovalPercentage);
     } else if (currentApprovalPercentage !== previousApprovalPercentage) {
       setIsJustCompleted(false);
       setPreviousApprovalPercentage(currentApprovalPercentage);
