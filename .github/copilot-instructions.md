@@ -4,7 +4,7 @@ This file provides guidelines for GitHub Copilot when working on the PR Checklis
 
 ## Project Overview
 
-PR Checklistify is a Chrome extension that streamlines pull request reviews by automatically generating checklists to prevent review oversights. Built with React, TypeScript, Vite, and organized as a Turborepo monorepo.
+PR Checklistify is a Chrome extension that streamlines pull request reviews by automatically generating checklists to prevent review oversights. Built with React, TypeScript, Vite, and organized as a Turborepo monorepo. 
 
 ## Architecture
 
@@ -319,6 +319,63 @@ pnpm prettier       # Code formatting
 
 # Testing
 pnpm e2e            # E2E tests
+```
+
+## Git Commit Message Guidelines
+
+### Conventional Commits Compliance
+All commit messages MUST follow [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+#### Commit Message Format
+```
+<type>: <description>
+
+[optional body]
+```
+
+#### Basic Rules
+- **English only**: All commit messages must be written in English
+- **72 character limit**: First line (title) must be within 72 characters
+- **Lowercase start**: Description starts with lowercase (except proper nouns)
+- **No period**: Do not end with a period
+
+#### Commit Types
+- **feat**: New feature addition
+- **fix**: Bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that don't affect code meaning (formatting, semicolons, etc.)
+- **refactor**: Code changes that neither fix bugs nor add features
+- **test**: Adding or modifying tests
+- **chore**: Build process or auxiliary tool changes
+
+#### Good Examples
+```bash
+# ✅ Good examples
+feat: add dark mode toggle to settings panel
+fix: resolve memory leak in PR data caching
+docs: update installation instructions in README
+refactor: simplify AI service provider switching logic
+test: add unit tests for PR checklist generation
+chore: update dependencies to latest versions
+```
+
+#### Bad Examples
+```bash
+# ❌ Avoid these
+Add dark mode feature    # Missing type
+feat: Added dark mode.   # Capitalized start, period ending
+fix: Fix the bug         # Too vague description
+feat: add super awesome dark mode feature that users will love  # Over 72 chars
+```
+
+#### Multiple Changes
+- Split into logical, separate commits when possible
+- If must be one commit, use the type of the most significant change
+
+#### Breaking Changes
+For breaking changes, add `!` after type or explain in body:
+```bash
+feat!: change API response format for PR analysis
 ```
 
 ### Security Guidelines
