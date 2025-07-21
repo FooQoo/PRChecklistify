@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { AIService, createAIService } from '../../pages/side-panel/src/services/aiService';
+import { createAIService } from '../../pages/side-panel/src/services/aiService';
 import type { ModelClient } from '../../pages/side-panel/src/repositories/ai/modelClient';
 
 const mockClient: ModelClient = {

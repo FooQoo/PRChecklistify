@@ -12,7 +12,6 @@ type ChatMessage = { sender: string; message: string };
 type AllFileChatHistories = Record<string, ChatMessage[]>;
 type SingleFileChatHistory = ChatMessage[];
 
-// PRデータをローカルストレージに保存・取得するためのユーティリティ
 class PRDataStorage {
   private readonly STORAGE_KEY = 'prDataCache';
   private readonly MAX_CACHE_SIZE = 20; // 最大キャッシュ数
