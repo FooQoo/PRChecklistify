@@ -3,11 +3,12 @@ import { prDataService, prDataStorageService } from '@src/di';
 import { extractPRInfoFromKey } from '@src/utils/prUtils';
 import type { ErrorKeyType } from '@src/hooks/usePRData';
 import { GitHubError } from '@src/errors/GitHubError';
+import { createInitialPRAnalysisResult, updatePRAnalysisResultWithNewFiles } from '@src/utils/prAnalysisResultUtils';
 
 export const loadPRDataFromAnySource = async (
   prKey: string,
   setPRData: (data: PRData | null) => void,
-  setAnalysisResult: (result: PRAnalysisResult | undefined) => void,
+  setAnalysisResult: (result: PRAnalysisResult | null) => void,
   setError: (err: ErrorKeyType) => void,
 ) => {
   const basicInfo = extractPRInfoFromKey(prKey);
@@ -27,14 +28,16 @@ export const loadPRDataFromAnySource = async (
       if (savedData.analysisResult) {
         setAnalysisResult(savedData.analysisResult);
       } else {
-        setAnalysisResult(undefined);
+        // 保存されたデータにanalysisResultがない場合は初期化
+        setAnalysisResult(createInitialPRAnalysisResult(savedData.data));
       }
     } else {
       const newData = await prDataService.fetchPRData(identifier);
       if (newData) {
         setPRData(newData);
         await prDataStorageService.savePRDataToStorage(prKey, newData);
-        setAnalysisResult(undefined);
+        // 新しいデータの場合は初期化したanalysisResultを設定
+        setAnalysisResult(createInitialPRAnalysisResult(newData));
       } else {
         setError('failedToLoadPrData');
       }

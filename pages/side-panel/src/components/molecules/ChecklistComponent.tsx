@@ -8,7 +8,7 @@ interface ChecklistComponentProps {
   onToggle: (itemIndex: number) => void;
   className?: string;
   defaultExpanded?: boolean;
-  onExpand?: () => void;
+  onExpand?: (expanded: boolean) => void;
 }
 
 const ChecklistComponent = ({
@@ -30,7 +30,8 @@ const ChecklistComponent = ({
   };
 
   const toggleExpanded = () => {
-    setExpanded(!expanded);
+    const newExpanded = !expanded;
+    setExpanded(newExpanded);
   };
 
   return (

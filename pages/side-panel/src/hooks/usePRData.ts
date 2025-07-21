@@ -6,8 +6,10 @@ import { GitHubError } from '@src/errors/GitHubError';
 import { generatingAtom } from '@src/atoms/generatingAtom';
 import { loadPRDataFromAnySource, fetchAndSetPRData } from '@src/hooks/prDataLoader';
 import { getApprovedFiles, getApprovalPercentage } from '@src/utils/prApprovalUtils';
+import { updateFileCloseStatus } from '@src/utils/prAnalysisResultUtils';
 
 const currentPrDataAtom = atom<PRData | null>(null);
+const currentAnalysisResultAtom = atom<PRAnalysisResult | null>(null);
 
 export type ErrorKeyType =
   | 'githubTokenNotFound'
@@ -21,9 +23,9 @@ export type ErrorKeyType =
 // PRデータを管理するためのカスタムフック
 export function usePRData(prKey: string) {
   const [prData, setPRData] = useAtom(currentPrDataAtom);
+  const [analysisResult, setAnalysisResult] = useAtom(currentAnalysisResultAtom);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<ErrorKeyType>(null);
-  const [analysisResult, setAnalysisResult] = useState<PRAnalysisResult | undefined>(undefined);
   const [previousApprovalPercentage, setPreviousApprovalPercentage] = useState<number | null>(null);
   const [isJustCompleted, setIsJustCompleted] = useState(false);
   const [isGenerating] = useAtom(generatingAtom);
@@ -36,42 +38,43 @@ export function usePRData(prKey: string) {
     setIsLoading(true);
     setError(null);
     loadPRDataFromAnySource(prKey, setPRData, setAnalysisResult, setError).finally(() => setIsLoading(false));
-  }, [prKey, isGenerating, setPRData]);
+  }, [prKey, isGenerating, setPRData, setAnalysisResult]);
 
   // 分析結果を保存する関数
   const saveAnalysisResultSummary = async (summary: string) => {
-    if (!prData || !prKey) return;
+    if (!prData || !prKey || !analysisResult) return;
 
-    setAnalysisResult(prev => {
-      const newResult = {
-        ...prev,
-        summary,
-      } as PRAnalysisResult;
-      // ストレージ保存もこの中で
-      prDataStorageService.saveAnalysisResultToStorage(prKey, newResult);
-      return newResult;
-    });
+    const newResult = {
+      ...analysisResult,
+      summary,
+    };
+    setAnalysisResult(newResult);
+    // ストレージ保存もこの中で
+    prDataStorageService.saveAnalysisResultToStorage(prKey, newResult);
   };
 
   const saveAnalysisResultChecklist = async (fileChecklist: Checklist) => {
-    if (!prData || !prKey) return;
+    if (!prData || !prKey || !analysisResult) return;
 
-    setAnalysisResult(prev => {
-      let newFileAnalysis: Checklist[];
-      if (prev?.fileAnalysis?.some(item => item.filename === fileChecklist.filename)) {
-        newFileAnalysis = prev.fileAnalysis.map(item =>
-          item.filename === fileChecklist.filename ? fileChecklist : item,
-        );
-      } else {
-        newFileAnalysis = (prev?.fileAnalysis || []).concat(fileChecklist);
-      }
-      const newResult = {
-        ...prev,
-        fileAnalysis: newFileAnalysis,
-      } as PRAnalysisResult;
-      prDataStorageService.saveAnalysisResultToStorage(prKey, newResult);
-      return newResult;
-    });
+    const newFileAnalysis = analysisResult.fileAnalysis.map(item =>
+      item.filename === fileChecklist.filename ? fileChecklist : item,
+    );
+
+    const newResult = {
+      ...analysisResult,
+      fileAnalysis: newFileAnalysis,
+    };
+
+    setAnalysisResult(newResult);
+    prDataStorageService.saveAnalysisResultToStorage(prKey, newResult);
+  };
+
+  const updateFileClose = async (filename: string, isClose: boolean) => {
+    if (!prData || !prKey || !analysisResult) return;
+
+    const newResult = updateFileCloseStatus(analysisResult, filename, isClose);
+    setAnalysisResult(newResult);
+    prDataStorageService.saveAnalysisResultToStorage(prKey, newResult);
   };
 
   // データを強制的に再読み込みする関数
@@ -132,6 +135,7 @@ export function usePRData(prKey: string) {
     analysisResult,
     saveAnalysisResultSummary,
     saveAnalysisResultChecklist,
+    updateFileClose,
     refreshData,
     reloadPRData,
     approvedFilesCount,

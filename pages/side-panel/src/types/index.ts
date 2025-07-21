@@ -87,14 +87,15 @@ export interface ChecklistItem {
 // ファイルチェックリストの型
 export interface Checklist {
   filename: string;
-  explanation: string;
-  checklistItems: ChecklistItem[];
+  explanation?: string; // AI分析後に設定される（初期状態はundefined）
+  checklistItems: ChecklistItem[]; // 初期状態は空配列
+  isClose: boolean; // エクスパンドが閉じられているかどうか（初期状態はfalse）
 }
 
 // PR分析結果の型
 export interface PRAnalysisResult {
-  summary: string;
-  fileAnalysis: Checklist[];
+  summary?: string; // AI分析後に設定される（初期状態はundefined）
+  fileAnalysis: Checklist[]; // 各ファイルごとに初期状態で作成される
 }
 
 // LLMサービスプロバイダーの型定義

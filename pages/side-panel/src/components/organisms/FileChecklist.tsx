@@ -11,7 +11,8 @@ import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 interface FileChecklistProps {
   file: PRData['files'][0];
   onChecklistChange: (filename: string, updatedChecklist: Checklist) => void;
-  analysisResult: PRAnalysisResult | undefined;
+  analysisResult: PRAnalysisResult | null;
+  updateFileClose: (filename: string, isClose: boolean) => Promise<void>;
   onOpenChat?: () => void;
   prData: PRData;
   language: Language;
@@ -26,6 +27,7 @@ const FileChecklist = ({
   file,
   onChecklistChange,
   analysisResult,
+  updateFileClose,
   onOpenChat,
   prData,
   language,
@@ -42,6 +44,12 @@ const FileChecklist = ({
     return analysisResult?.fileAnalysis?.find(item => item.filename === file.filename);
   }, [analysisResult, file.filename]);
 
+  // Check if checklist content is empty (no explanation and no checklist items)
+  const isChecklistContentEmpty = (checklist: typeof aiGeneratedChecklist): boolean => {
+    if (!checklist) return true;
+    return !checklist.explanation && checklist.checklistItems.length === 0;
+  };
+
   // Override to force expanded state (when user clicks to manually open/close)
   const [expandOverride, setExpandOverride] = useState<boolean | null>(null);
   // Track if all items were just checked to trigger auto-collapse
@@ -55,29 +63,47 @@ const FileChecklist = ({
     }
   }, [aiGeneratedChecklist]);
 
-  // Calculate review status directly from checklist items
+  // Calculate review status based on isClose flag and checklist items
   const getReviewStatus = (): 'approved' | 'reviewing' | 'not-reviewed' => {
-    if (!aiGeneratedChecklist || aiGeneratedChecklist.checklistItems.length === 0) {
-      return 'not-reviewed';
+    // チェックリストが存在する場合
+    if (aiGeneratedChecklist) {
+      // isClose が true の場合は承認
+      if (aiGeneratedChecklist.isClose) {
+        return 'approved';
+      }
+
+      // チェックリストアイテムがない場合
+      if (aiGeneratedChecklist.checklistItems.length === 0) {
+        return 'not-reviewed';
+      }
+
+      // isClose が false でもすべてのチェックリストアイテムが完了している場合は承認
+      const allOK = aiGeneratedChecklist.checklistItems.every(item => item.isChecked);
+      const anyReviewed = aiGeneratedChecklist.checklistItems.some(item => item.isChecked);
+
+      if (allOK) {
+        return 'approved';
+      } else if (anyReviewed) {
+        return 'reviewing';
+      } else {
+        return 'not-reviewed';
+      }
     }
 
-    const allOK = aiGeneratedChecklist.checklistItems.every(item => item.isChecked);
-    const anyReviewed = aiGeneratedChecklist.checklistItems.some(item => item.isChecked);
-
-    if (allOK) {
-      return 'approved';
-    } else if (anyReviewed) {
-      return 'reviewing';
-    } else {
-      return 'not-reviewed';
-    }
+    // チェックリストが存在しない場合は未レビュー
+    return 'not-reviewed';
   };
 
-  // Calculate if expanded based on checklist state
+  // Calculate if expanded based on isClose flag and fallback logic
   const getCalculatedExpandedState = (): boolean => {
     // If user has explicitly set expand state via override, use that
     if (expandOverride !== null) {
       return expandOverride;
+    }
+
+    // If there's a checklist with isClose flag, use it
+    if (aiGeneratedChecklist && aiGeneratedChecklist.isClose !== undefined) {
+      return !aiGeneratedChecklist.isClose; // expanded = !isClose
     }
 
     // If there are no checklist items yet, keep expanded
@@ -144,11 +170,13 @@ const FileChecklist = ({
   };
 
   // Toggle expanded state manually
-  const toggleExpanded = () => {
-    // タブを閉じる操作の場合
-    if (expanded) {
-      // If we have checklist items, set them all to OK
-      if (aiGeneratedChecklist && aiGeneratedChecklist.checklistItems.length > 0) {
+  const toggleExpanded = async () => {
+    const newExpanded = !expanded;
+
+    // FileChecklistを閉じる場合の処理
+    if (!newExpanded) {
+      if (aiGeneratedChecklist) {
+        // チェックリストがある場合：すべてのアイテムを完了済みにしてからisCloseを設定
         const updatedChecklistItems = aiGeneratedChecklist.checklistItems.map(item => ({
           ...item,
           isChecked: true,
@@ -157,18 +185,33 @@ const FileChecklist = ({
         const updatedChecklist = {
           ...aiGeneratedChecklist,
           checklistItems: updatedChecklistItems,
+          isClose: true,
         };
 
-        // 親コンポーネントに変更を通知
+        // 親コンポーネントに通知（チェックリスト項目の完了 + isClose = true）
         onChecklistChange(file.filename, updatedChecklist);
+      } else {
+        // チェックリストが未作成の場合：isClose = trueで承認状態に
+        await updateFileClose(file.filename, true);
       }
-
-      // 閉じる
-      setExpandOverride(false);
     } else {
-      // タブを開く操作の場合は通常通り開くだけ
-      setExpandOverride(true);
+      // FileChecklistを開く場合の処理
+      if (aiGeneratedChecklist) {
+        const updatedChecklist = {
+          ...aiGeneratedChecklist,
+          isClose: false,
+        };
+
+        // 親コンポーネントに通知（isClose = false）
+        onChecklistChange(file.filename, updatedChecklist);
+      } else {
+        // チェックリストが未作成の場合：isClose = falseに
+        await updateFileClose(file.filename, false);
+      }
     }
+
+    // expandOverrideを設定して即座にUI状態を変更
+    setExpandOverride(newExpanded);
   };
 
   // Get status label and style based on calculated status
@@ -390,9 +433,9 @@ const FileChecklist = ({
         {expanded && (
           <div className="p-4 border-t border-gray-200">
             <div className="flex flex-col gap-3">
-              {aiGeneratedChecklist && (
-                <div className="flex justify-between items-center">
-                  <h4 className="text-sm font-semibold mb-2">{t('aiGeneratedChecklistTitle')}</h4>
+              <div className="flex justify-between items-center">
+                <h4 className="text-sm font-semibold mb-2">{t('aiGeneratedChecklistTitle')}</h4>
+                {aiGeneratedChecklist && !isChecklistContentEmpty(aiGeneratedChecklist) && (
                   <button
                     className="px-2 py-1 bg-blue-400 hover:bg-blue-600 text-white rounded text-xs"
                     disabled={generating}
@@ -402,8 +445,8 @@ const FileChecklist = ({
                     }}>
                     {t('regenerate')}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
 
               {error && (
                 <div className="p-2 bg-red-100 border border-red-300 text-red-800 rounded-md text-xs">{error}</div>
@@ -431,7 +474,7 @@ const FileChecklist = ({
                 </div>
               )}
 
-              {!generating && !aiGeneratedChecklist && (
+              {!generating && (!aiGeneratedChecklist || isChecklistContentEmpty(aiGeneratedChecklist)) && (
                 <div className="flex flex-col items-center justify-center py-10">
                   <p className="text-sm text-gray-500 mb-4">{t('aiChecklistNotGenerated')}</p>
                   <button
@@ -474,11 +517,12 @@ const FileChecklist = ({
                   <ChecklistComponent
                     checklist={aiGeneratedChecklist}
                     onToggle={itemIndex => toggleReviewState(itemIndex)}
+                    defaultExpanded={true}
                   />
                 )}
               </div>
 
-              {!generating && aiGeneratedChecklist && file.patch && (
+              {aiGeneratedChecklist && file.patch && (
                 <div>
                   <h4 className="text-sm font-semibold mb-2">{t('codeChanges')}</h4>
                   {renderGitHubStyleDiff(file.patch)}
@@ -486,7 +530,7 @@ const FileChecklist = ({
               )}
 
               {/* AIレビューチャットボタン */}
-              {!generating && aiGeneratedChecklist && (
+              {aiGeneratedChecklist && (
                 <div className="flex justify-center items-center mt-4">
                   {onOpenChat && (
                     <button

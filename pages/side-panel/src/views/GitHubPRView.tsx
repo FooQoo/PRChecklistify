@@ -33,6 +33,7 @@ const GitHubPRView = () => {
     analysisResult,
     saveAnalysisResultSummary,
     saveAnalysisResultChecklist,
+    updateFileClose,
     refreshData,
     currentApprovalPercentage,
     approvedFilesCount,
@@ -170,6 +171,7 @@ const GitHubPRView = () => {
             refreshData={refreshData}
             saveAnalysisResultSummary={saveAnalysisResultSummary}
             saveAnalysisResultChecklist={saveAnalysisResultChecklist}
+            updateFileClose={updateFileClose}
           />
 
           {/* 追加: 完了メッセージの表示 */}

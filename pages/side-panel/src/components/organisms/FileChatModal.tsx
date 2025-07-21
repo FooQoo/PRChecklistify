@@ -12,7 +12,7 @@ interface FileChatModalProps {
   prKey: string;
   prData: PRData;
   // 分析結果とチェックリスト変更ハンドラー
-  analysisResult?: PRAnalysisResult;
+  analysisResult?: PRAnalysisResult | null;
   onChecklistChange: (updatedChecklist: Checklist) => void;
 }
 

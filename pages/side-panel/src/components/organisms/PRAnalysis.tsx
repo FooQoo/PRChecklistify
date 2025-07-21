@@ -11,11 +11,12 @@ import { getLocalizedErrorMessage } from '@src/utils/errorUtils';
 
 interface PRAnalysisProps {
   prData: PRData;
-  analysisResult: PRAnalysisResult | undefined;
+  analysisResult: PRAnalysisResult | null;
   prKey: string;
   refreshData: () => Promise<void>; // PRデータを再読み込みする関数
   saveAnalysisResultSummary: (summary: string) => Promise<void>;
   saveAnalysisResultChecklist: (fileChecklist: Checklist) => Promise<void>;
+  updateFileClose: (filename: string, isClose: boolean) => Promise<void>;
 }
 
 const PRAnalysis: React.FC<PRAnalysisProps> = ({
@@ -25,6 +26,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
   refreshData,
   saveAnalysisResultSummary,
   saveAnalysisResultChecklist,
+  updateFileClose,
 }) => {
   const [, setGenerating] = useAtom(generatingAtom);
   // summaryのgenerateを管理
@@ -105,6 +107,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
                     file={file}
                     onChecklistChange={handleChecklistChange}
                     analysisResult={analysisResult}
+                    updateFileClose={updateFileClose}
                     onOpenChat={() => {
                       setChatModalOpen(file.filename);
                     }}
