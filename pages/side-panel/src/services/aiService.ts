@@ -172,5 +172,3 @@ export class AIService {
     }
   }
 }
-
-export const createAIService = (factory: () => Promise<ModelClient>) => new AIService(factory);
