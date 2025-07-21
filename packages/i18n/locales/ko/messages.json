@@ -322,121 +322,124 @@
     "message": "Gemini로 PR Checklistify를 사용하려면 Gemini API 키를 입력하세요."
   },
   "aiChecklistNotGenerated": {
-    "message": "AI checklist not generated yet for this file."
+    "message": "이 파일에 대한 AI 체크리스트가 아직 생성되지 않았습니다."
   },
   "aiGeneratedChecklistTitle": {
-    "message": "AI-Generated Checklist"
+    "message": "AI 생성 체크리스트"
   },
   "aiReviewer": {
-    "message": "AI Reviewer"
+    "message": "AI 검토자"
   },
   "allChecklistDone": {
-    "message": "All checklist items are OK. Close the chat to continue."
+    "message": "모든 체크리스트 항목이 완료되었습니다. 채팅을 닫고 계속하세요."
   },
   "analyzingPr": {
-    "message": "Analyzing your PR. This may take a moment..."
+    "message": "PR을 분석하는 중입니다. 잠시만 기다려주세요..."
   },
   "askAiPrompt": {
-    "message": "Ask AI a question or provide feedback"
+    "message": "AI에게 질문하거나 피드백을 제공하세요"
   },
   "changedFiles": {
-    "message": "Changed Files"
+    "message": "변경된 파일"
   },
   "checklistItemsTitle": {
-    "message": "Checklist Items"
+    "message": "체크리스트 항목"
   },
   "clearAllPrData": {
-    "message": "Clear All PR Data"
+    "message": "모든 PR 데이터 지우기"
   },
   "clearing": {
-    "message": "Clearing..."
+    "message": "지우는 중..."
   },
   "clickGenerateSummary": {
-    "message": "Click 'Generate Summary' to get AI-powered summary about this PR."
+    "message": "이 PR에 대한 AI 기반 요약을 받으려면 「요약 생성」을 클릭하세요."
   },
   "closeChat": {
-    "message": "Close chat window"
+    "message": "채팅 창 닫기"
   },
   "codeChanges": {
-    "message": "Code Changes"
+    "message": "코드 변경사항"
+  },
+  "noCodeChanges": {
+    "message": "코드 변경사항이 없습니다"
   },
   "deletePrDataConfirm": {
-    "message": "Are you sure you want to delete all saved PR data? This action cannot be undone."
+    "message": "저장된 모든 PR 데이터를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
   },
   "deletePrDataNotice": {
-    "message": "This will delete all saved PR data, including checklist statuses and AI analysis results."
+    "message": "체크리스트 상태 및 AI 분석 결과를 포함하여 저장된 모든 PR 데이터가 삭제됩니다."
   },
   "enterMessage": {
-    "message": "Enter your message..."
+    "message": "메시지를 입력하세요..."
   },
   "failedToClearPrData": {
-    "message": "Failed to clear PR data"
+    "message": "PR 데이터 지우기에 실패했습니다"
   },
   "fileReview": {
-    "message": "File Review"
+    "message": "파일 검토"
   },
   "fileSummary": {
-    "message": "File Summary"
+    "message": "파일 요약"
   },
   "generateChecklist": {
-    "message": "Generate Checklist"
+    "message": "체크리스트 생성"
   },
   "generateSummary": {
-    "message": "Generate Summary"
+    "message": "요약 생성"
   },
   "generatingChecklist": {
-    "message": "Generating checklist..."
+    "message": "체크리스트 생성 중..."
   },
   "generatingChecklistError": {
-    "message": "Error occurred while generating the checklist."
+    "message": "체크리스트 생성 중 오류가 발생했습니다."
   },
   "noPrDataFound": {
-    "message": "No PR data found to clear"
+    "message": "지울 PR 데이터를 찾을 수 없습니다"
   },
   "noPrDataSaved": {
-    "message": "No PR data currently saved in storage."
+    "message": "현재 저장소에 저장된 PR 데이터가 없습니다."
   },
   "openAiReviewChat": {
-    "message": "Open AI Review Chat"
+    "message": "AI 검토 채팅 열기"
   },
   "prAnalysisTitle": {
-    "message": "PR Analysis"
+    "message": "PR 분석"
   },
   "prDataCleared": {
-    "message": "Successfully cleared PR data items"
+    "message": "PR 데이터 항목을 성공적으로 지웠습니다"
   },
   "prDataSaved": {
-    "message": "You have PR(s) saved in storage."
+    "message": "저장소에 저장된 PR이 있습니다."
   },
   "regenerate": {
-    "message": "Regenerate"
+    "message": "재생성"
   },
   "reset": {
-    "message": "Reset"
+    "message": "재설정"
   },
   "reviewComplete": {
-    "message": "File review completed!"
+    "message": "파일 검토가 완료되었습니다!"
   },
   "reviewDiscussion": {
-    "message": "Review Discussion"
+    "message": "검토 토론"
   },
   "statusApproved": {
-    "message": "✓ Approved"
+    "message": "✓ 승인됨"
   },
   "statusNotReviewed": {
-    "message": "⊘ Not Reviewed"
+    "message": "⊘ 검토되지 않음"
   },
   "statusReviewing": {
-    "message": "⚠ Reviewing"
+    "message": "⚠ 검토 중"
   },
   "storageManagement": {
-    "message": "Storage Management"
+    "message": "저장소 관리"
   },
   "syncLatestCommit": {
-    "message": "Sync latest commit"
+    "message": "최신 커밋 동기화"
   },
   "you": {
-    "message": "You"
+    "message": "당신"
   },
   "instructionPath": {
     "message": "커스텀 지시사항 파일 경로"

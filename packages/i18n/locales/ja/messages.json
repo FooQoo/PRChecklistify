@@ -334,6 +334,9 @@
   "codeChanges": {
     "message": "コード変更"
   },
+  "noCodeChanges": {
+    "message": "コードの変更がありません。"
+  },
   "openAiReviewChat": {
     "message": "AIレビュー チャットを開く"
   },

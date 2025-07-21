@@ -323,121 +323,124 @@
     "message": "要在 PR Checklistify 中使用 Gemini，请提供您的 Gemini API 密钥。"
   },
   "aiChecklistNotGenerated": {
-    "message": "AI checklist not generated yet for this file."
+    "message": "该文件的AI检查清单尚未生成。"
   },
   "aiGeneratedChecklistTitle": {
-    "message": "AI-Generated Checklist"
+    "message": "AI生成的检查清单"
   },
   "aiReviewer": {
-    "message": "AI Reviewer"
+    "message": "AI审查员"
   },
   "allChecklistDone": {
-    "message": "All checklist items are OK. Close the chat to continue."
+    "message": "所有检查项都没有问题。关闭聊天窗口以继续。"
   },
   "analyzingPr": {
-    "message": "Analyzing your PR. This may take a moment..."
+    "message": "正在分析您的PR，可能需要一点时间..."
   },
   "askAiPrompt": {
-    "message": "Ask AI a question or provide feedback"
+    "message": "向AI提问或提供反馈"
   },
   "changedFiles": {
-    "message": "Changed Files"
+    "message": "已更改的文件"
   },
   "checklistItemsTitle": {
-    "message": "Checklist Items"
+    "message": "检查项目"
   },
   "clearAllPrData": {
-    "message": "Clear All PR Data"
+    "message": "清除所有PR数据"
   },
   "clearing": {
-    "message": "Clearing..."
+    "message": "正在清除..."
   },
   "clickGenerateSummary": {
-    "message": "Click 'Generate Summary' to get AI-powered summary about this PR."
+    "message": "点击「生成摘要」以获取AI驱动的PR摘要。"
   },
   "closeChat": {
-    "message": "Close chat window"
+    "message": "关闭聊天窗口"
   },
   "codeChanges": {
-    "message": "Code Changes"
+    "message": "代码更改"
+  },
+  "noCodeChanges": {
+    "message": "无代码更改"
   },
   "deletePrDataConfirm": {
-    "message": "Are you sure you want to delete all saved PR data? This action cannot be undone."
+    "message": "您确定要删除所有已保存的PR数据吗？此操作无法撤销。"
   },
   "deletePrDataNotice": {
-    "message": "This will delete all saved PR data, including checklist statuses and AI analysis results."
+    "message": "这将删除所有已保存的PR数据，包括检查清单状态和AI分析结果。"
   },
   "enterMessage": {
-    "message": "Enter your message..."
+    "message": "输入您的消息..."
   },
   "failedToClearPrData": {
-    "message": "Failed to clear PR data"
+    "message": "清除PR数据失败"
   },
   "fileReview": {
-    "message": "File Review"
+    "message": "文件审查"
   },
   "fileSummary": {
-    "message": "File Summary"
+    "message": "文件摘要"
   },
   "generateChecklist": {
-    "message": "Generate Checklist"
+    "message": "生成检查清单"
   },
   "generateSummary": {
-    "message": "Generate Summary"
+    "message": "生成摘要"
   },
   "generatingChecklist": {
-    "message": "Generating checklist..."
+    "message": "正在生成检查清单..."
   },
   "generatingChecklistError": {
-    "message": "Error occurred while generating the checklist."
+    "message": "生成检查清单时发生错误。"
   },
   "noPrDataFound": {
-    "message": "No PR data found to clear"
+    "message": "未找到要清除的PR数据"
   },
   "noPrDataSaved": {
-    "message": "No PR data currently saved in storage."
+    "message": "存储中目前没有保存的PR数据。"
   },
   "openAiReviewChat": {
-    "message": "Open AI Review Chat"
+    "message": "打开AI审查聊天"
   },
   "prAnalysisTitle": {
-    "message": "PR Analysis"
+    "message": "PR分析"
   },
   "prDataCleared": {
-    "message": "Successfully cleared PR data items"
+    "message": "成功清除PR数据项"
   },
   "prDataSaved": {
-    "message": "You have PR(s) saved in storage."
+    "message": "您在存储中有已保存的PR。"
   },
   "regenerate": {
-    "message": "Regenerate"
+    "message": "重新生成"
   },
   "reset": {
-    "message": "Reset"
+    "message": "重置"
   },
   "reviewComplete": {
-    "message": "File review completed!"
+    "message": "文件审查已完成！"
   },
   "reviewDiscussion": {
-    "message": "Review Discussion"
+    "message": "审查讨论"
   },
   "statusApproved": {
-    "message": "✓ Approved"
+    "message": "✓ 已批准"
   },
   "statusNotReviewed": {
-    "message": "⊘ Not Reviewed"
+    "message": "⊘ 未审查"
   },
   "statusReviewing": {
-    "message": "⚠ Reviewing"
+    "message": "⚠ 审查中"
   },
   "storageManagement": {
-    "message": "Storage Management"
+    "message": "存储管理"
   },
   "syncLatestCommit": {
-    "message": "Sync latest commit"
+    "message": "同步最新提交"
   },
   "you": {
-    "message": "You"
+    "message": "您"
   },
   "instructionPath": {
     "message": "自定义指令文件路径"
@@ -449,7 +452,7 @@
     "message": "内容"
   },
   "allRightsReserved": {
-    "message": "All rights reserved."
+    "message": "版权所有。"
   },
   "settingsAriaLabel": {
     "message": "设置"
