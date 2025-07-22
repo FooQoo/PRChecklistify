@@ -14,6 +14,12 @@ AIを活用してPRの内容を自動解析し、確認すべき項目をチェ�
 
 ---
 
+## About This Project
+
+このプロジェクトは**FooQoo**によって開発された個人プロジェクトです。特定の企業や団体とは一切関係がありません。
+
+---
+
 ## Table of Contents
 
 - [Features](#features)
