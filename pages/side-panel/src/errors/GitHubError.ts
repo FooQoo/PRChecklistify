@@ -5,12 +5,14 @@
 export class GitHubError extends Error {
   public readonly i18nKey: string;
   public readonly originalError?: unknown;
+  public readonly resetTime?: Date;
 
-  constructor(i18nKey: string, originalError?: unknown, message?: string) {
+  constructor(i18nKey: string, originalError?: unknown, message?: string, resetTime?: Date) {
     super(message || i18nKey);
     this.name = 'GitHubError';
     this.i18nKey = i18nKey;
     this.originalError = originalError;
+    this.resetTime = resetTime;
 
     // Error.captureStackTraceが利用可能な場合（Node.js環境など）
     if (Error.captureStackTrace) {
@@ -29,6 +31,8 @@ export class GitHubError extends Error {
       return GitHubError.createRepositoryAccessError(error);
     } else if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
       return GitHubError.createFileNotFoundError(error);
+    } else if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
+      return GitHubError.createRateLimitError(error);
     } else if (error && typeof error === 'object' && 'status' in error) {
       return GitHubError.createApiError(error);
     }
@@ -53,7 +57,18 @@ export class GitHubError extends Error {
    * GitHub API レート制限エラーを作成
    */
   static createRateLimitError(originalError?: unknown): GitHubError {
-    return new GitHubError('githubRateLimitExceeded', originalError);
+    let resetTime: Date | undefined;
+
+    // GitHub APIのレスポンスヘッダーからリセット時刻を取得
+    if (originalError && typeof originalError === 'object' && 'headers' in originalError && originalError.headers) {
+      const headers = originalError.headers as Record<string, string>;
+      const resetTimestamp = headers['x-ratelimit-reset'];
+      if (resetTimestamp) {
+        resetTime = new Date(parseInt(resetTimestamp) * 1000);
+      }
+    }
+
+    return new GitHubError('githubRateLimitError', originalError, undefined, resetTime);
   }
 
   /**

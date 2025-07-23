@@ -68,7 +68,11 @@ export class PRDataService {
           instructions = undefined;
         }
       }
-      readme = await github.fetchReadmeContent(owner, repo);
+      try {
+        readme = await github.fetchReadmeContent(owner, repo);
+      } catch {
+        readme = undefined;
+      }
 
       const { data: reviewCommentsData } = await github.fetchPullRequestReviewComments(identifier);
 

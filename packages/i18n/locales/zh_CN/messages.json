@@ -439,6 +439,18 @@
   "syncLatestCommit": {
     "message": "同步最新提交"
   },
+  "summaryTab": {
+    "message": "摘要"
+  },
+  "descriptionTab": {
+    "message": "描述"
+  },
+  "githubRateLimitError": {
+    "message": "GitHub API 速率限制已达上限。请稍后重试。"
+  },
+  "rateLimitResetTime": {
+    "message": "速率限制重置时间：$1"
+  },
   "you": {
     "message": "您"
   },

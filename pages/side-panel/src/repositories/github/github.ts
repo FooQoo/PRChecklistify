@@ -124,19 +124,27 @@ export class GithubClient {
 
   // READMEファイルの内容を取得
   async fetchReadmeContent(owner: string, repo: string): Promise<string | undefined> {
-    try {
-      const { data } = await this.fetchFileContent(owner, repo, 'README.md');
-      if ('content' in data && typeof data.content === 'string') {
-        const base64 = data.content.replace(/\n/g, '');
-        return atob(base64);
+    const readmeFiles = ['README.md', 'README.txt', 'README.rst', 'README'];
+
+    for (const filename of readmeFiles) {
+      try {
+        const { data } = await this.fetchFileContent(owner, repo, filename);
+        if ('content' in data && typeof data.content === 'string') {
+          const base64 = data.content.replace(/\n/g, '');
+          return atob(base64);
+        }
+      } catch (error) {
+        // 404の場合は次のファイル名を試す
+        if (GitHubError.isGitHubError(error) && error.i18nKey === 'githubFileNotFound') {
+          continue;
+        }
+        // その他のエラーは再スロー
+        throw error;
       }
-      return undefined;
-    } catch (error) {
-      if (GitHubError.isGitHubError(error) && error.i18nKey === 'githubFileNotFound') {
-        return undefined;
-      }
-      throw error;
     }
+
+    // すべてのREADMEファイルが見つからない場合
+    return undefined;
   }
 
   /**

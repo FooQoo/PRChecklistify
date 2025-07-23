@@ -13,6 +13,11 @@ export function getLocalizedErrorMessage(error: unknown, t: (key: any) => string
 
   // GitHubError の場合は i18nKey を使用
   if (GitHubError.isGitHubError(error)) {
+    // レート制限エラーの場合はリセット時刻も含める
+    if (error.i18nKey === 'githubRateLimitError' && error.resetTime) {
+      const resetTimeString = error.resetTime.toLocaleString();
+      return `${t(error.i18nKey)}\n${t('rateLimitResetTime').replace('$1', resetTimeString)}`;
+    }
     return t(error.i18nKey);
   }
 

@@ -379,6 +379,18 @@
   "syncLatestCommit": {
     "message": "Sync latest commit"
   },
+  "summaryTab": {
+    "message": "Summary"
+  },
+  "descriptionTab": {
+    "message": "Description"
+  },
+  "githubRateLimitError": {
+    "message": "GitHub API rate limit exceeded. Please wait and try again later."
+  },
+  "rateLimitResetTime": {
+    "message": "Rate limit will reset at: $1"
+  },
   "analyzingPr": {
     "message": "Analyzing your PR. This may take a moment..."
   },

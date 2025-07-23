@@ -438,6 +438,18 @@
   "syncLatestCommit": {
     "message": "최신 커밋 동기화"
   },
+  "summaryTab": {
+    "message": "요약"
+  },
+  "descriptionTab": {
+    "message": "설명"
+  },
+  "githubRateLimitError": {
+    "message": "GitHub API 속도 제한에 도달했습니다. 잠시 후 다시 시도해주세요."
+  },
+  "rateLimitResetTime": {
+    "message": "속도 제한 재설정 시간: $1"
+  },
   "you": {
     "message": "당신"
   },

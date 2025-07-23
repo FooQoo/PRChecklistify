@@ -379,6 +379,18 @@
   "syncLatestCommit": {
     "message": "最新コミットを同期"
   },
+  "summaryTab": {
+    "message": "サマリ"
+  },
+  "descriptionTab": {
+    "message": "本文"
+  },
+  "githubRateLimitError": {
+    "message": "GitHub APIのレート制限に達しました。しばらく待ってから再試行してください。"
+  },
+  "rateLimitResetTime": {
+    "message": "レート制限リセット時刻: $1"
+  },
   "analyzingPr": {
     "message": "PRを解析中です。しばらくお待ちください..."
   },
