@@ -12,7 +12,6 @@ const currentPrDataAtom = atom<PRData | null>(null);
 const currentAnalysisResultAtom = atom<PRAnalysisResult | null>(null);
 
 export type ErrorKeyType =
-  | 'githubTokenNotFound'
   | 'githubAuthenticationError'
   | 'failedToLoadPrData'
   | 'errorOccurredWhileLoadingPrData'

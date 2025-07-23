@@ -8,7 +8,8 @@ interface PRSummarySectionProps {
   isStreaming: boolean;
   summaryGenerating: boolean;
   onGenerateSummary: () => void;
-  error?: string | null;
+  error: string | null;
+  prBody: string | null;
 }
 
 const PRSummarySection: React.FC<PRSummarySectionProps> = ({
@@ -18,6 +19,7 @@ const PRSummarySection: React.FC<PRSummarySectionProps> = ({
   summaryGenerating,
   onGenerateSummary,
   error,
+  prBody,
 }) => {
   const { t } = useI18n();
 
@@ -49,6 +51,12 @@ const PRSummarySection: React.FC<PRSummarySectionProps> = ({
         <div className="pr-summary mb-4">
           <div className="bg-gray-50 p-3 rounded-md text-left text-sm whitespace-pre-line">
             <MarkdownRenderer content={streamedSummary || summary!} />
+          </div>
+        </div>
+      ) : prBody ? (
+        <div className="pr-summary mb-4">
+          <div className="bg-gray-50 p-3 rounded-md text-left text-sm whitespace-pre-line">
+            <MarkdownRenderer content={prBody} />
           </div>
         </div>
       ) : (

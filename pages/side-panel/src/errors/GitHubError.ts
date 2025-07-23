@@ -36,13 +36,6 @@ export class GitHubError extends Error {
   }
 
   /**
-   * GitHubトークンが見つからないエラーを作成
-   */
-  static createTokenNotFoundError(): GitHubError {
-    return new GitHubError('githubTokenNotFound');
-  }
-
-  /**
    * GitHubトークンが無効なエラーを作成
    */
   static createTokenInvalidError(originalError?: unknown): GitHubError {

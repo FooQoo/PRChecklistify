@@ -532,11 +532,11 @@
   "llmServiceError": {
     "message": "LLMサービスでエラーが発生しました。もう一度お試しください。"
   },
-  "githubTokenNotFound": {
-    "message": "GitHubトークンが見つかりません。設定を確認してください。"
-  },
   "githubTokenInvalid": {
     "message": "GitHubトークンが無効です。設定を確認してください。"
+  },
+  "githubTokenNotSetWarning": {
+    "message": "APIキーが設定されていません。キーをセットしなければ公開リポジトリ以外確認することはできません。"
   },
   "githubServerConfigNotFound": {
     "message": "GitHubサーバー設定が見つかりません。"

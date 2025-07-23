@@ -29,12 +29,8 @@ export class GithubClient {
       throw GitHubError.createServerConfigNotFoundError();
     }
 
-    if (!server.token) {
-      throw GitHubError.createTokenNotFoundError();
-    }
-
     const octokit = new Octokit({
-      auth: server.token,
+      auth: server.token || undefined,
       baseUrl: server.apiUrl,
       log: {
         debug: () => {},

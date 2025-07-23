@@ -86,6 +86,11 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
             <p className="text-sm text-gray-600">
               {t('configureApiTokens')} ({servers.length} available)
             </p>
+            {servers.every(server => !server.hasToken) && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">{t('githubTokenNotSetWarning')}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">

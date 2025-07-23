@@ -92,6 +92,7 @@ const PRAnalysis: React.FC<PRAnalysisProps> = ({
         summaryGenerating={summaryGenerating}
         onGenerateSummary={generateSummary}
         error={error}
+        prBody={prData.body}
       />
       {/* ファイルリストは常に表示 */}
       <div className="grid grid-cols-1 gap-2 mt-4">
