@@ -1,15 +1,37 @@
 import type { GitHubServer } from '@extension/storage';
-import { githubTokensStorage } from '@extension/storage';
+import { githubTokensStorage, githubServersStorage } from '@extension/storage';
 import type { LLMProvider } from '../types';
 
 /**
- * Loads GitHub server configuration from external config or defaults
+ * Loads GitHub server configuration from storage (user-defined) with fallback to external config
  */
-export function loadGitHubServerConfig(): GitHubServer[] {
-  // ビルド時に注入された設定を使用
-  const config = __GITHUB_CONFIG__;
+export async function loadGitHubServerConfig(): Promise<GitHubServer[]> {
+  try {
+    // First try to load from user storage
+    const userServers = await githubServersStorage.getAllServers();
+    if (userServers.length > 0) {
+      return userServers;
+    }
+  } catch (error) {
+    console.warn('Failed to load user-defined GitHub servers:', error);
+  }
 
-  return config.github.servers as GitHubServer[];
+  // Fallback to build-time config if available
+  try {
+    const config = __GITHUB_CONFIG__;
+    return config.github.servers as GitHubServer[];
+  } catch (error) {
+    console.warn('Failed to load build-time GitHub config:', error);
+    // Return default GitHub.com server as ultimate fallback
+    return [
+      {
+        id: 'github.com',
+        name: 'GitHub.com',
+        apiUrl: 'https://api.github.com',
+        webUrl: 'https://github.com',
+      },
+    ];
+  }
 }
 
 /**
@@ -18,7 +40,7 @@ export function loadGitHubServerConfig(): GitHubServer[] {
 export async function getGitHubServersWithTokens(): Promise<
   Array<GitHubServer & { token?: string; hasToken: boolean }>
 > {
-  const servers = loadGitHubServerConfig();
+  const servers = await loadGitHubServerConfig();
   const tokensConfig = await githubTokensStorage.get();
 
   return servers.map(server => {

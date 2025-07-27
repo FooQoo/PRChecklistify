@@ -105,14 +105,18 @@ export const getServerIdByDomain = async (domain: string): Promise<string> => {
 };
 
 // 指定したドメインが設定済みのGitHubサーバか確認する
-export const isRegisteredGitHubServer = (domain: string): boolean => {
-  const servers = loadGitHubServerConfig();
-  return servers.some(server => {
-    try {
-      const serverDomain = new URL(server.webUrl).hostname;
-      return serverDomain === domain;
-    } catch {
-      return false;
-    }
-  });
+export const isRegisteredGitHubServer = async (domain: string): Promise<boolean> => {
+  try {
+    const servers = await loadGitHubServerConfig();
+    return servers.some(server => {
+      try {
+        const serverDomain = new URL(server.webUrl).hostname;
+        return serverDomain === domain;
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return false;
+  }
 };
