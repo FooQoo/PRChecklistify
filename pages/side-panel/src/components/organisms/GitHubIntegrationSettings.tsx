@@ -11,12 +11,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
 
   return (
     <>
-      <h2 className="text-lg font-semibold mb-6">{t('githubIntegration')}</h2>
-
-      {/* GitHub setup description */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800" dangerouslySetInnerHTML={{ __html: t('githubSetupDescription') }} />
-      </div>
+      <p className="text-sm" dangerouslySetInnerHTML={{ __html: t('githubSetupDescription') }} />
 
       {/* Unified GitHub Server and Token Management */}
       <GitHubServerManagement onToast={onToast} />

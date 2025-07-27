@@ -1,11 +1,23 @@
+/**
+ * ストレージが空の場合、ビルド時設定(__GITHUB_CONFIG__)からGitHubサーバー情報を初期化
+ */
+import { initServersFromConfigIfEmpty } from '@extension/storage/lib/impl/githubServersStorage';
+
 import type { GitHubServer } from '@extension/storage';
 import { githubTokensStorage, githubServersStorage } from '@extension/storage';
 import type { LLMProvider } from '../types';
+import { __GITHUB_CONFIG__, __LLM_CONFIG__ } from '@src/vite-env';
+
+export async function initGitHubServersFromBuildConfigIfEmpty() {
+  await initServersFromConfigIfEmpty(__GITHUB_CONFIG__);
+}
 
 /**
  * Loads GitHub server configuration from storage (user-defined) with fallback to external config
  */
 export async function loadGitHubServerConfig(): Promise<GitHubServer[]> {
+  // ストレージが空ならビルド時設定から初期化
+  await initGitHubServersFromBuildConfigIfEmpty();
   try {
     // First try to load from user storage
     const userServers = await githubServersStorage.getAllServers();

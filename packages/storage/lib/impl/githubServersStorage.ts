@@ -1,6 +1,20 @@
+import type { GitHubConfig } from '../../types/githubConfig.js';
+import type { GitHubServer } from '../types/githubServer.js';
+
+// __GITHUB_CONFIG__相当の値を引数で受け取って初期化する関数
+export async function initServersFromConfigIfEmpty(config?: GitHubConfig) {
+  const servers = await storage.get();
+  if (Array.isArray(servers) && servers.length > 0) return;
+
+  if (config?.github?.servers && Array.isArray(config.github.servers)) {
+    const externalServers = config.github.servers;
+    if (externalServers.length > 0) {
+      await storage.set(externalServers);
+    }
+  }
+}
 import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
-import type { GitHubServer } from '../types/githubServer.js';
 
 type GitHubServersStorage = BaseStorage<GitHubServer[]> & {
   addServer: (server: GitHubServer) => Promise<void>;
@@ -10,14 +24,7 @@ type GitHubServersStorage = BaseStorage<GitHubServer[]> & {
   getAllServers: () => Promise<GitHubServer[]>;
 };
 
-const defaultServers: GitHubServer[] = [
-  {
-    id: 'github.com',
-    name: 'GitHub.com',
-    apiUrl: 'https://api.github.com',
-    webUrl: 'https://github.com',
-  },
-];
+const defaultServers: GitHubServer[] = [];
 
 const storage = createStorage<GitHubServer[]>('githubServersConfig', defaultServers, {
   storageEnum: StorageEnum.Local,

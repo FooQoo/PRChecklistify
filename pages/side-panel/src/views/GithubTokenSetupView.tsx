@@ -36,8 +36,7 @@ const GithubTokenSetupView: React.FC = () => {
   return (
     <CenteredCard cardClassName="max-w-2xl">
       <div className="mb-6">
-        <h2 className="text-xl font-bold mb-4">{t('githubIntegration')} Setup</h2>
-        <p className="text-sm mb-4 text-gray-600" dangerouslySetInnerHTML={{ __html: t('githubSetupDescription') }} />
+        <h2 className="text-xl font-bold mb-4">{t('githubIntegration')}</h2>
         {hasGitHubToken && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-sm text-green-800">✓ {t('githubTokensConfigured')}</p>

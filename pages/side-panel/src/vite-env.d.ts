@@ -1,16 +1,8 @@
 /// <reference types="vite/client" />
 
 // ビルド時に注入されるGitHub設定の型定義
-declare const __GITHUB_CONFIG__: {
-  github: {
-    servers: Array<{
-      id: string;
-      name: string;
-      apiUrl: string;
-      webUrl: string;
-    }>;
-  };
-};
+import type { GitHubConfig } from '@extension/storage/types/githubConfig';
+declare const __GITHUB_CONFIG__: GitHubConfig;
 
 // ビルド時に注入されるFooter設定の型定義
 declare const __FOOTER_CONFIG__: {
@@ -23,19 +15,5 @@ declare const __FOOTER_CONFIG__: {
 };
 
 // ビルド時に注入されるLLMサービス設定の型定義
-declare const __LLM_CONFIG__: {
-  llmServices: {
-    providers: Array<{
-      id: string;
-      name: string;
-      apiEndpoint: string;
-      tokenRegistrationUrl: string;
-      defaultModel: string;
-      models: Array<{
-        id: string;
-        name: string;
-        maxTokens: number;
-      }>;
-    }>;
-  };
-};
+import type { LlmConfig } from '@extension/storage/types/llmConfig';
+declare const __LLM_CONFIG__: LlmConfig;
