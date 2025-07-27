@@ -1,19 +1,6 @@
-import type { GitHubConfig, GitHubServer } from '../types/githubServer.js';
-
-// __GITHUB_CONFIG__相当の値を引数で受け取って初期化する関数
-export async function initServersFromConfigIfEmpty(config?: GitHubConfig) {
-  const servers = await storage.get();
-  if (Array.isArray(servers) && servers.length > 0) return;
-
-  if (config?.github?.servers && Array.isArray(config.github.servers)) {
-    const externalServers = config.github.servers;
-    if (externalServers.length > 0) {
-      await storage.set(externalServers);
-    }
-  }
-}
 import type { BaseStorage } from '../base/index.js';
 import { createStorage, StorageEnum } from '../base/index.js';
+import type { GitHubConfig, GitHubServer } from '../types/githubServer.js';
 
 type GitHubServersStorage = BaseStorage<GitHubServer[]> & {
   addServer: (server: GitHubServer) => Promise<void>;
@@ -29,6 +16,19 @@ const storage = createStorage<GitHubServer[]>('githubServersConfig', defaultServ
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
 });
+
+// __GITHUB_CONFIG__相当の値を引数で受け取って初期化する関数
+export async function initServersFromConfigIfEmpty(config?: GitHubConfig) {
+  const servers = await storage.get();
+  if (Array.isArray(servers) && servers.length > 0) return;
+
+  if (config?.github?.servers && Array.isArray(config.github.servers)) {
+    const externalServers = config.github.servers;
+    if (externalServers.length > 0) {
+      await storage.set(externalServers);
+    }
+  }
+}
 
 // Extended storage with custom methods for GitHub servers management
 export const githubServersStorage: GitHubServersStorage = {
