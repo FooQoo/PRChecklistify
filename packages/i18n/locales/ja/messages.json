@@ -110,7 +110,7 @@
     "message": "GitHubトークンはローカルに保存され、PRデータへのアクセスにのみ使用されます。"
   },
   "githubSetupDescription": {
-    "message": "PR Checklistifyを使用するには、Personal Access Tokenを使用してGitHubサーバーアクセスを設定する必要があります。これらのトークンには<strong>repo</strong>スコープの権限が必要です。"
+    "message": "PR Checklistifyを使用するには、Personal Access Tokenを使用してGitHubサーバーアクセスを設定する必要があります。これらのトークンには<strong>repo</strong>スコープの権限が必要です。トークンを設定していない場合はPublic Repositoryのみ利用することができます。"
   },
   "githubTokensConfigured": {
     "message": "GitHubトークンが設定されています。次のステップに進むことができます。"
@@ -122,7 +122,7 @@
     "message": "全ファイルのレビューが完了しました！"
   },
   "createGithubToken": {
-    "message": "GitHubで個人用アクセス トークンを作成 →"
+    "message": "GitHubで個人用アクセス トークンを作成"
   },
   "githubApiDomain": {
     "message": "GitHub APIドメイン"
@@ -582,5 +582,197 @@
   },
   "hours": {
     "message": "時間"
+  },
+  "noToken": {
+    "message": "トークンなし"
+  },
+  "disabled": {
+    "message": "無効"
+  },
+  "serverId": {
+    "message": "サーバーID"
+  },
+  "serverName": {
+    "message": "サーバー名"
+  },
+  "apiUrl": {
+    "message": "API URL"
+  },
+  "webUrl": {
+    "message": "Web URL"
+  },
+  "serverIdRequired": {
+    "message": "サーバーIDは必須です"
+  },
+  "serverIdInvalidFormat": {
+    "message": "サーバーIDには英数字、ドット、ハイフン、アンダースコアのみ使用できます"
+  },
+  "serverNameRequired": {
+    "message": "サーバー名は必須です"
+  },
+  "apiUrlRequired": {
+    "message": "API URLは必須です"
+  },
+  "apiUrlInvalidFormat": {
+    "message": "有効なAPI URLを入力してください"
+  },
+  "webUrlRequired": {
+    "message": "Web URLは必須です"
+  },
+  "webUrlInvalidFormat": {
+    "message": "有効なWeb URLを入力してください"
+  },
+  "serverUpdatedSuccess": {
+    "message": "サーバーが正常に更新されました"
+  },
+  "serverAddedSuccess": {
+    "message": "サーバーが正常に追加されました"
+  },
+  "serverSaveError": {
+    "message": "サーバーの保存に失敗しました"
+  },
+  "editServer": {
+    "message": "サーバーを編集"
+  },
+  "addServer": {
+    "message": "サーバーを追加"
+  },
+  "editServerDescription": {
+    "message": "以下でサーバー情報を更新してください"
+  },
+  "addServerDescription": {
+    "message": "新しいGitHubサーバー設定を追加してください"
+  },
+  "serverIdHelpText": {
+    "message": "一意の識別子（英数字、ドット、ハイフン、アンダースコアのみ）"
+  },
+  "apiUrlHelpText": {
+    "message": "GitHub APIエンドポイント（例：https://api.github.com）"
+  },
+  "webUrlHelpText": {
+    "message": "GitHub WebインターフェースURL（例：https://github.com）"
+  },
+  "updateServer": {
+    "message": "サーバーを更新"
+  },
+  "configureToken": {
+    "message": "トークンを設定"
+  },
+  "manageToken": {
+    "message": "トークンを管理"
+  },
+  "githubServers": {
+    "message": "GitHubサーバー"
+  },
+  "noGitHubServers": {
+    "message": "GitHubサーバーがありません"
+  },
+  "noGitHubServersDescription": {
+    "message": "最初のGitHubサーバーを追加してPR分析を開始しましょう。"
+  },
+  "addFirstServer": {
+    "message": "最初のサーバーを追加"
+  },
+  "serversConfigured": {
+    "message": "$2個中$1個のサーバーにトークンが設定されています"
+  },
+  "serverManagementNotice": {
+    "message": "GitHubサーバーを管理し、PR分析用のAPIトークンを設定してください。"
+  },
+  "confirmDeleteServer": {
+    "message": "サーバーの削除を確認"
+  },
+  "deleteServerWarning": {
+    "message": "このサーバーを削除してもよろしいですか？この操作は元に戻せません。"
+  },
+  "serverDeletedSuccess": {
+    "message": "サーバーが正常に削除されました"
+  },
+  "serverDeleteError": {
+    "message": "サーバーの削除に失敗しました"
+  },
+  "tokenConfigurationNotAvailable": {
+    "message": "トークン設定は利用できません"
+  },
+  "tokenConfiguration": {
+    "message": "トークン設定"
+  },
+  "addServerAboveToConfigureTokens": {
+    "message": "上記でサーバーを追加してトークンを設定してください"
+  },
+  "edit": {
+    "message": "編集"
+  },
+  "delete": {
+    "message": "削除"
+  },
+  "cancel": {
+    "message": "キャンセル"
+  },
+  "serverNameDuplicate": {
+    "message": "この名前のサーバーは既に存在します"
+  },
+  "apiUrlDuplicate": {
+    "message": "このAPI URLのサーバーは既に存在します"
+  },
+  "webUrlDuplicate": {
+    "message": "このWeb URLのサーバーは既に存在します"
+  },
+  "accessToken": {
+    "message": "アクセストークン"
+  },
+  "notConfigured": {
+    "message": "未設定"
+  },
+  "enterGitHubToken": {
+    "message": "GitHubトークンを入力"
+  },
+  "tokenCannotBeEmpty": {
+    "message": "トークンは空にできません"
+  },
+  "tokenSavedSuccess": {
+    "message": "トークンが正常に保存されました"
+  },
+  "tokenSaveError": {
+    "message": "トークンの保存に失敗しました"
+  },
+  "updateToken": {
+    "message": "トークンを更新"
+  },
+  "addToken": {
+    "message": "トークンを追加"
+  },
+  "removeToken": {
+    "message": "トークンを削除"
+  },
+  "tokenRemovedSuccess": {
+    "message": "トークンが正常に削除されました"
+  },
+  "tokenRemoveError": {
+    "message": "トークンの削除に失敗しました"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub Enterpriseサーバー"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "ユーザーアバター"
+  },
+  "invalidPrInformation": {
+    "message": "無効なPR情報"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "LLMサービス設定の読み込みに失敗しました"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

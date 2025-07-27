@@ -110,7 +110,7 @@
     "message": "您的GitHub令牌存储在本地，仅用于访问PR数据。"
   },
   "githubSetupDescription": {
-    "message": "要使用PR Checklistify，您需要使用个人访问令牌配置GitHub服务器访问。这些令牌应具有<strong>repo</strong>范围权限。"
+    "message": "要使用PR Checklistify，您需要使用个人访问令牌配置GitHub服务器访问。这些令牌应具有<strong>repo</strong>范围权限。如果未设置令牌，则只能使用公共仓库（Public Repository）。"
   },
   "githubTokensConfigured": {
     "message": "GitHub令牌已配置。您可以继续下一步。"
@@ -122,7 +122,7 @@
     "message": "所有文件已通过审核！审核完成。"
   },
   "createGithubToken": {
-    "message": "在GitHub上创建个人访问令牌 →"
+    "message": "在GitHub上创建个人访问令牌"
   },
   "githubApiDomain": {
     "message": "GitHub API域名"
@@ -573,5 +573,197 @@
   },
   "hours": {
     "message": "小时"
+  },
+  "noToken": {
+    "message": "无令牌"
+  },
+  "disabled": {
+    "message": "已禁用"
+  },
+  "serverId": {
+    "message": "服务器ID"
+  },
+  "serverName": {
+    "message": "服务器名称"
+  },
+  "apiUrl": {
+    "message": "API URL"
+  },
+  "webUrl": {
+    "message": "网站 URL"
+  },
+  "serverIdRequired": {
+    "message": "服务器ID是必需的"
+  },
+  "serverIdInvalidFormat": {
+    "message": "服务器ID只能包含字母、数字、点、破折号和下划线"
+  },
+  "serverNameRequired": {
+    "message": "服务器名称是必需的"
+  },
+  "apiUrlRequired": {
+    "message": "API URL是必需的"
+  },
+  "apiUrlInvalidFormat": {
+    "message": "请输入有效的API URL"
+  },
+  "webUrlRequired": {
+    "message": "网站URL是必需的"
+  },
+  "webUrlInvalidFormat": {
+    "message": "请输入有效的网站URL"
+  },
+  "serverUpdatedSuccess": {
+    "message": "服务器更新成功"
+  },
+  "serverAddedSuccess": {
+    "message": "服务器添加成功"
+  },
+  "serverSaveError": {
+    "message": "保存服务器失败"
+  },
+  "editServer": {
+    "message": "编辑服务器"
+  },
+  "addServer": {
+    "message": "添加服务器"
+  },
+  "editServerDescription": {
+    "message": "在下方更新服务器信息"
+  },
+  "addServerDescription": {
+    "message": "添加新的GitHub服务器配置"
+  },
+  "serverIdHelpText": {
+    "message": "唯一标识符（仅限字母、数字、点、破折号、下划线）"
+  },
+  "apiUrlHelpText": {
+    "message": "GitHub API端点（例如：https://api.github.com）"
+  },
+  "webUrlHelpText": {
+    "message": "GitHub网站界面URL（例如：https://github.com）"
+  },
+  "updateServer": {
+    "message": "更新服务器"
+  },
+  "configureToken": {
+    "message": "配置令牌"
+  },
+  "manageToken": {
+    "message": "管理令牌"
+  },
+  "githubServers": {
+    "message": "GitHub服务器"
+  },
+  "noGitHubServers": {
+    "message": "无GitHub服务器"
+  },
+  "noGitHubServersDescription": {
+    "message": "添加您的第一个GitHub服务器以开始PR分析。"
+  },
+  "addFirstServer": {
+    "message": "添加第一个服务器"
+  },
+  "serversConfigured": {
+    "message": "$2个服务器中有$1个已配置令牌"
+  },
+  "serverManagementNotice": {
+    "message": "管理您的GitHub服务器并配置用于PR分析的API令牌。"
+  },
+  "confirmDeleteServer": {
+    "message": "确认删除服务器"
+  },
+  "deleteServerWarning": {
+    "message": "您确定要删除此服务器吗？此操作无法撤销。"
+  },
+  "serverDeletedSuccess": {
+    "message": "服务器删除成功"
+  },
+  "serverDeleteError": {
+    "message": "删除服务器失败"
+  },
+  "tokenConfigurationNotAvailable": {
+    "message": "令牌配置不可用"
+  },
+  "tokenConfiguration": {
+    "message": "令牌配置"
+  },
+  "addServerAboveToConfigureTokens": {
+    "message": "请在上方添加服务器以配置令牌"
+  },
+  "edit": {
+    "message": "编辑"
+  },
+  "delete": {
+    "message": "删除"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "serverNameDuplicate": {
+    "message": "此名称的服务器已存在"
+  },
+  "apiUrlDuplicate": {
+    "message": "此API URL的服务器已存在"
+  },
+  "webUrlDuplicate": {
+    "message": "此网站URL的服务器已存在"
+  },
+  "accessToken": {
+    "message": "访问令牌"
+  },
+  "notConfigured": {
+    "message": "未配置"
+  },
+  "enterGitHubToken": {
+    "message": "输入GitHub令牌"
+  },
+  "tokenCannotBeEmpty": {
+    "message": "令牌不能为空"
+  },
+  "tokenSavedSuccess": {
+    "message": "令牌保存成功"
+  },
+  "tokenSaveError": {
+    "message": "令牌保存失败"
+  },
+  "updateToken": {
+    "message": "更新令牌"
+  },
+  "addToken": {
+    "message": "添加令牌"
+  },
+  "removeToken": {
+    "message": "移除令牌"
+  },
+  "tokenRemovedSuccess": {
+    "message": "令牌移除成功"
+  },
+  "tokenRemoveError": {
+    "message": "令牌移除失败"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub企业服务器"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "用户头像"
+  },
+  "invalidPrInformation": {
+    "message": "无效的PR信息"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "加载LLM服务配置失败"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

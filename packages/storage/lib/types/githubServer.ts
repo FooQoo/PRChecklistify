@@ -12,6 +12,12 @@ export interface GitHubServer {
   webUrl: string;
 }
 
+export type GitHubConfig = {
+  github: {
+    servers: GitHubServer[];
+  };
+};
+
 /**
  * API key storage for a specific server
  */

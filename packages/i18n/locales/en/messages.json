@@ -110,7 +110,7 @@
     "message": "Your GitHub token is stored locally and only used to access PR data."
   },
   "githubSetupDescription": {
-    "message": "To use PR Checklistify, you need to configure GitHub server access with Personal Access Tokens. These tokens should have <strong>repo</strong> scope permissions."
+    "message": "To use PR Checklistify, you need to configure GitHub server access with Personal Access Tokens. These tokens should have <strong>repo</strong> scope permissions. If you do not set a token, you can only use Public Repositories."
   },
   "githubTokensConfigured": {
     "message": "GitHub tokens configured. You can continue to the next step."
@@ -122,13 +122,10 @@
     "message": "All files approved! Review complete."
   },
   "createGithubToken": {
-    "message": "Create a personal access token on GitHub →"
+    "message": "Create a personal access token on GitHub"
   },
   "githubApiDomain": {
     "message": "GitHub API Domain"
-  },
-  "saving": {
-    "message": "Saving..."
   },
   "savedSuccessfully": {
     "message": "Saved successfully"
@@ -269,7 +266,7 @@
     "message": "Get your Gemini API key"
   },
   "getClaudeKey": {
-    "message": "Get your Claude API key →"
+    "message": "Get your Claude API key"
   },
   "claudeIntegration": {
     "message": "Claude Integration"
@@ -582,5 +579,200 @@
   },
   "hours": {
     "message": "hours"
+  },
+  "noToken": {
+    "message": "No Token"
+  },
+  "disabled": {
+    "message": "Disabled"
+  },
+  "serverId": {
+    "message": "Server ID"
+  },
+  "serverName": {
+    "message": "Server Name"
+  },
+  "apiUrl": {
+    "message": "API URL"
+  },
+  "webUrl": {
+    "message": "Web URL"
+  },
+  "serverIdRequired": {
+    "message": "Server ID is required"
+  },
+  "serverIdInvalidFormat": {
+    "message": "Server ID can only contain letters, numbers, dots, dashes, and underscores"
+  },
+  "serverNameRequired": {
+    "message": "Server name is required"
+  },
+  "apiUrlRequired": {
+    "message": "API URL is required"
+  },
+  "apiUrlInvalidFormat": {
+    "message": "Please enter a valid API URL"
+  },
+  "webUrlRequired": {
+    "message": "Web URL is required"
+  },
+  "webUrlInvalidFormat": {
+    "message": "Please enter a valid Web URL"
+  },
+  "serverUpdatedSuccess": {
+    "message": "Server updated successfully"
+  },
+  "serverAddedSuccess": {
+    "message": "Server added successfully"
+  },
+  "serverSaveError": {
+    "message": "Failed to save server"
+  },
+  "editServer": {
+    "message": "Edit Server"
+  },
+  "addServer": {
+    "message": "Add Server"
+  },
+  "editServerDescription": {
+    "message": "Update server information below"
+  },
+  "addServerDescription": {
+    "message": "Add a new GitHub server configuration"
+  },
+  "serverIdHelpText": {
+    "message": "Unique identifier (letters, numbers, dots, dashes, underscores only)"
+  },
+  "apiUrlHelpText": {
+    "message": "GitHub API endpoint (e.g., https://api.github.com)"
+  },
+  "webUrlHelpText": {
+    "message": "GitHub web interface URL (e.g., https://github.com)"
+  },
+  "updateServer": {
+    "message": "Update Server"
+  },
+  "configureToken": {
+    "message": "Configure Token"
+  },
+  "manageToken": {
+    "message": "Manage Token"
+  },
+  "githubServers": {
+    "message": "GitHub Servers"
+  },
+  "noGitHubServers": {
+    "message": "No GitHub Servers"
+  },
+  "noGitHubServersDescription": {
+    "message": "Add your first GitHub server to get started with PR analysis."
+  },
+  "addFirstServer": {
+    "message": "Add First Server"
+  },
+  "serversConfigured": {
+    "message": "$1 of $2 servers configured with tokens"
+  },
+  "serverManagementNotice": {
+    "message": "Manage your GitHub servers and configure API tokens for PR analysis."
+  },
+  "confirmDeleteServer": {
+    "message": "Confirm Delete Server"
+  },
+  "deleteServerWarning": {
+    "message": "Are you sure you want to delete this server? This action cannot be undone."
+  },
+  "serverDeletedSuccess": {
+    "message": "Server deleted successfully"
+  },
+  "serverDeleteError": {
+    "message": "Failed to delete server"
+  },
+  "tokenConfigurationNotAvailable": {
+    "message": "Token configuration not available"
+  },
+  "tokenConfiguration": {
+    "message": "Token Configuration"
+  },
+  "addServerAboveToConfigureTokens": {
+    "message": "Add a server above to configure tokens"
+  },
+  "edit": {
+    "message": "Edit"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "saving": {
+    "message": "Saving..."
+  },
+  "serverNameDuplicate": {
+    "message": "A server with this name already exists"
+  },
+  "apiUrlDuplicate": {
+    "message": "A server with this API URL already exists"
+  },
+  "webUrlDuplicate": {
+    "message": "A server with this Web URL already exists"
+  },
+  "accessToken": {
+    "message": "Access Token"
+  },
+  "notConfigured": {
+    "message": "Not Configured"
+  },
+  "enterGitHubToken": {
+    "message": "Enter GitHub token"
+  },
+  "tokenCannotBeEmpty": {
+    "message": "Token cannot be empty"
+  },
+  "tokenSavedSuccess": {
+    "message": "Token saved successfully"
+  },
+  "tokenSaveError": {
+    "message": "Failed to save token"
+  },
+  "updateToken": {
+    "message": "Update Token"
+  },
+  "addToken": {
+    "message": "Add Token"
+  },
+  "removeToken": {
+    "message": "Remove Token"
+  },
+  "tokenRemovedSuccess": {
+    "message": "Token removed successfully"
+  },
+  "tokenRemoveError": {
+    "message": "Failed to remove token"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub Enterprise Server"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "User Avatar"
+  },
+  "invalidPrInformation": {
+    "message": "Invalid PR information"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "Failed to load LLM service configuration"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

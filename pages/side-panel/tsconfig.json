@@ -6,5 +6,5 @@
       "@src/*": ["src/*"]
     }
   },
-  "include": ["src", "vite.config.mts"]
+  "include": ["src/**/*", "src/vite-env.d.ts", "vite.config.mts"]
 }

@@ -141,7 +141,7 @@ const GitHubPRView = () => {
               </a>
             </h3>
             <div className="flex items-center text-sm mb-1">
-              <img src={prData.user.avatar_url} alt="User Avatar" className="w-6 h-6 rounded-full mr-2" />
+              <img src={prData.user.avatar_url} alt={t('userAvatar')} className="w-6 h-6 rounded-full mr-2" />
               <span>{prData.user.login}</span>
             </div>
             <div className="text-xs text-gray-500 mb-1">

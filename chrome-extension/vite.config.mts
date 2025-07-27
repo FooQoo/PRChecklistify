@@ -26,11 +26,11 @@ export default defineConfig({
     libAssetsPlugin({
       outputPath: outDir,
     }) as PluginOption,
-    watchPublicPlugin(),
-    makeManifestPlugin({ outDir }),
-    IS_DEV && watchRebuildPlugin({ reload: true, id: 'chrome-extension-hmr' }),
-    nodePolyfills(),
-  ],
+    watchPublicPlugin() as PluginOption,
+    makeManifestPlugin({ outDir }) as PluginOption,
+    ...(IS_DEV ? [watchRebuildPlugin({ reload: true, id: 'chrome-extension-hmr' }) as PluginOption] : []),
+    nodePolyfills() as PluginOption,
+  ].filter(Boolean),
   publicDir: resolve(rootDir, 'public'),
   build: {
     lib: {

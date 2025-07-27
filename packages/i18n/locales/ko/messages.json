@@ -94,7 +94,7 @@
     "message": "GitHub 토큰은 로컬에 저장되며 PR 데이터에 액세스하는 데만 사용됩니다."
   },
   "githubSetupDescription": {
-    "message": "PR Checklistify를 사용하려면 개인용 액세스 토큰을 사용하여 GitHub 서버 액세스를 구성해야 합니다. 이러한 토큰에는 <strong>repo</strong> 범위 권한이 있어야 합니다."
+    "message": "PR Checklistify를 사용하려면 개인용 액세스 토큰을 사용하여 GitHub 서버 액세스를 구성해야 합니다. 이러한 토큰에는 <strong>repo</strong> 범위 권한이 있어야 합니다. 토큰을 설정하지 않으면 Public Repository만 사용할 수 있습니다."
   },
   "githubTokensConfigured": {
     "message": "GitHub 토큰이 구성되었습니다. 다음 단계로 계속 진행할 수 있습니다."
@@ -106,7 +106,7 @@
     "message": "모든 파일이 승인되었습니다! 리뷰가 완료되었습니다."
   },
   "createGithubToken": {
-    "message": "GitHub에서 개인 액세스 토큰 만들기 →"
+    "message": "GitHub에서 개인 액세스 토큰 만들기"
   },
   "githubApiDomain": {
     "message": "GitHub API 도메인"
@@ -572,5 +572,197 @@
   },
   "hours": {
     "message": "시간"
+  },
+  "noToken": {
+    "message": "토큰 없음"
+  },
+  "disabled": {
+    "message": "비활성화됨"
+  },
+  "serverId": {
+    "message": "서버 ID"
+  },
+  "serverName": {
+    "message": "서버 이름"
+  },
+  "apiUrl": {
+    "message": "API URL"
+  },
+  "webUrl": {
+    "message": "웹 URL"
+  },
+  "serverIdRequired": {
+    "message": "서버 ID는 필수입니다"
+  },
+  "serverIdInvalidFormat": {
+    "message": "서버 ID는 문자, 숫자, 점, 대시, 밑줄만 포함할 수 있습니다"
+  },
+  "serverNameRequired": {
+    "message": "서버 이름은 필수입니다"
+  },
+  "apiUrlRequired": {
+    "message": "API URL은 필수입니다"
+  },
+  "apiUrlInvalidFormat": {
+    "message": "유효한 API URL을 입력하세요"
+  },
+  "webUrlRequired": {
+    "message": "웹 URL은 필수입니다"
+  },
+  "webUrlInvalidFormat": {
+    "message": "유효한 웹 URL을 입력하세요"
+  },
+  "serverUpdatedSuccess": {
+    "message": "서버가 성공적으로 업데이트되었습니다"
+  },
+  "serverAddedSuccess": {
+    "message": "서버가 성공적으로 추가되었습니다"
+  },
+  "serverSaveError": {
+    "message": "서버 저장에 실패했습니다"
+  },
+  "editServer": {
+    "message": "서버 편집"
+  },
+  "addServer": {
+    "message": "서버 추가"
+  },
+  "editServerDescription": {
+    "message": "아래에서 서버 정보를 업데이트하세요"
+  },
+  "addServerDescription": {
+    "message": "새 GitHub 서버 구성을 추가하세요"
+  },
+  "serverIdHelpText": {
+    "message": "고유 식별자 (문자, 숫자, 점, 대시, 밑줄만)"
+  },
+  "apiUrlHelpText": {
+    "message": "GitHub API 엔드포인트 (예: https://api.github.com)"
+  },
+  "webUrlHelpText": {
+    "message": "GitHub 웹 인터페이스 URL (예: https://github.com)"
+  },
+  "updateServer": {
+    "message": "서버 업데이트"
+  },
+  "configureToken": {
+    "message": "토큰 구성"
+  },
+  "manageToken": {
+    "message": "토큰 관리"
+  },
+  "githubServers": {
+    "message": "GitHub 서버"
+  },
+  "noGitHubServers": {
+    "message": "GitHub 서버 없음"
+  },
+  "noGitHubServersDescription": {
+    "message": "첫 번째 GitHub 서버를 추가하여 PR 분석을 시작하세요."
+  },
+  "addFirstServer": {
+    "message": "첫 번째 서버 추가"
+  },
+  "serversConfigured": {
+    "message": "$2개 서버 중 $1개 서버에 토큰이 구성되었습니다"
+  },
+  "serverManagementNotice": {
+    "message": "GitHub 서버를 관리하고 PR 분석용 API 토큰을 구성하세요."
+  },
+  "confirmDeleteServer": {
+    "message": "서버 삭제 확인"
+  },
+  "deleteServerWarning": {
+    "message": "이 서버를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+  },
+  "serverDeletedSuccess": {
+    "message": "서버가 성공적으로 삭제되었습니다"
+  },
+  "serverDeleteError": {
+    "message": "서버 삭제에 실패했습니다"
+  },
+  "tokenConfigurationNotAvailable": {
+    "message": "토큰 구성을 사용할 수 없습니다"
+  },
+  "tokenConfiguration": {
+    "message": "토큰 구성"
+  },
+  "addServerAboveToConfigureTokens": {
+    "message": "토큰을 구성하려면 위에서 서버를 추가하세요"
+  },
+  "edit": {
+    "message": "편집"
+  },
+  "delete": {
+    "message": "삭제"
+  },
+  "cancel": {
+    "message": "취소"
+  },
+  "serverNameDuplicate": {
+    "message": "이 이름의 서버가 이미 존재합니다"
+  },
+  "apiUrlDuplicate": {
+    "message": "이 API URL의 서버가 이미 존재합니다"
+  },
+  "webUrlDuplicate": {
+    "message": "이 웹 URL의 서버가 이미 존재합니다"
+  },
+  "accessToken": {
+    "message": "액세스 토큰"
+  },
+  "notConfigured": {
+    "message": "설정되지 않음"
+  },
+  "enterGitHubToken": {
+    "message": "GitHub 토큰 입력"
+  },
+  "tokenCannotBeEmpty": {
+    "message": "토큰은 비어있을 수 없습니다"
+  },
+  "tokenSavedSuccess": {
+    "message": "토큰이 성공적으로 저장되었습니다"
+  },
+  "tokenSaveError": {
+    "message": "토큰 저장에 실패했습니다"
+  },
+  "updateToken": {
+    "message": "토큰 업데이트"
+  },
+  "addToken": {
+    "message": "토큰 추가"
+  },
+  "removeToken": {
+    "message": "토큰 삭제"
+  },
+  "tokenRemovedSuccess": {
+    "message": "토큰이 성공적으로 삭제되었습니다"
+  },
+  "tokenRemoveError": {
+    "message": "토큰 삭제에 실패했습니다"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub Enterprise 서버"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "사용자 아바타"
+  },
+  "invalidPrInformation": {
+    "message": "유효하지 않은 PR 정보"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "LLM 서비스 구성 로드에 실패했습니다"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

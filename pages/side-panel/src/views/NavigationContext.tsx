@@ -66,8 +66,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
 
     if (currentPage?.url) {
       const prInfo = extractPRInfo(currentPage.url);
-      if (prInfo && isRegisteredGitHubServer(prInfo.domain)) {
-        router.navigate(`/pr/${prInfo.domain}/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
+      if (prInfo) {
+        isRegisteredGitHubServer(prInfo.domain).then(isRegistered => {
+          if (isRegistered) {
+            router.navigate(`/pr/${prInfo.domain}/${prInfo.owner}/${prInfo.repo}/${prInfo.prNumber}`);
+          }
+        });
       }
     }
   }, [generating, currentPage]);
@@ -110,16 +114,18 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   ]);
 
   // ナビゲーション関数
-  const navigateToPr = (url: string) => {
+  const navigateToPr = async (url: string) => {
     const prInfo = extractPRInfo(url);
     if (!prInfo) return;
     const { domain, owner, repo, prNumber } = prInfo;
-    if (!isRegisteredGitHubServer(domain)) return;
+    const isRegistered = await isRegisteredGitHubServer(domain);
+    if (!isRegistered) return;
     router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
-  const navigateToPrFromHistory = (domain: string, owner: string, repo: string, prNumber: string) => {
-    if (!isRegisteredGitHubServer(domain)) return;
+  const navigateToPrFromHistory = async (domain: string, owner: string, repo: string, prNumber: string) => {
+    const isRegistered = await isRegisteredGitHubServer(domain);
+    if (!isRegistered) return;
     router.navigate(`/pr/${domain}/${owner}/${repo}/${prNumber}`);
   };
 
