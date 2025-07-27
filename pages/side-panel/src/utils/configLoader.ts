@@ -1,5 +1,5 @@
 import type { GitHubServer } from '@extension/storage';
-import { githubTokensStorage } from '@extension/storage';
+import { githubTokensStorage, githubServersStorage } from '@extension/storage';
 import type { LLMProvider } from '../types';
 
 /**
@@ -13,12 +13,21 @@ export function loadGitHubServerConfig(): GitHubServer[] {
 }
 
 /**
+ * Returns GitHub servers including user-added ones
+ */
+export async function getGitHubServers(): Promise<GitHubServer[]> {
+  const builtIn = loadGitHubServerConfig();
+  const stored = await githubServersStorage.get();
+  return [...builtIn, ...stored.servers];
+}
+
+/**
  * Gets combined GitHub server configuration with tokens
  */
 export async function getGitHubServersWithTokens(): Promise<
   Array<GitHubServer & { token?: string; hasToken: boolean }>
 > {
-  const servers = loadGitHubServerConfig();
+  const servers = await getGitHubServers();
   const tokensConfig = await githubTokensStorage.get();
 
   return servers.map(server => {

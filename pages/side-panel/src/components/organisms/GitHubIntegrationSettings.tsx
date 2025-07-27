@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useGithubTokensAtom } from '../../hooks/useGithubTokensAtom';
+import { useGithubServersAtom } from '../../hooks/useGithubServersAtom';
 import { useI18n } from '@extension/i18n';
 import { getGitHubServersWithTokens } from '../../utils/configLoader';
 import type { GitHubServer } from '@extension/storage';
@@ -13,9 +14,17 @@ interface GitHubIntegrationSettingsProps {
 const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ onToast }) => {
   const { t } = useI18n();
   const { setToken, removeToken, isGithubTokensLoaded } = useGithubTokensAtom();
+  const { servers: storedServers, addServer, removeServer: deleteServer } = useGithubServersAtom();
 
   const [servers, setServers] = useState<Array<GitHubServer & { token?: string; hasToken: boolean }>>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newServer, setNewServer] = useState<GitHubServer>({
+    id: 'github-com',
+    name: 'GitHub.com',
+    apiUrl: 'https://api.github.com',
+    webUrl: 'https://github.com',
+  });
 
   // Load servers from external config
   useEffect(() => {
@@ -34,7 +43,7 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
     if (isGithubTokensLoaded) {
       loadServers();
     }
-  }, [isGithubTokensLoaded, onToast, t]);
+  }, [isGithubTokensLoaded, storedServers, onToast, t]);
 
   // Refresh servers when tokens change
   const refreshServers = async () => {
@@ -49,6 +58,17 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
 
   const handleRemoveToken = async (serverId: string) => {
     await removeToken(serverId);
+    await refreshServers();
+  };
+
+  const handleAddServer = async () => {
+    await addServer(newServer);
+    await refreshServers();
+    setShowAdd(false);
+  };
+
+  const handleDeleteServer = async (serverId: string) => {
+    await deleteServer(serverId);
     await refreshServers();
   };
 
@@ -82,16 +102,60 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
         </div>
       ) : (
         <div className="mb-6">
-          <div className="mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <p className="text-sm text-gray-600">
               {t('configureApiTokens')} ({servers.length} available)
             </p>
+            <button
+              type="button"
+              onClick={() => setShowAdd(v => !v)}
+              className="p-1 border rounded text-sm">
+              +
+            </button>
             {servers.every(server => !server.hasToken) && (
               <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">{t('githubTokenNotSetWarning')}</p>
               </div>
             )}
           </div>
+          {showAdd && (
+            <div className="mb-4 space-y-2">
+              <input
+                type="text"
+                className="border p-1 w-full"
+                placeholder="Name"
+                value={newServer.name}
+                onChange={e => setNewServer({ ...newServer, name: e.target.value })}
+              />
+              <input
+                type="text"
+                className="border p-1 w-full"
+                placeholder="ID"
+                value={newServer.id}
+                onChange={e => setNewServer({ ...newServer, id: e.target.value })}
+              />
+              <input
+                type="text"
+                className="border p-1 w-full"
+                placeholder="API URL"
+                value={newServer.apiUrl}
+                onChange={e => setNewServer({ ...newServer, apiUrl: e.target.value })}
+              />
+              <input
+                type="text"
+                className="border p-1 w-full"
+                placeholder="Web URL"
+                value={newServer.webUrl}
+                onChange={e => setNewServer({ ...newServer, webUrl: e.target.value })}
+              />
+              <button
+                type="button"
+                className="px-2 py-1 bg-blue-500 text-white rounded text-sm"
+                onClick={handleAddServer}>
+                {t('save')}
+              </button>
+            </div>
+          )}
 
           <div className="space-y-6">
             {servers.map(server => (
@@ -105,6 +169,12 @@ const GitHubIntegrationSettings: React.FC<GitHubIntegrationSettingsProps> = ({ o
                         </span>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteServer(server.id)}
+                      className="text-xs text-red-500 hover:text-red-700">
+                      {t('remove')}
+                    </button>
                   </div>
                 </div>
 

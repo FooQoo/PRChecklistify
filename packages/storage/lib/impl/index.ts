@@ -7,6 +7,7 @@ export * from './openaiModelStorage.js';
 export * from './geminiModelStorage.js';
 export * from './claudeModelStorage.js';
 export * from './githubTokensStorage.js';
+export * from './githubServersStorage.js';
 export * from './modelClientTypeStorage.js';
 export * from './prDataStorage.js';
 export * from './prChatHistoryStorage.js';

@@ -31,3 +31,11 @@ export interface GitHubTokensConfiguration {
   /** ID of the currently active server */
   activeServerId?: string;
 }
+
+/**
+ * GitHub servers configuration stored locally
+ */
+export interface GitHubServersConfiguration {
+  /** List of additional GitHub servers */
+  servers: GitHubServer[];
+}
