@@ -94,7 +94,7 @@
     "message": "GitHub 토큰은 로컬에 저장되며 PR 데이터에 액세스하는 데만 사용됩니다."
   },
   "githubSetupDescription": {
-    "message": "PR Checklistify를 사용하려면 개인용 액세스 토큰을 사용하여 GitHub 서버 액세스를 구성해야 합니다. 이러한 토큰에는 <strong>repo</strong> 범위 권한이 있어야 합니다."
+    "message": "PR Checklistify를 사용하려면 개인용 액세스 토큰을 사용하여 GitHub 서버 액세스를 구성해야 합니다. 이러한 토큰에는 <strong>repo</strong> 범위 권한이 있어야 합니다. 토큰을 설정하지 않으면 Public Repository만 사용할 수 있습니다."
   },
   "githubTokensConfigured": {
     "message": "GitHub 토큰이 구성되었습니다. 다음 단계로 계속 진행할 수 있습니다."

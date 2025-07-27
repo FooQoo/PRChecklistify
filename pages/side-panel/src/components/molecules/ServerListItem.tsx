@@ -41,13 +41,14 @@ const ServerListItem: React.FC<ServerListItemProps> = ({
     return `${url.substring(0, maxLength - 3)}...`;
   };
 
-  // Generate token creation URL for GitHub.com
+  // サーバーのwebUrlから動的にトークン作成URLを生成
   const getTokenCreationUrl = (): string => {
     const params = new URLSearchParams({
       scopes: 'repo',
       description: 'PR Checklistify',
     });
-    return `https://github.com/settings/tokens/new?${params.toString()}`;
+    const url = new URL(server.webUrl);
+    return `${url.origin}/settings/tokens/new?${params.toString()}`;
   };
 
   return (

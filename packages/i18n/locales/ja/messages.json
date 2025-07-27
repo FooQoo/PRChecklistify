@@ -110,7 +110,7 @@
     "message": "GitHubトークンはローカルに保存され、PRデータへのアクセスにのみ使用されます。"
   },
   "githubSetupDescription": {
-    "message": "PR Checklistifyを使用するには、Personal Access Tokenを使用してGitHubサーバーアクセスを設定する必要があります。これらのトークンには<strong>repo</strong>スコープの権限が必要です。"
+    "message": "PR Checklistifyを使用するには、Personal Access Tokenを使用してGitHubサーバーアクセスを設定する必要があります。これらのトークンには<strong>repo</strong>スコープの権限が必要です。トークンを設定していない場合はPublic Repositoryのみ利用することができます。"
   },
   "githubTokensConfigured": {
     "message": "GitHubトークンが設定されています。次のステップに進むことができます。"

@@ -6,7 +6,6 @@ import { initServersFromConfigIfEmpty } from '@extension/storage/lib/impl/github
 import type { GitHubServer } from '@extension/storage';
 import { githubTokensStorage, githubServersStorage } from '@extension/storage';
 import type { LLMProvider } from '../types';
-import { __GITHUB_CONFIG__, __LLM_CONFIG__ } from '@src/vite-env';
 
 export async function initGitHubServersFromBuildConfigIfEmpty() {
   await initServersFromConfigIfEmpty(__GITHUB_CONFIG__);

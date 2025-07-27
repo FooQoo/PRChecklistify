@@ -110,7 +110,7 @@
     "message": "Your GitHub token is stored locally and only used to access PR data."
   },
   "githubSetupDescription": {
-    "message": "To use PR Checklistify, you need to configure GitHub server access with Personal Access Tokens. These tokens should have <strong>repo</strong> scope permissions."
+    "message": "To use PR Checklistify, you need to configure GitHub server access with Personal Access Tokens. These tokens should have <strong>repo</strong> scope permissions. If you do not set a token, you can only use Public Repositories."
   },
   "githubTokensConfigured": {
     "message": "GitHub tokens configured. You can continue to the next step."

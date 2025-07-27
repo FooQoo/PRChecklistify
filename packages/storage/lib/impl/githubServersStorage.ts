@@ -1,5 +1,4 @@
-import type { GitHubConfig } from '../../types/githubConfig.js';
-import type { GitHubServer } from '../types/githubServer.js';
+import type { GitHubConfig, GitHubServer } from '../types/githubServer.js';
 
 // __GITHUB_CONFIG__相当の値を引数で受け取って初期化する関数
 export async function initServersFromConfigIfEmpty(config?: GitHubConfig) {
