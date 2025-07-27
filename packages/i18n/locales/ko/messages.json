@@ -740,5 +740,29 @@
   },
   "tokenRemoveError": {
     "message": "토큰 삭제에 실패했습니다"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub Enterprise 서버"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "사용자 아바타"
+  },
+  "invalidPrInformation": {
+    "message": "유효하지 않은 PR 정보"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "LLM 서비스 구성 로드에 실패했습니다"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

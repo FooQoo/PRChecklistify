@@ -750,5 +750,29 @@
   },
   "tokenRemoveError": {
     "message": "Failed to remove token"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub Enterprise Server"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "User Avatar"
+  },
+  "invalidPrInformation": {
+    "message": "Invalid PR information"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "Failed to load LLM service configuration"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

@@ -750,5 +750,29 @@
   },
   "tokenRemoveError": {
     "message": "トークンの削除に失敗しました"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub Enterpriseサーバー"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "ユーザーアバター"
+  },
+  "invalidPrInformation": {
+    "message": "無効なPR情報"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "LLMサービス設定の読み込みに失敗しました"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

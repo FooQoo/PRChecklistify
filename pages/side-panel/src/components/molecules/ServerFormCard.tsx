@@ -4,7 +4,8 @@ import type { GitHubServer } from '@extension/storage';
 import { useI18n } from '@extension/i18n';
 import { Button } from '../atoms';
 
-interface ServerFormProps {
+interface ServerFormCardProps {
+  mode: 'create' | 'edit';
   server?: GitHubServer; // undefined for create mode
   existingServers?: GitHubServer[]; // List of existing servers to check for duplicates
   onSave: (server: GitHubServer) => Promise<void>;
@@ -27,7 +28,8 @@ interface FormErrors {
   webUrl?: string;
 }
 
-const ServerForm: React.FC<ServerFormProps> = ({
+const ServerFormCard: React.FC<ServerFormCardProps> = ({
+  mode,
   server,
   existingServers = [],
   onSave,
@@ -36,7 +38,7 @@ const ServerForm: React.FC<ServerFormProps> = ({
   className = '',
 }) => {
   const { t } = useI18n();
-  const isEditMode = !!server;
+  const isEditMode = mode === 'edit';
 
   const [formData, setFormData] = useState<FormData>({
     id: server?.id || '',
@@ -63,15 +65,6 @@ const ServerForm: React.FC<ServerFormProps> = ({
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
 
-    // ID validation (only for create mode)
-    if (!isEditMode) {
-      if (!formData.id.trim()) {
-        newErrors.id = t('serverIdRequired');
-      } else if (!/^[a-zA-Z0-9._-]+$/.test(formData.id)) {
-        newErrors.id = t('serverIdInvalidFormat');
-      }
-    }
-
     // Name validation
     if (!formData.name.trim()) {
       newErrors.name = t('serverNameRequired');
@@ -89,7 +82,7 @@ const ServerForm: React.FC<ServerFormProps> = ({
     if (!formData.apiUrl.trim()) {
       newErrors.apiUrl = t('apiUrlRequired');
     } else if (!isValidUrl(formData.apiUrl)) {
-      newErrors.apiUrl = t('apiUrlInvalidFormat');
+      newErrors.apiUrl = t('invalidUrlFormat');
     } else {
       // Check for duplicate API URLs (exclude current server in edit mode)
       const duplicateApiUrl = existingServers.find(
@@ -104,7 +97,7 @@ const ServerForm: React.FC<ServerFormProps> = ({
     if (!formData.webUrl.trim()) {
       newErrors.webUrl = t('webUrlRequired');
     } else if (!isValidUrl(formData.webUrl)) {
-      newErrors.webUrl = t('webUrlInvalidFormat');
+      newErrors.webUrl = t('invalidUrlFormat');
     } else {
       // Check for duplicate Web URLs (exclude current server in edit mode)
       const duplicateWebUrl = existingServers.find(
@@ -165,8 +158,8 @@ const ServerForm: React.FC<ServerFormProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
@@ -184,114 +177,100 @@ const ServerForm: React.FC<ServerFormProps> = ({
       });
       onToast(isEditMode ? t('serverUpdatedSuccess') : t('serverAddedSuccess'), 'success');
     } catch (error) {
-      const message = error instanceof Error ? error.message : t('serverSaveError');
+      const message = error instanceof Error ? error.message : t('serverDeleteError');
       onToast(message, 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Conditional styling based on mode
+  const containerClasses =
+    mode === 'create'
+      ? `border-2 border-dashed border-blue-300 rounded-lg p-4 bg-blue-50 ${className}`
+      : `bg-white border border-gray-200 rounded-lg p-4 ${className}`;
+
+  const titleColor = mode === 'create' ? 'text-blue-900' : 'text-gray-900';
+
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`}>
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{isEditMode ? t('editServer') : t('addServer')}</h3>
-        <p className="text-sm text-gray-600 mt-1">
-          {isEditMode ? t('editServerDescription') : t('addServerDescription')}
-        </p>
+    <div className={containerClasses}>
+      {/* Header with action buttons */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className={`font-semibold ${titleColor}`}>{isEditMode ? t('editServer') : t('addServer')}</h3>
+        <div className="flex items-center space-x-2">
+          <Button variant="secondary" size="sm" onClick={onCancel} disabled={isSubmitting} className="text-xs">
+            {t('cancel')}
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleSubmit()}
+            disabled={isSubmitting}
+            className="text-xs">
+            {isSubmitting ? t('saving') : isEditMode ? t('updateServer') : t('save')}
+          </Button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Server ID is auto-generated and not displayed in the form */}
-
+      <form onSubmit={handleSubmit} className="space-y-3">
         {/* Server Name */}
         <div>
-          <label htmlFor="server-name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('serverName')} <span className="text-red-500">*</span>
           </label>
           <input
-            id="server-name"
             type="text"
             value={formData.name}
             onChange={e => handleFieldChange('name', e.target.value)}
-            placeholder={t('githubEnterpriseServerPlaceholder')}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm text-sm ${
-              errors.name
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.name ? 'border-red-500' : 'border-gray-300'
             }`}
-            aria-describedby={errors.name ? 'server-name-error' : undefined}
+            placeholder={t('githubEnterpriseServerPlaceholder')}
+            disabled={isSubmitting}
           />
-          {errors.name && (
-            <p id="server-name-error" className="mt-1 text-sm text-red-600">
-              {errors.name}
-            </p>
-          )}
+          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
         </div>
 
         {/* API URL */}
         <div>
-          <label htmlFor="api-url" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('apiUrl')} <span className="text-red-500">*</span>
           </label>
           <input
-            id="api-url"
             type="url"
             value={formData.apiUrl}
             onChange={e => handleFieldChange('apiUrl', e.target.value)}
-            placeholder={t('githubApiUrlPlaceholder')}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm text-sm font-mono ${
-              errors.apiUrl
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono ${
+              errors.apiUrl ? 'border-red-500' : 'border-gray-300'
             }`}
-            aria-describedby={errors.apiUrl ? 'api-url-error' : undefined}
+            placeholder={t('githubApiUrlPlaceholder')}
+            disabled={isSubmitting}
           />
-          {errors.apiUrl && (
-            <p id="api-url-error" className="mt-1 text-sm text-red-600">
-              {errors.apiUrl}
-            </p>
-          )}
+          {errors.apiUrl && <p className="text-red-500 text-xs mt-1">{errors.apiUrl}</p>}
           <p className="mt-1 text-xs text-gray-500">{t('apiUrlHelpText')}</p>
         </div>
 
         {/* Web URL */}
         <div>
-          <label htmlFor="web-url" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('webUrl')} <span className="text-red-500">*</span>
           </label>
           <input
-            id="web-url"
             type="url"
             value={formData.webUrl}
             onChange={e => handleFieldChange('webUrl', e.target.value)}
-            placeholder={t('githubWebUrlPlaceholder')}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm text-sm font-mono ${
-              errors.webUrl
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono ${
+              errors.webUrl ? 'border-red-500' : 'border-gray-300'
             }`}
-            aria-describedby={errors.webUrl ? 'web-url-error' : undefined}
+            placeholder="https://github.company.com"
+            disabled={isSubmitting}
           />
-          {errors.webUrl && (
-            <p id="web-url-error" className="mt-1 text-sm text-red-600">
-              {errors.webUrl}
-            </p>
-          )}
+          {errors.webUrl && <p className="text-red-500 text-xs mt-1">{errors.webUrl}</p>}
           <p className="mt-1 text-xs text-gray-500">{t('webUrlHelpText')}</p>
-        </div>
-
-        {/* Form Actions */}
-        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-          <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>
-            {t('cancel')}
-          </Button>
-          <Button type="submit" variant="primary" disabled={isSubmitting}>
-            {isSubmitting ? t('saving') : isEditMode ? t('updateServer') : t('addServer')}
-          </Button>
         </div>
       </form>
     </div>
   );
 };
 
-export default ServerForm;
+export default ServerFormCard;

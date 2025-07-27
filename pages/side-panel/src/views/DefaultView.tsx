@@ -72,7 +72,7 @@ const DefaultView: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-xl">
-        <h1 className="text-2xl font-bold mb-4 text-center">PR Checklistify</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">{t('prChecklistifyTitle')}</h1>
         <p className="text-sm text-gray-600 mb-6 text-center">{t('enterPrUrlPrompt')}</p>
 
         <div className="mb-6">
@@ -85,7 +85,7 @@ const DefaultView: React.FC = () => {
               id="pr-url"
               value={prUrl}
               onChange={handleUrlChange}
-              placeholder="https://example.com/owner/repo/pull/123"
+              placeholder={t('prUrlPlaceholder')}
               className={`flex-grow px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:z-10 ${
                 prUrl && !isValid ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}

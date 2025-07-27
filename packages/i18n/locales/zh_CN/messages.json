@@ -741,5 +741,29 @@
   },
   "tokenRemoveError": {
     "message": "令牌移除失败"
+  },
+  "githubEnterpriseServerPlaceholder": {
+    "message": "GitHub企业服务器"
+  },
+  "githubApiUrlPlaceholder": {
+    "message": "https://github.company.com/api/v3"
+  },
+  "githubWebUrlPlaceholder": {
+    "message": "https://github.company.com"
+  },
+  "prUrlPlaceholder": {
+    "message": "https://example.com/owner/repo/pull/123"
+  },
+  "userAvatar": {
+    "message": "用户头像"
+  },
+  "invalidPrInformation": {
+    "message": "无效的PR信息"
+  },
+  "failedToLoadLlmServiceConfiguration": {
+    "message": "加载LLM服务配置失败"
+  },
+  "prChecklistifyTitle": {
+    "message": "PR Checklistify"
   }
 }

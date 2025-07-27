@@ -45,7 +45,7 @@ const ServerListItem: React.FC<ServerListItemProps> = ({
   const getTokenCreationUrl = (): string => {
     const params = new URLSearchParams({
       scopes: 'repo',
-      description: 'PR Checklistify',
+      description: t('prChecklistifyTitle'),
     });
     const url = new URL(server.webUrl);
     return `${url.origin}/settings/tokens/new?${params.toString()}`;

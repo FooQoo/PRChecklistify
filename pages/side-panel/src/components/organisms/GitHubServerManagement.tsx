@@ -6,7 +6,7 @@ import { useI18n } from '@extension/i18n';
 import type { GitHubServer } from '@extension/storage';
 import { Button } from '../atoms';
 import ServerListItem from '../molecules/ServerListItem';
-import ServerForm from '../molecules/ServerForm';
+import { ServerFormCard } from '../molecules';
 
 interface GitHubServerManagementProps {
   onToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -94,25 +94,12 @@ const GitHubServerManagement: React.FC<GitHubServerManagementProps> = ({ onToast
     );
   }
 
-  // Show add form
-  if (showAddForm) {
-    return (
-      <div className={className}>
-        <ServerForm
-          existingServers={githubServers || []}
-          onSave={handleAddServer}
-          onCancel={() => setShowAddForm(false)}
-          onToast={onToast}
-        />
-      </div>
-    );
-  }
-
   // Show edit form
   if (editingServer) {
     return (
       <div className={className}>
-        <ServerForm
+        <ServerFormCard
+          mode="edit"
           server={editingServer}
           existingServers={githubServers || []}
           onSave={handleUpdateServer}
@@ -162,16 +149,17 @@ const GitHubServerManagement: React.FC<GitHubServerManagementProps> = ({ onToast
                 onToast={onToast}
               />
             ))}
-          </div>
 
-          {/* Summary info */}
-          <div className="text-xs text-gray-500 space-y-1">
-            <p>
-              {t('serversConfigured')
-                .replace('$1', serversWithTokenStatus.filter(s => s.hasToken).length.toString())
-                .replace('$2', serversWithTokenStatus.length.toString())}
-            </p>
-            <p>{t('serverManagementNotice')}</p>
+            {/* Add server card */}
+            {showAddForm && (
+              <ServerFormCard
+                mode="create"
+                existingServers={githubServers || []}
+                onSave={handleAddServer}
+                onCancel={() => setShowAddForm(false)}
+                onToast={onToast}
+              />
+            )}
           </div>
         </>
       )}
