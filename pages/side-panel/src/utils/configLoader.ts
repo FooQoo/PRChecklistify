@@ -8,7 +8,11 @@ import { githubTokensStorage, githubServersStorage } from '@extension/storage';
 import type { LLMProvider } from '../types';
 
 export async function initGitHubServersFromBuildConfigIfEmpty() {
-  await initServersFromConfigIfEmpty(__GITHUB_CONFIG__);
+  try {
+    await initServersFromConfigIfEmpty(__GITHUB_CONFIG__);
+  } catch (error) {
+    console.warn('Failed to initialize GitHub servers from build config:', error);
+  }
 }
 
 /**

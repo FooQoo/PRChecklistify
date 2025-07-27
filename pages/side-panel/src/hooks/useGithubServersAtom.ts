@@ -2,6 +2,7 @@ import { atom, useAtom } from 'jotai';
 import { githubServersStorage } from '@extension/storage';
 import { useEffect } from 'react';
 import type { GitHubServer } from '@extension/storage';
+import { initGitHubServersFromBuildConfigIfEmpty } from '@src/utils/configLoader';
 
 // jotai atom: 初期値は空配列、ロード時にstorageから取得
 export const githubServersAtom = atom<GitHubServer[]>([]);
@@ -18,6 +19,9 @@ export function useGithubServersAtom() {
 
     const loadServers = async () => {
       try {
+        // Initialize servers from build config if storage is empty
+        await initGitHubServersFromBuildConfigIfEmpty();
+
         // Load the current configuration
         const servers = await githubServersStorage.getAllServers();
         if (mounted) {

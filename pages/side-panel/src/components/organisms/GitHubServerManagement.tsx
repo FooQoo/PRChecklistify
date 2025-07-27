@@ -122,8 +122,8 @@ const GitHubServerManagement: React.FC<GitHubServerManagementProps> = ({ onToast
         </Button>
       </div>
 
-      {/* Empty state */}
-      {serversWithTokenStatus.length === 0 ? (
+      {/* Empty state or Add server form */}
+      {serversWithTokenStatus.length === 0 && !showAddForm ? (
         <div className="text-center py-8 border border-gray-200 rounded-lg bg-gray-50">
           <div className="text-4xl mb-4">🌐</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noGitHubServers')}</h3>
