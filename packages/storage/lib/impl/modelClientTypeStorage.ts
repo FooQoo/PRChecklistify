@@ -8,7 +8,7 @@ export enum ModelClientType {
   Claude = 'claude',
 }
 
-const storage = createStorage<ModelClientType>('modelClientType', ModelClientType.Gemini, {
+const storage = createStorage<ModelClientType>('modelClientType', ModelClientType.OpenAI, {
   storageEnum: StorageEnum.Local,
   liveUpdate: true,
   serialization: {
