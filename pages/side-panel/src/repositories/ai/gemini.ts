@@ -3,7 +3,13 @@ import type { PRData, PRFile, Checklist } from '@src/types';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
-import { geminiApiKeyStorage, geminiModelStorage, type Language } from '@extension/storage';
+import {
+  geminiApiKeyStorage,
+  geminiModelStorage,
+  aiEndpointStorage,
+  ModelClientType,
+  type Language,
+} from '@extension/storage';
 import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT, handleLLMError } from './modelClient';
 import { LLMError } from '@src/errors/LLMError';
 
@@ -96,13 +102,15 @@ class GeminiClient implements ModelClient {
 }
 
 // Create and export Gemini client instance
-export const createGeminiClient = async (endpoint: string): Promise<GeminiClient> => {
+export const createGeminiClient = async (): Promise<GeminiClient> => {
   const apiKey = await geminiApiKeyStorage.get();
   if (!apiKey) {
     throw LLMError.createApiKeyNotFoundError();
   }
 
   const model = await geminiModelStorage.get();
+  const endpoint = await aiEndpointStorage.getEndpoint(ModelClientType.Gemini);
+
   return new GeminiClient({
     apiKey,
     model,

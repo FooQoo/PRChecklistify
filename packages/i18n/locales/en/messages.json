@@ -145,6 +145,66 @@
   "resetToDefault": {
     "message": "Reset to default"
   },
+  "resetToDefaultSuccess": {
+    "message": "Reset to default successfully"
+  },
+  "failedToReset": {
+    "message": "Failed to reset"
+  },
+  "endpointSettings": {
+    "message": "Endpoint Settings"
+  },
+  "apiKeySettings": {
+    "message": "API Key Settings"
+  },
+  "modelSettings": {
+    "message": "Model Settings"
+  },
+  "apiEndpoint": {
+    "message": "API Endpoint"
+  },
+  "openaiApiEndpoint": {
+    "message": "OpenAI API Endpoint"
+  },
+  "geminiApiEndpoint": {
+    "message": "Gemini API Endpoint"
+  },
+  "claudeApiEndpoint": {
+    "message": "Claude API Endpoint"
+  },
+  "endpointDescription": {
+    "message": "Configure the API endpoint for this provider. Use default endpoints or specify custom ones for OpenAI-compatible APIs."
+  },
+  "openaiEndpointDescription": {
+    "message": "OpenAI API endpoint. You can use custom endpoints for OpenAI-compatible APIs."
+  },
+  "geminiEndpointDescription": {
+    "message": "Google Gemini API endpoint. Use the default endpoint unless you have a custom deployment."
+  },
+  "claudeEndpointDescription": {
+    "message": "Anthropic Claude API endpoint. Use the default endpoint unless you have a custom deployment."
+  },
+  "invalidEndpointFormat": {
+    "message": "Invalid endpoint format. Please enter a valid URL."
+  },
+  "endpointSavedSuccess": {
+    "message": "Endpoint saved successfully"
+  },
+  "customEndpointSet": {
+    "message": "Custom endpoint is set"
+  },
+  "defaultEndpointSet": {
+    "message": "Default endpoint is set"
+  },
+  "endpointNotSet": {
+    "message": "Endpoint not set"
+  },
+  "customEndpointWarning": {
+    "message": "You are using a custom endpoint. Make sure it's compatible with the selected provider."
+  },
+  "defaultEndpoint": {
+    "message": "Default endpoint"
+  },
   "apiConfiguration": {
     "message": "API Configuration"
   },
@@ -165,9 +225,6 @@
   },
   "openaiApiKey": {
     "message": "OpenAI API Key"
-  },
-  "openaiApiEndpoint": {
-    "message": "OpenAI API Endpoint"
   },
   "pleaseEnterValidOpenAIKey": {
     "message": "Please enter a valid OpenAI API key"

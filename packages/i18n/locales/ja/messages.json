@@ -148,6 +148,66 @@
   "resetToDefault": {
     "message": "デフォルトにリセット"
   },
+  "resetToDefaultSuccess": {
+    "message": "デフォルトにリセットしました"
+  },
+  "failedToReset": {
+    "message": "リセットに失敗しました"
+  },
+  "endpointSettings": {
+    "message": "エンドポイント設定"
+  },
+  "apiKeySettings": {
+    "message": "APIキー設定"
+  },
+  "modelSettings": {
+    "message": "モデル設定"
+  },
+  "apiEndpoint": {
+    "message": "APIエンドポイント"
+  },
+  "openaiApiEndpoint": {
+    "message": "OpenAI APIエンドポイント"
+  },
+  "geminiApiEndpoint": {
+    "message": "Gemini APIエンドポイント"
+  },
+  "claudeApiEndpoint": {
+    "message": "Claude APIエンドポイント"
+  },
+  "endpointDescription": {
+    "message": "このプロバイダーのAPIエンドポイントを設定します。デフォルトエンドポイントを使用するか、OpenAI互換APIのカスタムエンドポイントを指定できます。"
+  },
+  "openaiEndpointDescription": {
+    "message": "OpenAI APIエンドポイント。OpenAI互換APIのカスタムエンドポイントも使用できます。"
+  },
+  "geminiEndpointDescription": {
+    "message": "Google Gemini APIエンドポイント。カスタムデプロイメントがない限りデフォルトエンドポイントを使用してください。"
+  },
+  "claudeEndpointDescription": {
+    "message": "Anthropic Claude APIエンドポイント。カスタムデプロイメントがない限りデフォルトエンドポイントを使用してください。"
+  },
+  "invalidEndpointFormat": {
+    "message": "無効なエンドポイント形式です。有効なURLを入力してください。"
+  },
+  "endpointSavedSuccess": {
+    "message": "エンドポイントを保存しました"
+  },
+  "customEndpointSet": {
+    "message": "カスタムエンドポイントが設定されています"
+  },
+  "defaultEndpointSet": {
+    "message": "デフォルトエンドポイントが設定されています"
+  },
+  "endpointNotSet": {
+    "message": "エンドポイントが設定されていません"
+  },
+  "customEndpointWarning": {
+    "message": "カスタムエンドポイントを使用しています。選択されたプロバイダーと互換性があることを確認してください。"
+  },
+  "defaultEndpoint": {
+    "message": "デフォルトエンドポイント"
+  },
   "apiConfiguration": {
     "message": "API設定"
   },
@@ -168,9 +228,6 @@
   },
   "openaiApiKey": {
     "message": "OpenAI APIキー"
-  },
-  "openaiApiEndpoint": {
-    "message": "OpenAI APIエンドポイント"
   },
   "pleaseEnterValidOpenAIKey": {
     "message": "有効なOpenAI APIキーを入力してください"

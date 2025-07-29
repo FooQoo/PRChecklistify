@@ -3,7 +3,13 @@ import type { PRData, PRFile, Checklist } from '@src/types';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
-import { claudeApiKeyStorage, claudeModelStorage, type Language } from '@extension/storage';
+import {
+  claudeApiKeyStorage,
+  claudeModelStorage,
+  aiEndpointStorage,
+  ModelClientType,
+  type Language,
+} from '@extension/storage';
 import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT, handleLLMError } from './modelClient';
 import { LLMError } from '@src/errors/LLMError';
 
@@ -97,13 +103,15 @@ class ClaudeClient implements ModelClient {
 }
 
 // Create and export Claude client instance
-export const createClaudeClient = async (endpoint?: string): Promise<ClaudeClient> => {
+export const createClaudeClient = async (): Promise<ClaudeClient> => {
   const apiKey = await claudeApiKeyStorage.get();
   if (!apiKey) {
     throw LLMError.createApiKeyNotFoundError();
   }
 
   const model = await claudeModelStorage.get();
+  const endpoint = await aiEndpointStorage.getEndpoint(ModelClientType.Claude);
+
   return new ClaudeClient({
     apiKey,
     model,

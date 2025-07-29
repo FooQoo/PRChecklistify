@@ -3,7 +3,13 @@ import type { PRData, PRFile, Checklist } from '@src/types';
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText, generateObject } from 'ai';
 import type { ModelClient } from './modelClient';
-import { openaiApiKeyStorage, openaiModelStorage, type Language } from '@extension/storage';
+import {
+  openaiApiKeyStorage,
+  openaiModelStorage,
+  aiEndpointStorage,
+  ModelClientType,
+  type Language,
+} from '@extension/storage';
 import { buildPRAnalysisPrompt, ChecklistSchema, SYSTEM_PROMPT, handleLLMError } from './modelClient';
 import { LLMError } from '@src/errors/LLMError';
 
@@ -95,13 +101,15 @@ class OpenAIClient implements ModelClient {
 }
 
 // Create and export OpenAI client instance
-export const createOpenAIClient = async (endpoint?: string): Promise<OpenAIClient> => {
+export const createOpenAIClient = async (): Promise<OpenAIClient> => {
   const apiKey = await openaiApiKeyStorage.get();
   if (!apiKey) {
     throw LLMError.createApiKeyNotFoundError();
   }
 
   const model = await openaiModelStorage.get();
+  const endpoint = await aiEndpointStorage.getEndpoint(ModelClientType.OpenAI);
+
   return new OpenAIClient({
     apiKey,
     model,

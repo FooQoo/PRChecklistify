@@ -765,5 +765,68 @@
   },
   "prChecklistifyTitle": {
     "message": "PR Checklistify"
+  },
+  "resetToDefaultSuccess": {
+    "message": "已成功重置为默认值"
+  },
+  "failedToReset": {
+    "message": "重置失败"
+  },
+  "endpointSettings": {
+    "message": "端点设置"
+  },
+  "apiKeySettings": {
+    "message": "API 密钥设置"
+  },
+  "modelSettings": {
+    "message": "模型设置"
+  },
+  "apiEndpoint": {
+    "message": "API 端点"
+  },
+  "geminiApiEndpoint": {
+    "message": "Gemini API 端点"
+  },
+  "claudeApiEndpoint": {
+    "message": "Claude API 端点"
+  },
+  "endpointDescription": {
+    "message": "配置此提供商的 API 端点。使用默认端点或为 OpenAI 兼容的 API 指定自定义端点。"
+  },
+  "openaiEndpointDescription": {
+    "message": "OpenAI API 端点。您可以为 OpenAI 兼容的 API 使用自定义端点。"
+  },
+  "geminiEndpointDescription": {
+    "message": "Google Gemini API 端点。除非您有自定义部署，否则请使用默认端点。"
+  },
+  "claudeEndpointDescription": {
+    "message": "Anthropic Claude API 端点。除非您有自定义部署，否则请使用默认端点。"
+  },
+  "invalidEndpointFormat": {
+    "message": "端点格式无效。请输入有效的 URL。"
+  },
+  "endpointSavedSuccess": {
+    "message": "端点保存成功"
+  },
+  "customEndpointSet": {
+    "message": "自定义端点已设置"
+  },
+  "defaultEndpointSet": {
+    "message": "默认端点已设置"
+  },
+  "endpointNotSet": {
+    "message": "端点未设置"
+  },
+  "customEndpointWarning": {
+    "message": "您正在使用自定义端点。请确保它与所选提供商兼容。"
+  },
+  "defaultEndpoint": {
+    "message": "默认端点"
+  },
+  "claudeApiKeyNotSet": {
+    "message": "Claude API 密钥未设置"
+  },
+  "geminiApiKeyNotSet": {
+    "message": "Gemini API 密钥未设置"
   }
 }

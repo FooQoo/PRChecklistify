@@ -1,9 +1,10 @@
 import type React from 'react';
 import { useI18n } from '@extension/i18n';
-import { TextInput } from '@src/components/molecules';
+import { TextInput, EndpointConfiguration } from '@src/components/molecules';
 import ModelSelector from '@src/components/molecules/ModelSelector';
 import { getLLMProviderById } from '@src/utils/configLoader';
-import type { ModelClientType } from '@src/repositories/ai/modelClient';
+import type { ModelClientType } from '@extension/storage';
+import { useAiEndpointAtom } from '@src/hooks/useAiEndpointAtom';
 
 interface ApiKeyConfigurationProps {
   modelClientType: ModelClientType;
@@ -26,6 +27,7 @@ const ApiKeyConfiguration: React.FC<ApiKeyConfigurationProps> = ({
 }) => {
   const { t } = useI18n();
   const currentProvider = getLLMProviderById(modelClientType);
+  const { getEndpoint, isCustomEndpoint, updateEndpoint, resetEndpoint, isAiEndpointLoaded } = useAiEndpointAtom();
 
   // APIキーのマスク表示
   const getMaskedApiKey = (key: string): string => {
@@ -137,36 +139,84 @@ const ApiKeyConfiguration: React.FC<ApiKeyConfigurationProps> = ({
     }
   };
 
+  const currentEndpoint = getEndpoint(modelClientType);
+  const isEndpointCustom = isCustomEndpoint(modelClientType);
+
+  const handleEndpointSave = async (endpoint: string) => {
+    await updateEndpoint(modelClientType, endpoint);
+    if (onToast) onToast(t('endpointSavedSuccess'), 'success');
+  };
+
+  const handleEndpointReset = async () => {
+    await resetEndpoint(modelClientType);
+    if (onToast) onToast(t('resetToDefaultSuccess'), 'success');
+  };
+
+  if (!isAiEndpointLoaded) {
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h3 className="text-lg font-semibold mb-4">{getProviderTitle()}</h3>
-      <TextInput
-        label={getApiKeyLabel()}
-        value={apiKey}
-        placeholder="******"
-        type="password"
-        onSave={async key => {
-          await onApiKeySave(key);
-          if (onToast) onToast(getSuccessMessage(), 'success');
-        }}
-        onRemove={onApiKeyRemove}
-        errorMessage={getErrorMessage()}
-        successMessage={getSuccessMessage()}
-        removeText={t('remove')}
-        saveText={t('save')}
-        savingText={t('saving')}
-        keySetText={getKeySetText()}
-        keyNotSetText={getKeyNotSetText()}
-        getMaskedValue={getMaskedApiKey}
-        onToast={onToast}
-      />
-      <ModelSelector
-        modelClientType={modelClientType}
-        currentModel={currentModel}
-        onModelChange={onModelChange}
-        onToast={onToast}
-        htmlId={`${modelClientType}-model`}
-      />
+
+      {/* API Endpoint Configuration */}
+      <div className="border-l-4 border-blue-500 pl-4">
+        <h4 className="text-md font-medium mb-3">{t('endpointSettings')}</h4>
+        <EndpointConfiguration
+          modelClientType={modelClientType}
+          currentEndpoint={currentEndpoint}
+          isCustom={isEndpointCustom}
+          onEndpointSave={handleEndpointSave}
+          onEndpointReset={handleEndpointReset}
+          onToast={onToast}
+        />
+      </div>
+
+      {/* API Key Configuration */}
+      <div className="border-l-4 border-green-500 pl-4">
+        <h4 className="text-md font-medium mb-3">{t('apiKeySettings')}</h4>
+        <TextInput
+          label={getApiKeyLabel()}
+          value={apiKey}
+          placeholder="******"
+          type="password"
+          onSave={async key => {
+            await onApiKeySave(key);
+            if (onToast) onToast(getSuccessMessage(), 'success');
+          }}
+          onRemove={onApiKeyRemove}
+          errorMessage={getErrorMessage()}
+          successMessage={getSuccessMessage()}
+          removeText={t('remove')}
+          saveText={t('save')}
+          savingText={t('saving')}
+          keySetText={getKeySetText()}
+          keyNotSetText={getKeyNotSetText()}
+          getMaskedValue={getMaskedApiKey}
+          onToast={onToast}
+        />
+      </div>
+
+      {/* Model Configuration */}
+      <div className="border-l-4 border-purple-500 pl-4">
+        <h4 className="text-md font-medium mb-3">{t('modelSettings')}</h4>
+        <ModelSelector
+          modelClientType={modelClientType}
+          currentModel={currentModel}
+          onModelChange={onModelChange}
+          onToast={onToast}
+          htmlId={`${modelClientType}-model`}
+        />
+      </div>
+
       <div className="text-xs text-gray-500">
         <p>
           {getStorageNotice()}

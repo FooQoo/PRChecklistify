@@ -9,10 +9,12 @@ export type TextInputProps = {
   isLoading?: boolean;
   onSave: (value: string) => Promise<void>;
   onRemove?: () => Promise<void>;
+  onReset?: () => Promise<void>;
   validator?: (value: string) => boolean;
   errorMessage?: string;
   successMessage?: string;
   removeText?: string;
+  resetText?: string;
   saveText?: string;
   savingText?: string;
   keySetText?: string;
@@ -29,10 +31,12 @@ const TextInput: React.FC<TextInputProps> = ({
   isLoading = false,
   onSave,
   onRemove,
+  onReset,
   validator,
   errorMessage,
   successMessage,
   removeText,
+  resetText,
   saveText,
   savingText,
   keySetText,
@@ -46,6 +50,7 @@ const TextInput: React.FC<TextInputProps> = ({
   const defaultErrorMessage = errorMessage || t('invalidFormat');
   const defaultSuccessMessage = successMessage || t('savedSuccessfully');
   const defaultRemoveText = removeText || t('remove');
+  const defaultResetText = resetText || t('resetToDefault');
   const defaultSaveText = saveText || t('save');
   const defaultSavingText = savingText || t('saving');
   const defaultKeySetText = keySetText || t('valueIsSet');
@@ -109,6 +114,23 @@ const TextInput: React.FC<TextInputProps> = ({
     }
   };
 
+  const handleReset = async () => {
+    if (!onReset) return;
+
+    try {
+      setInternalLoading(true);
+      await onReset();
+      setInputValue('');
+      setHasUserInput(false);
+      onToast?.(t('resetToDefaultSuccess'), 'success');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      onToast?.(t('failedToReset'), 'error');
+    } finally {
+      setInternalLoading(false);
+    }
+  };
+
   const displayPlaceholder = value ? maskValue(value) : placeholder;
 
   // テキストタイプの場合は保存された値を入力フィールドに表示
@@ -155,16 +177,29 @@ const TextInput: React.FC<TextInputProps> = ({
               {loading ? defaultSavingText : defaultSaveText}
             </button>
           </div>
-          {value && onRemove && (
+          {value && (onRemove || onReset) && (
             <div className="mt-1 flex items-center justify-between">
               <span className="text-xs text-gray-500">{defaultKeySetText}</span>
-              <button
-                type="button"
-                onClick={handleRemove}
-                disabled={loading}
-                className="text-xs text-red-500 hover:text-red-700 disabled:text-gray-400">
-                {defaultRemoveText}
-              </button>
+              <div className="flex space-x-2">
+                {onReset && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    disabled={loading}
+                    className="text-xs text-blue-500 hover:text-blue-700 disabled:text-gray-400">
+                    {defaultResetText}
+                  </button>
+                )}
+                {onRemove && (
+                  <button
+                    type="button"
+                    onClick={handleRemove}
+                    disabled={loading}
+                    className="text-xs text-red-500 hover:text-red-700 disabled:text-gray-400">
+                    {defaultRemoveText}
+                  </button>
+                )}
+              </div>
             </div>
           )}
           {!value && (

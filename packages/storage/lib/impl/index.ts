@@ -11,3 +11,4 @@ export * from './githubServersStorage.js';
 export * from './modelClientTypeStorage.js';
 export * from './prDataStorage.js';
 export * from './prChatHistoryStorage.js';
+export * from './aiEndpointStorage.js';

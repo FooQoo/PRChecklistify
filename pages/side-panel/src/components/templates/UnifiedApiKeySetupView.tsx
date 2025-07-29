@@ -11,7 +11,7 @@ import { Button, CenteredCard } from '@src/components/atoms';
 import { ApiProviderSelector } from '@src/components/molecules';
 import { ApiKeyConfiguration } from '@src/components/organisms';
 
-import type { ModelClientType } from '@src/repositories/ai/modelClient';
+import type { ModelClientType } from '@extension/storage';
 import { useNavigation } from '@src/views/NavigationContext';
 
 interface UnifiedApiKeySetupViewProps {
