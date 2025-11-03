@@ -54,7 +54,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/chrome": "0.0.304",
     "@types/eslint-plugin-jsx-a11y": "^6.10.0",
-    "@types/eslint__eslintrc": "^2.1.2",
+    "@types/eslint__eslintrc": "^3.3.0",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^22.5.5",
     "@types/react": "^19.0.8",
